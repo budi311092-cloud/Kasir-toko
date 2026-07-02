@@ -140,10 +140,13 @@
 
         <div>
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Cloud & Refund</h2>
-                    <button onclick="hapusSemuaLaporan()" style="background: none; border: none; color: #dc2626; font-size: 11px; cursor: pointer; text-decoration: underline;">Bersihkan Laporan</button>
-                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+    <h2>📊 Laporan Cloud & Refund</h2>
+    <div style="display: flex; gap: 8px;">
+        <button onclick="migrasiDataLama()" style="background: #eab308; color: #111827; border: none; padding: 4px 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px;">📦 Ambil Transaksi Kemarin</button>
+        <button onclick="hapusSemuaLaporan()" style="background: none; border: none; color: #dc2626; font-size: 11px; cursor: pointer; text-decoration: underline;">Bersihkan Laporan</button>
+    </div>
+</div>
                 <div class="grid-laporan">
                     <div class="box-laporan box-omset">
                         <p style="font-size: 11px; uppercase">Total Omset</p>
