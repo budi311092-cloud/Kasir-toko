@@ -608,6 +608,37 @@
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
             renderProduk(filtered);
         });
+        window.migrasiDataLama = function() {
+    const dataLokalLama = JSON.parse(localStorage.getItem('pos_v6_laporan')) || [];
+    
+    if (dataLokalLama.length === 0) {
+        alert("Tidak ada data transaksi lama ditemukan di browser HP ini.");
+        return;
+    }
+    
+    if (confirm(`Ditemukan ${dataLokalLama.length} transaksi kemarin di HP ini. Pindahkan semua ke Cloud Firebase?`)) {
+        dataLokalLama.forEach(lap => {
+            // Jika data lama belum punya ID unik transaksi, buatkan baru
+            const idTrx = lap.idTransaksi || "TRX-LAMA-" + Math.floor(Math.random() * 1000000);
+            
+            // Upload ke Firebase
+            set(ref(db, 'pos_laporan/' + idTrx), {
+                idTransaksi: idTrx,
+                idBarang: lap.idBarang || Date.now(),
+                waktu: lap.waktu,
+                nama: lap.nama,
+                qty: lap.qty,
+                tipe: lap.tipe || "ECER",
+                hargaJual: lap.hargaJual,
+                subtotalHpp: lap.subtotalHpp || 0,
+                subtotalJual: lap.subtotalJual,
+                status: lap.status || "TERJUAL"
+            });
+        });
+        
+        alert("Pemberitahuan: Semua data transaksi kemarin berhasil diunggah ke Cloud Firebase!");
+    }
+        }
     </script>
 </body>
 </html>
