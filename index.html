@@ -227,7 +227,9 @@
         <center><p>Terima Kasih</p></center>
     </div>
 
-    <script type="module">
+    </div>
+     </div>
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -242,8 +244,11 @@
             measurementId: "G-V6R21M8X0D"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        
+        // PERBAIKAN UTAMA: Memasukkan konfigurasi databaseURL langsung ke getDatabase
+        const db = getDatabase(app, firebaseConfig.databaseURL);
 
         let produkData = [];
         let laporanTerjual = [];
@@ -259,6 +264,8 @@
             produkData = data ? Object.values(data) : [];
             renderProduk();
             if (modeSekarang === "admin") renderAdminTable();
+        }, (error) => {
+            console.error("Gagal memuat produk:", error);
         });
 
         onValue(ref(db, 'pos_laporan'), (snapshot) => {
@@ -268,6 +275,8 @@
                 hitungLaporanDashboard();
                 renderRiwayatTransaksi();
             }
+        }, (error) => {
+            console.error("Gagal memuat laporan:", error);
         });
 
         window.renderProduk = function(produkToDisplay = produkData) {
@@ -318,4 +327,271 @@
             const item = keranjang.find(item => item.id === id);
             const produkMaster = produkData.find(p => p.id === id);
             if (item) {
-                if (delta > 0 && item.qty >= produkMaster.stok) return alert("Jumlah mele
+                if (delta > 0 && item.qty >= produkMaster.stok) return alert("Jumlah melebihi sisa stok!");
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    keranjang = keranjang.filter(i => i.id !== id);
+                }
+                updateKeranjang();
+            }
+        }
+
+        window.updateKeranjang = function() {
+            const list = document.getElementById('listKeranjang');
+            list.innerHTML = '';
+            let total = 0;
+
+            keranjang.forEach(item => {
+                const hargaPilihan = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
+                const subtotal = hargaPilihan * item.qty;
+                total += subtotal;
+
+                list.innerHTML += `
+                    <div class="item-keranjang">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="font-size:13px; font-weight:bold;">${item.nama}</span>
+                            <span style="font-size:13px; color:#60a5fa; font-weight:bold;">${formatRupiah(subtotal)}</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; align-items:center;">
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-harga ${item.tipeHarga==='ecer'?'active-ecer':'inactive'}" onclick="ubahTipeHargaManual(${item.id}, 'ecer')">Ecer</button>
+                                <button class="btn-harga ${item.tipeHarga==='grosir'?'active-grosir':'inactive'}" onclick="ubahTipeHargaManual(${item.id}, 'grosir')">Grosir</button>
+                            </div>
+                            <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+                                <button class="btn-qty" onclick="ubahQty(${item.id}, -1)">-</button>
+                                <span style="font-size:13px; font-weight:bold; width:20px; text-align:center;">${item.qty}</span>
+                                <button class="btn-qty plus" onclick="ubahQty(${item.id}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('totalAkhir').innerText = formatRupiah(total);
+            hitungKembalian();
+        }
+
+        window.hitungKembalian = function() {
+            const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
+            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
+            const kembalian = bayar - total;
+            document.getElementById('uangKembalian').innerText = kembalian >= 0 ? formatRupiah(kembalian) : "Rp 0";
+        }
+
+        window.kosongkanKeranjang = function() {
+            keranjang = [];
+            updateKeranjang();
+        }
+
+        window.pencarianProduk = function() {
+            const keyword = document.getElementById('cariProduk').value.toLowerCase();
+            const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
+            renderProduk(filtered);
+        }
+
+        window.pindahMode = function() {
+            const btn = document.getElementById('btnMode');
+            const kasir = document.getElementById('areaKasir');
+            const admin = document.getElementById('areaAdmin');
+
+            if (modeSekarang === "kasir") {
+                modeSekarang = "admin";
+                btn.innerText = "🛒 Kembali ke Kasir";
+                kasir.classList.add('hidden');
+                admin.classList.remove('hidden');
+                renderAdminTable();
+                hitungLaporanDashboard();
+            } else {
+                modeSekarang = "kasir";
+                btn.innerText = "⚙️ Kelola Produk & Laporan";
+                admin.classList.add('hidden');
+                kasir.classList.remove('hidden');
+                renderProduk();
+            }
+        }
+
+        window.simpanProduk = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value || Date.now();
+            const nama = document.getElementById('inputNama').value;
+            const hpp = parseInt(document.getElementById('inputHpp').value);
+            const stok = parseInt(document.getElementById('inputStok').value);
+            const hargaEcer = parseInt(document.getElementById('inputHargaEcer').value);
+            const hargaGrosir = parseInt(document.getElementById('inputHargaGrosir').value);
+
+            set(ref(db, 'pos_produk/' + id), { id: parseInt(id), nama, hpp, stok, hargaEcer, hargaGrosir })
+            .then(() => {
+                resetFormAdmin();
+                alert("Data barang berhasil disimpan ke Cloud!");
+            });
+        }
+
+        window.resetFormAdmin = function() {
+            document.getElementById('formProduk').reset();
+            document.getElementById('editId').value = '';
+        }
+
+        window.renderAdminTable = function() {
+            const tbody = document.getElementById('tabelAdmin');
+            tbody.innerHTML = '';
+            produkData.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.nama}</strong></td>
+                        <td>${formatRupiah(p.hpp)}</td>
+                        <td>${formatRupiah(p.hargaEcer)}</td>
+                        <td>${formatRupiah(p.hargaGrosir)}</td>
+                        <td><span style="font-weight:bold; color:${p.stok<=5?'#f87171':'#34d399'}">${p.stok}</span></td>
+                        <td style="text-align:center;">
+                            <button onclick="editProduk(${p.id})" style="background:#2563eb; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; margin-right:4px;">Edit</button>
+                            <button onclick="hapusProduk(${p.id})" style="background:#dc2626; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.editProduk = function(id) {
+            const p = produkData.find(item => item.id === id);
+            if (p) {
+                document.getElementById('editId').value = p.id;
+                document.getElementById('inputNama').value = p.nama;
+                document.getElementById('inputHpp').value = p.hpp;
+                document.getElementById('inputStok').value = p.stok;
+                document.getElementById('inputHargaEcer').value = p.hargaEcer;
+                document.getElementById('inputHargaGrosir').value = p.hargaGrosir;
+            }
+        }
+
+        window.hapusProduk = function(id) {
+            if (confirm("Hapus produk ini dari database Cloud?")) {
+                remove(ref(db, 'pos_produk/' + id));
+            }
+        }
+
+        window.prosesTransaksi = function() {
+            if (keranjang.length === 0) return alert("Keranjang belanja kosong!");
+            const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
+            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
+            if (bayar < total) return alert("Uang diterima kurang!");
+
+            const waktu = new Date().toISOString();
+            const strukWaktuStr = new Date().toLocaleString('id-ID');
+
+            document.getElementById('strukWaktu').innerText = strukWaktuStr;
+            const strukItemDiv = document.getElementById('strukItem');
+            strukItemDiv.innerHTML = '';
+
+            keranjang.forEach(item => {
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
+                const subtotal = harga * item.qty;
+
+                strukItemDiv.innerHTML += `
+                    <div style="display:flex; justify-content:space-between;"><span>${item.nama}</span><span>${item.qty}x</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#4b5563;"><span>@ ${formatRupiah(harga)}</span><span>${formatRupiah(subtotal)}</span></div>
+                `;
+
+                // Update Stok Master ke Firebase
+                const itemMaster = produkData.find(p => p.id === item.id);
+                if (itemMaster) {
+                    set(ref(db, 'pos_produk/' + item.id + '/stok'), itemMaster.stok - item.qty);
+                }
+
+                // Simpan Riwayat Penjualan per item ke Cloud
+                const lapId = Date.now() + "_" + Math.floor(Math.random() * 1000);
+                set(ref(db, 'pos_laporan/' + lapId), {
+                    id: lapId,
+                    waktu: waktu,
+                    nama: item.nama,
+                    qty: item.qty,
+                    tipe: item.tipeHarga,
+                    hargaJual: harga,
+                    subModal: item.hpp * item.qty,
+                    subJual: subtotal,
+                    refunded: false
+                });
+            });
+
+            document.getElementById('strukTotal').innerText = formatRupiah(total);
+            document.getElementById('strukBayar').innerText = formatRupiah(bayar);
+            document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
+
+            window.print();
+            kosongkanKeranjang();
+            document.getElementById('uangDiterima').value = '';
+        }
+
+        window.hitungLaporanDashboard = function() {
+            const filter = document.getElementById('filterTanggal').value;
+            const sekarang = new Date();
+            
+            let omset = 0;
+            let modal = 0;
+
+            laporanTerjual.forEach(l => {
+                if (l.refunded) return;
+                const tglLap = new Date(l.waktu);
+                let lolosFilter = false;
+
+                if (filter === "semua") lolosFilter = true;
+                else if (filter === "hari" && tglLap.toDateString() === Thermal.toDateString()) lolosFilter = true; // diperbaiki agar stabil
+                else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
+                else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
+                else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+                else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+
+                if (lolosFilter) {
+                    omset += l.subJual;
+                    modal += l.subModal;
+                }
+            });
+
+            document.getElementById('lapOmset').innerText = formatRupiah(omset);
+            document.getElementById('lapModal').innerText = formatRupiah(modal);
+            document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
+        }
+
+        window.renderRiwayatTransaksi = function() {
+            const tbody = document.getElementById('tabelTerjual');
+            tbody.innerHTML = '';
+            
+            const sortedLaporan = [...laporanTerjual].sort((a,b) => new Date(b.waktu) - new Date(a.waktu));
+
+            sortedLaporan.forEach(l => {
+                const tglStr = new Date(l.waktu).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                tbody.innerHTML += `
+                    <tr class="${l.refunded ? 'tr-refunded' : ''}">
+                        <td>${tglStr}</td>
+                        <td>${l.nama} ${l.refunded ? '<span class="badge-refund">REFUNDED</span>':''}</td>
+                        <td>${l.qty}</td>
+                        <td><span style="text-transform:capitalize;">${l.tipe}</span></td>
+                        <td>${formatRupiah(l.hargaJual)}</td>
+                        <td>${formatRupiah(l.subModal)}</td>
+                        <td>${formatRupiah(l.subJual)}</td>
+                        <td style="text-align:center;">
+                            ${l.refunded ? '-' : `<button onclick="refundTransaksi('${l.id}')" class="btn-refund">Refund</button>`}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.refundTransaksi = function(id) {
+            if (confirm("Apakah Anda yakin ingin me-refund item transaksi ini? Sisa stok barang akan dikembalikan.")) {
+                const transaksi = laporanTerjual.find(l => l.id === id);
+                if (transaksi) {
+                    const produkMaster = produkData.find(p => p.nama === transaksi.nama);
+                    if (produkMaster) {
+                        set(ref(db, 'pos_produk/' + produkMaster.id + '/stok'), produkMaster.stok + transaksi.qty);
+                    }
+                    set(ref(db, 'pos_laporan/' + id + '/refunded'), true);
+                }
+            }
+        }
+
+        window.hapusSemuaLaporan = function() {
+            if (confirm("Hapus semua data riwayat laporan penjualan di Cloud permanen?")) {
+                remove(ref(db, 'pos_laporan'));
+            }
+        }
+    </script>
