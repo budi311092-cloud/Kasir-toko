@@ -55,7 +55,27 @@
 
         .loading-text { font-size: 13px; color: #9ca3af; text-align: center; padding: 20px; font-style: italic; }
 
-        @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
+         @media print {
+    /* Sembunyikan semua elemen utama aplikasi */
+    header, #areaKasir, #areaAdmin, .btn-mode { 
+        display: none !important; 
+    }
+    /* Tampilkan area struk secara mutlak */
+    #areaStruk { 
+        display: block !important;
+        visibility: visible !important;
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    #areaStruk * { 
+        visibility: visible !important; 
+    }
+}
+
     </style>
 </head>
 <body>
@@ -513,11 +533,14 @@
             document.getElementById('strukBayar').innerText = formatRupiah(bayar);
             document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
 
+                        // Memberikan jeda 800ms agar HTML struk terisi sempurna di layar sebelum diprint
             setTimeout(() => {
                 window.print();
-                kosongkanKeranjang();
-                document.getElementById('uangDiterima').value = '';
-            }, 300);
+                setTimeout(() => {
+                    kosongkanKeranjang();
+                    document.getElementById('uangDiterima').value = '';
+                }, 500); // Reset keranjang setelah dialog print selesai ditutup
+            }, 800);
         }
 
         window.hitungLaporanDashboard = function() {
