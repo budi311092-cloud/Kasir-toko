@@ -69,7 +69,7 @@
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan</h2>
-                <input type="text" id="cariProduk" placeholder="Cari produk..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;">
+                <input type="text" id="cariProduk" placeholder="Cari produk..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
             </div>
             <div id="gridProduk" class="grid-produk"><p class="loading-text">Menghubungkan ke Cloud database...</p></div>
         </div>
@@ -229,7 +229,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
@@ -264,7 +264,10 @@
         onValue(ref(db, 'pos_laporan'), (snapshot) => {
             const data = snapshot.val();
             laporanTerjual = data ? Object.values(data) : [];
-            if (modeSekarang === "admin") hitungLaporanDashboard();
+            if (modeSekarang === "admin") {
+                hitungLaporanDashboard();
+                renderRiwayatTransaksi();
+            }
         });
 
         window.renderProduk = function(produkToDisplay = produkData) {
@@ -315,6 +318,4 @@
             const item = keranjang.find(item => item.id === id);
             const produkMaster = produkData.find(p => p.id === id);
             if (item) {
-                if (delta > 0 && item.qty >= produkMaster.stok) return alert("Jumlah melebihi sisa stok!");
-                item.qty += delta;
-                if (item.qty <= 0) keranjang = keranjang
+                if (delta > 0 && item.qty >= produkMaster.stok) return alert("Jumlah mele
