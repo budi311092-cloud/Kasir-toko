@@ -146,7 +146,9 @@
                             <option value="hari">Hari Ini</option>
                             <option value="minggu">7 Hari Terakhir</option>
                             <option value="bulan">Bulan Ini</option>
+                            <option value="bulan_lalu">Bulan Kemarin</option>
                             <option value="tahun">Tahun Ini</option>
+                            <option value="tahun_lalu">Tahun Kemarin</option>
                             <option value="semua">Semua Waktu</option>
                         </select>
                         <button onclick="hapusSemuaLaporan()" style="background: none; border: none; color: #f87171; font-size: 11px; cursor: pointer; text-decoration: underline;">Bersihkan Laporan</button>
@@ -245,8 +247,7 @@
         let keranjang = [];
         let modeSekarang = "kasir";
         
-        // PENGATURAN PASSWORD ADMIN (Silakan ganti sesuai kebutuhan Anda)
-        const PIN_ADMIN = "2304"; 
+        const PIN_ADMIN = "1234"; 
 
         window.formatRupiah = function(angka) {
             return "Rp " + parseInt(angka).toLocaleString('id-ID');
@@ -312,7 +313,6 @@
 
         window.ubahTipeHargaManual = function(id, tipe) {
             const item = keranjang.find(item => item.id === id);
-            if (item) { item.tipeHarga = tipe; updateKeranjang(); }
         }
 
         window.ubahQty = function(id, delta) {
@@ -351,7 +351,6 @@
             const list = document.getElementById('listKeranjang');
             let total = 0;
             
-            // Simpan posisi scroll agar input manual tidak terganggu re-render
             const scrollPos = list.scrollTop;
             list.innerHTML = '';
 
@@ -555,8 +554,6 @@
             
             let omset = 0;
             let modal = 0;
-            
-            // Map untuk mengelompokkan data terjual berdasarkan Nama Barang
             let resumeProdukTerjual = {};
 
             laporanTerjual.forEach(l => {
@@ -569,12 +566,22 @@
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+                
+                // LOGIKA BARU: Filter Bulan Kemarin & Tahun Kemarin
+                else if (filter === "bulan_lalu") {
+                    let targetBulan = sekarang.getMonth() - 1;
+                    let targetTahun = sekarang.getFullYear();
+                    if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
+                    if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
+                }
+                else if (filter === "tahun_lalu" && tglLap.getFullYear() === (sekarang.getFullYear() - 1)) {
+                    lolosFilter = true;
+                }
 
                 if (lolosFilter) {
                     omset += l.subJual;
                     modal += l.subModal;
 
-                    // Mengelompokkan total penjualan per jenis barang
                     if (!resumeProdukTerjual[l.nama]) {
                         resumeProdukTerjual[l.nama] = { qty: 0, omset: 0, modal: 0 };
                     }
@@ -588,7 +595,6 @@
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
 
-            // Render Ringkasan Tabel Terjual Kolektif
             const tbody = document.getElementById('tabelTerjual');
             tbody.innerHTML = '';
             
