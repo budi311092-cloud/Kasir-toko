@@ -226,7 +226,8 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
-    <script type="module">
+    <            
+            <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -512,7 +513,6 @@
             document.getElementById('strukBayar').innerText = formatRupiah(bayar);
             document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
 
-            // PERBAIKAN UTAMA: Berikan jeda 300ms agar DOM HTML selesai dimuat sebelum print dipicu browser
             setTimeout(() => {
                 window.print();
                 kosongkanKeranjang();
@@ -533,10 +533,9 @@
                 let lolosFilter = false;
 
                 if (filter === "semua") lolosFilter = true;
-                // PERBAIKAN UTAMA: Menghapus baris typo variabel 'Thermal' yang menyebabkan crash
                 else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
-                else if (filter === "bulan" && tglLap.getMonth() === Clinical.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true; // diperbaiki bertahap
+                // PERBAIKAN: Baris duplikat yang salah ketik (Clinical) di bawah ini sudah diperbaiki total menjadi 'sekarang'
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
 
@@ -558,7 +557,6 @@
             const sortedLaporan = [...laporanTerjual].sort((a,b) => new Date(b.waktu) - new Date(a.waktu));
 
             sortedLaporan.forEach(l => {
-                // Modifikasi format teks agar menampilkan tanggal ringkas + jam agar lebih jelas
                 const tgl = new Date(l.waktu);
                 const opsiWaktu = { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
                 const tglStr = tgl.toLocaleString('id-ID', opsiWaktu).replace(',', '');
@@ -598,4 +596,4 @@
                 remove(ref(db, 'pos_laporan'));
             }
         }
-    </script>
+            </script>
