@@ -3,38 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.0 (Cloud Realtime Sync)</title>
+    <title>MAHAKARYA POS v7.6 (Cloud Sync + Jam Transaksi)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: #f3f4f6; color: #1f2937; min-height: 100vh; display: flex; flex-direction: column; }
-        header { background-color: #2563eb; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
+        header { background-color: #1f2937; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #374151; }
         .btn-mode { background-color: #eab308; color: #111827; border: none; padding: 10px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; }
         .main-container { flex: 1; padding: 15px; display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; }
         @media (min-width: 1024px) { .main-container { grid-template-columns: 2fr 1fr; } }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; margin-bottom: 15px; }
+        .card { background: #1f2937; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #374151; margin-bottom: 15px; }
         .hidden { display: none !important; }
         .grid-produk { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 55vh; overflow-y: auto; padding-right: 5px; }
         @media (min-width: 640px) { .grid-produk { grid-template-columns: repeat(3, 1fr); } }
-        .item-produk { border: 1px solid #e5e7eb; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; background: white; position: relative; }
-        .item-produk:hover { border-color: #2563eb; }
-        .badge { background: #dbeafe; color: #1e40af; font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: bold; width: fit-content; }
+        .item-produk { border: 1px solid #4b5563; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; background: #374151; position: relative; color: white; }
+        .item-produk:hover { border-color: #3b82f6; }
+        .badge { background: #1e3a8a; color: #93c5fd; font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: bold; width: fit-content; }
         .badge-stok { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: bold; }
-        .stok-aman { color: #16a34a; }
-        .stok-habis { color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
-        .item-keranjang { background: #f9fafb; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px; }
-        .btn-qty { width: 24px; height: 24px; background: #e5e7eb; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .stok-aman { color: #34d399; }
+        .stok-habis { color: #f87171; background: #7f1d1d; padding: 2px 6px; border-radius: 4px; }
+        .item-keranjang { background: #374151; padding: 10px; border-radius: 8px; border: 1px solid #4b5563; margin-bottom: 8px; }
+        .btn-qty { width: 24px; height: 24px; background: #4b5563; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .btn-qty.plus { background: #2563eb; color: white; }
         .btn-harga { width: 100%; padding: 6px; border: none; font-weight: bold; font-size: 11px; border-radius: 4px; cursor: pointer; }
         .btn-harga.active-ecer { background: #2563eb; color: white; }
-        .btn-harga.active-grosir { background: #16a34a; color: white; }
-        .btn-harga.inactive { background: #e5e7eb; color: #4b5563; }
-        .input-text { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; margin-top: 4px; margin-bottom: 12px; font-size: 14px; }
+        .btn-harga.active-grosir { background: #10b981; color: white; }
+        .btn-harga.inactive { background: #4b5563; color: #d1d5db; }
+        .input-text { width: 100%; padding: 8px 12px; border: 1px solid #4b5563; background: #374151; color: white; border-radius: 6px; margin-top: 4px; margin-bottom: 12px; font-size: 14px; }
+        .select-custom { padding: 6px 12px; background: #374151; color: white; border: 1px solid #4b5563; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-proses { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
         /* Layout Admin */
         .admin-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; padding: 15px; max-width: 1400px; margin: 0 auto; }
         @media (min-width: 1024px) { .admin-layout { grid-template-columns: 1fr 2fr; } }
         
+        /* Dashboard Laporan */
+        .grid-laporan { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 20px; }
+        @media (min-width: 640px) { .grid-laporan { grid-template-columns: repeat(3, 1fr); } }
+        .box-laporan { padding: 15px; border-radius: 8px; color: white; }
+        .box-omset { background-color: #1e3a8a; border: 1px solid #3b82f6; }
+        .box-modal { background-color: #1f2937; border: 1px solid #4b5563; }
+        .box-laba { background-color: #064e3b; border: 1px solid #10b981; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #e5e7eb; }
+        th, td { padding: 10px; border-bottom: 1px solid #374151; }
+        th { background: #374151; color: #9ca3af; }
+        
+        .btn-refund { background-color: #dc2626; color: white; border: none; padding: 4px 8px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .btn-refund:hover { background-color: #b91c1c; }
+        .tr-refunded { background-color: #7f1d1d; color: #9ca3af; text-decoration: line-through; }
+        .badge-refund { background-color: #dc2626; color: white; font-size: 9px; padding: 1px 4px; border-radius: 3px; text-decoration: none !important; display: inline-block; }
+
+        .loading-text { font-size: 13px; color: #9ca3af; text-align: center; padding: 20px; font-style: italic; }
+
+        @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.6 🌐</h1>
+        <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan</button>
+    </header>
+
+    <div id="areaKasir" class="main-container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan</h2>
+                <input type="text" id="cariProduk" placeholder="Cari produk..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;">
+            </div>
+            <div id="gridProduk" class="grid-produk"><p class="loading-text">Menghubungkan ke Cloud database...</p></div>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; height: fit-content;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #374151; padding-bottom: 8px;">
+                    <h2 style="font-size: 15px; font-weight: bold;">Keranjang Belanja</h2>
+                    <button onclick="kosongkanKeranjang()" style="background: none; border: none; color: #f87171; font-size: 11px; cursor: pointer; text-decoration: underline;">Reset</button>
+                </div>
+                <div id="listKeranjang" style="max-height: 35vh; overflow-y: auto;"></div>
+            </div>
+
+            <div style="border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-bottom: 15px;">
+                    <span>Total Akhir:</span>
+                    <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
+                </div>
+                <div>
+                    <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
+                    <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
+                </div>
+                <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px;">
+                    <span style="color: #9ca3af;">Kembalian:</span>
+                    <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
+                </div>
+                <button onclick="prosesTransaksi()" class="btn-proses">Proses & Cetak Struk</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="areaAdmin" class="admin-layout hidden">
+        <div class="card" style="height: fit-content;">
+            <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom: 15px;">➕ Manajemen Data Barang</h2>
+            <form id="formProduk" onsubmit="simpanProduk(event)">
+                <input type="hidden" id="editId">
+                
+                <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
+                <input type="text" id="inputNama" required placeholder="Contoh: Gula Pasir 1kg" class="input-text">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Modal / COGS (Rp)</label>
+                        <input type="number" id="inputHpp" required placeholder="Harga beli awal" class="input-text">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Jumlah Stok Awal</label>
+                        <input type="number" id="inputStok" required placeholder="Contoh: 50" class="input-text">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Ecer Jual (Rp)</label>
+                        <input type="number" id="inputHargaEcer" required placeholder="15000" class="input-text">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Grosir Jual (Rp)</label>
+                        <input type="number" id="inputHargaGrosir" required placeholder="13500" class="input-text">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <button type="submit" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
+                    <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
+                </div>
+            </form>
+        </div>
+
+        <div>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Cloud</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
+                            <option value="hari">Hari Ini</option>
+                            <option value="minggu">7 Hari Terakhir</option>
+                            <option value="bulan">Bulan Ini</option>
+                            <option value="tahun">Tahun Ini</option>
+                            <option value="semua">Semua Waktu</option>
+                        </select>
+                        <button onclick="hapusSemuaLaporan()" style="background: none; border: none; color: #f87171; font-size: 11px; cursor: pointer; text-decoration: underline;">Bersihkan Laporan</button>
+                    </div>
+                </div>
+                <div class="grid-laporan">
+                    <div class="box-laporan box-omset">
+                        <p style="font-size: 11px; text-transform: uppercase;">Total Omset</p>
+                        <h3 id="lapOmset" style="font-size: 18px; margin-top: 5px;">Rp 0</h3>
+                    </div>
+                    <div class="box-laporan box-modal">
+                        <p style="font-size: 11px; text-transform: uppercase;">Total Modal (COGS)</p>
+                        <h3 id="lapModal" style="font-size: 18px; margin-top: 5px;">Rp 0</h3>
+                    </div>
+                    <div class="box-laporan box-laba">
+                        <p style="font-size: 11px; text-transform: uppercase;">Keuntungan Bersih</p>
+                        <h3 id="lapLaba" style="font-size: 18px; margin-top: 5px;">Rp 0</h3>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 13px; font-weight: bold; margin-bottom: 8px;">📋 Riwayat Transaksi Penjualan</h3>
+                <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu & Jam</th>
+                                <th>Nama Barang</th>
+                                <th>Qty</th>
+                                <th>Tipe</th>
+                                <th>Harga Jual</th>
+                                <th>Sub-Modal</th>
+                                <th>Sub-Jual</th>
+                                <th style="text-align: center;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelTerjual"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 10px;">📦 Inventori & Kontrol Stok</h2>
+                <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Barang</th>
+                                <th>Harga Modal (HPP)</th>
+                                <th>Harga Ecer</th>
+                                <th>Harga Grosir</th>
+                                <th>Sisa Stok</th>
+                                <th style="text-align: center;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelAdmin"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
+        <center>
+            <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
+            <p>Arjawinangun, Cirebon</p>
+            <p>--------------------------------</p>
+            <p id="strukWaktu"></p>
+        </center>
+        <p>--------------------------------</p>
+        <div id="strukItem" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        <p>--------------------------------</p>
+        <div style="display:flex; justify-content:space-between;"><span>Total:</span><span id="strukTotal"></span></div>
+        <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
+        <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
+        <p>--------------------------------</p>
+        <center><p>Terima Kasih</p></center>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
+            authDomain: "mahakarya-pos.firebaseapp.com",
+            databaseURL: "https://mahakarya-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mahakarya-pos",
+            storageBucket: "mahakarya-pos.firebasestorage.app",
+            messagingSenderId: "295583962792",
+            appId: "1:295583962792:web:0c0180138532402c53149d",
+            measurementId: "G-V6R21M8X0D"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let produkData = [];
+        let laporanTerjual = [];
+        let keranjang = [];
+        let modeSekarang = "kasir";
+
+        window.formatRupiah = function(angka) {
+            return "Rp " + parseInt(angka).toLocaleString('id-ID');
+        }
+
+        onValue(ref(db, 'pos_produk'), (snapshot) => {
+            const data = snapshot.val();
+            produkData = data ? Object.values(data) : [];
+            renderProduk();
+            if (modeSekarang === "admin") renderAdminTable();
+        });
+
+        onValue(ref(db, 'pos_laporan'), (snapshot) => {
+            const data = snapshot.val();
+            laporanTerjual = data ? Object.values(data) : [];
+            if (modeSekarang === "admin") hitungLaporanDashboard();
+        });
+
+        window.renderProduk = function(produkToDisplay = produkData) {
+            const grid = document.getElementById('gridProduk');
+            if (produkData.length === 0) {
+                grid.innerHTML = `<p class="loading-text">Tidak ada data produk. Silakan isi lewat menu Admin.</p>`;
+                return;
+            }
+            grid.innerHTML = '';
+            produkToDisplay.forEach(p => {
+                const stokHabis = p.stok <= 0;
+                grid.innerHTML += `
+                    <div onclick="${stokHabis ? 'alert(\'Stok barang habis!\')' : `tambahKeKeranjang(${p.id})`}" class="item-produk" style="${stokHabis ? 'opacity: 0.6; cursor: not-allowed;' : ''}">
+                        <span class="badge-stok ${stokHabis ? 'stok-habis' : 'stok-aman'}">${stokHabis ? 'HABIS' : 'Stok: '+p.stok}</span>
+                        <div>
+                            <span class="badge">Master</span>
+                            <h3 style="font-size: 12px; font-weight: bold; margin-top: 8px; max-width: 75%;">${p.nama}</h3>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 11px; color: #9ca3af;">
+                            <p>Ecer: <span style="color:#60a5fa; font-weight:bold;">${formatRupiah(p.hargaEcer)}</span></p>
+                            <p>Grosir: <span style="color:#34d399; font-weight:bold;">${formatRupiah(p.hargaGrosir)}</span></p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.tambahKeKeranjang = function(id) {
+            const produk = produkData.find(p => p.id === id);
+            const itemDiKeranjang = keranjang.find(item => item.id === id);
+            const jumlahSekarang = itemDiKeranjang ? itemDiKeranjang.qty : 0;
+            if (jumlahSekarang >= produk.stok) return alert("Batas maksimal sesuai sisa stok toko!");
+
+            if (itemDiKeranjang) {
+                itemDiKeranjang.qty++;
+            } else {
+                keranjang.push({ ...produk, qty: 1, tipeHarga: 'ecer' });
+            }
+            updateKeranjang();
+        }
+
+        window.ubahTipeHargaManual = function(id, tipe) {
+            const item = keranjang.find(item => item.id === id);
+            if (item) { item.tipeHarga = tipe; updateKeranjang(); }
+        }
+
+        window.ubahQty = function(id, delta) {
+            const item = keranjang.find(item => item.id === id);
+            const produkMaster = produkData.find(p => p.id === id);
+            if (item) {
+                if (delta > 0 && item.qty >= produkMaster.stok) return alert("Jumlah melebihi sisa stok!");
+                item.qty += delta;
+                if (item.qty <= 0) keranjang = keranjang        
         /* Dashboard Laporan */
         .grid-laporan { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 20px; }
         @media (min-width: 640px) { .grid-laporan { grid-template-columns: repeat(3, 1fr); } }
