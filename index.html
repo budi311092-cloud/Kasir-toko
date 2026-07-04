@@ -160,10 +160,35 @@
                         <p style="font-size: 11px; uppercase">Keuntungan Bersih</p>
                         <h3 id="lapLaba" style="font-size: 18px; margin-top: 5px;">Rp 0</h3>
                     </div>
-                </div>
+                <!-- SISI KANAN: INVENTORI & LAPORAN LABA -->
+<div>
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Cloud</h2>
+            <select id="filterTanggal" onchange="renderLaporan()" style="padding: 5px; border-radius: 5px;">
+                <option value="hari">Hari Ini</option>
+                <option value="minggu">7 Hari Terakhir</option>
+                <option value="bulan">Bulan Ini</option>
+                <option value="tahun">Tahun Ini</option>
+                <option value="semua">Semua Waktu</option>
+            </select>
+        </div>
+        
+        <div class="grid-laporan">
+            <div class="box-laporan box-omset"><p style="font-size: 11px;">Omset</p><h3 id="lapOmset" style="font-size: 16px;">Rp 0</h3></div>
+            <div class="box-laporan box-modal"><p style="font-size: 11px;">Modal</p><h3 id="lapModal" style="font-size: 16px;">Rp 0</h3></div>
+            <div class="box-laporan box-laba"><p style="font-size: 11px;">Laba</p><h3 id="lapLaba" style="font-size: 16px;">Rp 0</h3></div>
+        </div>
 
-                <h3 style="font-size: 13px; font-weight: bold; margin-bottom: 8px;">📋 Riwayat Transaksi Penjualan</h3>
-                <div style="max-height: 25vh; overflow-y: auto; border: 1px solid #eee; border-radius: 6px;">
+        <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #eee; border-radius: 6px;">
+            <table>
+                <thead><tr><th>Waktu</th><th>Barang</th><th>Qty</th><th>Total</th><th>Aksi</th></tr></thead>
+                <tbody id="tabelTerjual"></tbody>
+            </table>
+        </div>
+    </div>
+    <!-- (Biarkan tabel stok di bawahnya tetap ada) -->
+</div>
                     <table>
                         <thead>
                             <tr>
@@ -466,16 +491,42 @@
         }
 
         // 4. MANAGEMENT ADMIN LOGIC
-        window.hitungLaporanDashboard = function() {
-            let totalOmset = 0;
-            let totalModal = 0;
+        window.renderLaporan = function() {
+    const filter = document.getElementById('filterTanggal').value;
+    const now = new Date();
+    
+    // Filter Data berdasarkan waktu
+    const filtered = laporanTerjual.filter(lap => {
+        const [d, m, y] = lap.waktu.split('/').map(Number);
+        const tglLap = new Date(y, m - 1, d);
+        
+        if (filter === 'hari') return tglLap.toDateString() === now.toDateString();
+        if (filter === 'minggu') return (now - tglLap) <= 7 * 24 * 60 * 60 * 1000;
+        if (filter === 'bulan') return m === now.getMonth() + 1 && y === now.getFullYear();
+        if (filter === 'tahun') return y === now.getFullYear();
+        return true;
+    });
 
-            laporanTerjual.forEach(lap => {
-                if (lap.status !== "REFUNDED") {
-                    totalOmset += lap.subtotalJual;
-                    totalModal += lap.subtotalHpp;
-                }
-            });
+    // Hitung Angka
+    let omset = 0, modal = 0;
+    filtered.forEach(l => { if(l.status !== "REFUNDED") { omset += l.subtotalJual; modal += l.subtotalHpp; }});
+    
+    document.getElementById('lapOmset').innerText = formatRupiah(omset);
+    document.getElementById('lapModal').innerText = formatRupiah(modal);
+    document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
+
+    // Tampilkan di Tabel
+    const tbody = document.getElementById('tabelTerjual');
+    tbody.innerHTML = filtered.map(lap => `
+        <tr class="${lap.status === 'REFUNDED' ? 'tr-refunded' : ''}">
+            <td>${lap.waktu}</td>
+            <td>${lap.nama}</td>
+            <td>${lap.qty}</td>
+            <td>${formatRupiah(lap.subtotalJual)}</td>
+            <td>${lap.status !== 'REFUNDED' ? `<button onclick="prosesRefundBarang('${lap.idTransaksi}')" class="btn-refund">↩️</button>` : '-'}</td>
+        </tr>
+    `).join('');
+}
 
             document.getElementById('lapOmset').innerText = formatRupiah(totalOmset);
             document.getElementById('lapModal').innerText = formatRupiah(totalModal);
