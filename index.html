@@ -96,8 +96,7 @@
             </div>
         </div>
     </div>
-
-    <div id="areaAdmin" class="admin-layout hidden">
+<div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa;">➕ Manajemen Data Barang</h2>
@@ -242,7 +241,6 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -419,7 +417,6 @@
             keranjang = [];
             updateKeranjang();
         }
-
         window.pencarianProduk = function() {
             const keyword = document.getElementById('cariProduk').value.toLowerCase();
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
@@ -706,7 +703,7 @@
                 `;
             });
             
-             if(Object.keys(resumeProdukTerjual).length === 0) {
+            if(Object.keys(resumeProdukTerjual).length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; font-style:italic; color:#9ca3af;">Tidak ada data penjualan pada periode ini.</td></tr>`;
             }
             if(tbodyLog.innerHTML === '') {
