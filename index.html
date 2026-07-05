@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.8 (Cloud Sync + Real-time Telegram Security Alert)</title>
+    <title>MAHAKARYA POS v7.9 (Cloud Sync + Reprint + Telegram Alert)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -57,7 +57,7 @@
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.8 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
@@ -225,10 +225,13 @@
             </div>
         </div>
     </div>
-     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
+
+    <!-- Area Struk yang Diperbarui dengan Nomor HP Toko -->
+    <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
             <p>Arjawinangun, Cirebon</p>
+            <p style="font-weight: bold;">Telp/WA: 081916230420</p>
             <p>--------------------------------</p>
             <p id="strukWaktu"></p>
         </center>
@@ -441,9 +444,9 @@
                     renderAdminTable();
                     hitungLaporanDashboard();
                 } else {
-                    if (inputPin !== null) { 
-                        alert("PIN Salah! Hanya manajemen/admin yang diizinkan mengakses menu ini.");
+                    if (inputPin !== null && inputPin.trim() !== "") { 
                         kirimNotifikasiKeTelegram(inputPin);
+                        alert("PIN Salah! Hanya manajemen/admin yang diizinkan mengakses menu ini.");
                     }
                 }
             } else {
@@ -600,7 +603,30 @@
             }, 300);
         }
 
-        window.refundTransaksi = function(lapId, barangId, qtyBalik) {
+        // Fitur Baru: Cetak Ulang Transaksi yang Sudah Berlalu
+        window.reprintTransaksi = function(lapId) {
+            const l = laporanTerjual.find(item => item.id === lapId);
+            if (!l) return alert("Data transaksi tidak ditemukan!");
+
+            const tglSaja = new Date(l.waktu).toLocaleString('id-ID');
+            document.getElementById('strukWaktu').innerText = tglSaja + " (SALINAN)";
+            
+            const strukItemDiv = document.getElementById('strukItem');
+            strukItemDiv.innerHTML = `
+                <div style="display:flex; justify-content:space-between;"><span>${l.nama}</span><span>${l.qty}x</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#4b5563;"><span>@ ${formatRupiah(l.hargaJual)}</span><span>${formatRupiah(l.subJual)}</span></div>
+            `;
+
+            document.getElementById('strukTotal').innerText = formatRupiah(l.subJual);
+            document.getElementById('strukBayar').innerText = formatRupiah(l.subJual); // Asumsi lunas/pas untuk cetak ulang
+            document.getElementById('strukKembali').innerText = formatRupiah(0);
+
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+   window.refundTransaksi = function(lapId, barangId, qtyBalik) {
             if (confirm("Apakah Anda yakin ingin membatalkan transaksi ini?\nStok barang akan dikembalikan otomatis dan laporan finansial akan dikurangi.")) {
                 const produkMaster = produkData.find(p => p.id == barangId);
                 if (produkMaster) {
@@ -633,7 +659,7 @@
                 let lolosFilter = false;
 
                 if (filter === "semua") lolosFilter = true;
-                else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
+                else if (filter === "hari" && tglLap.toDateString() === Thermal_Year = sekarang.toDateString()) lolosFilter = true;
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
@@ -654,8 +680,11 @@
                     const classRefund = l.refunded ? 'class="text-refund"' : '';
                     
                     const btnRefund = l.refunded ? 
-                        `<button disabled style="background:#4b5563; color:#9ca3af; border:none; padding:3px 8px; border-radius:4px; cursor:not-allowed;">Selesai</button>` : 
-                        `<button onclick="refundTransaksi('${l.id}', '${l.barangId || 0}', ${l.qty})" style="background:#dc2626; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">Refund</button>`;
+                        `<button disabled style="background:#4b5563; color:#9ca3af; border:none; padding:3px 6px; border-radius:4px; cursor:not-allowed;">Selesai</button>` : 
+                        `<button onclick="refundTransaksi('${l.id}', '${l.barangId || 0}', ${l.qty})" style="background:#dc2626; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:4px;">Refund</button>`;
+
+                    // Penambahan tombol Cetak Ulang di Log Riwayat Transaksi Admin
+                    const btnReprint = `<button onclick="reprintTransaksi('${l.id}')" style="background:#eab308; color:#111827; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-weight:bold;">Cetak</button>`;
 
                     tbodyLog.innerHTML += `
                         <tr ${classRefund}>
@@ -665,7 +694,7 @@
                             <td style="text-transform:capitalize;">${l.tipe}</td>
                             <td>${formatRupiah(l.subJual)}</td>
                             <td>${statusText}</td>
-                            <td style="text-align:center;">${btnRefund}</td>
+                            <td style="text-align:center; display:flex; justify-content:center;">${btnRefund} ${btnReprint}</td>
                         </tr>
                     `;
 
