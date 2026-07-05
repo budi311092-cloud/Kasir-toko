@@ -96,7 +96,8 @@
             </div>
         </div>
     </div>
-<div id="areaAdmin" class="admin-layout hidden">
+
+    <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa;">➕ Manajemen Data Barang</h2>
@@ -224,8 +225,7 @@
             </div>
         </div>
     </div>
-
-    <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
+     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
             <p>Arjawinangun, Cirebon</p>
@@ -241,6 +241,7 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -417,6 +418,7 @@
             keranjang = [];
             updateKeranjang();
         }
+
         window.pencarianProduk = function() {
             const keyword = document.getElementById('cariProduk').value.toLowerCase();
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
@@ -634,7 +636,6 @@
                 else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
-                else if (filter === "tahun" && tglLap.getFullYear() === Thermal_Year = sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 
                 else if (filter === "bulan_lalu") {
