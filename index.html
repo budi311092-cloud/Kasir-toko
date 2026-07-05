@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9 (Cloud Sync + Reprint + Telegram Alert)</title>
+    <title>MAHAKARYA POS v7.9.1 (Stable Cloud + Reprint)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -57,7 +57,7 @@
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.1 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
@@ -224,9 +224,8 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Area Struk yang Diperbarui dengan Nomor HP Toko -->
+                        </div>
+                        <!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
@@ -260,20 +259,22 @@
             measurementId: "G-V6R21M8X0D"
         };
 
+        // Inisialisasi Database dengan struktur pemanggilan modul yang distabilkan
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app, firebaseConfig.databaseURL);
+        const db = getDatabase(app);
 
         let produkData = [];
         let laporanTerjual = [];
         let keranjang = [];
         let modeSekarang = "kasir";
         
-        const PIN_ADMIN = "2304"; 
+        const PIN_ADMIN = "1234"; 
 
         window.formatRupiah = function(angka) {
             return "Rp " + parseInt(angka).toLocaleString('id-ID');
         }
 
+        // Handler Listener Realtime Database
         onValue(ref(db, 'pos_produk'), (snapshot) => {
             const data = snapshot.val();
             produkData = data ? Object.values(data) : [];
@@ -284,6 +285,7 @@
             }
         }, (error) => {
             console.error("Gagal memuat produk:", error);
+            document.getElementById('gridProduk').innerHTML = `<p class="stok-habis" style="padding: 10px;">⚠️ Error Firebase: ${error.message}</p>`;
         });
 
         onValue(ref(db, 'pos_laporan'), (snapshot) => {
@@ -375,7 +377,6 @@
         window.updateKeranjang = function() {
             const list = document.getElementById('listKeranjang');
             let total = 0;
-            
             const scrollPos = list.scrollTop;
             list.innerHTML = '';
 
@@ -450,7 +451,7 @@
                     }
                 }
             } else {
-                window.logoutAdmin();
+               window.logoutAdmin();
             }
         }
 
@@ -602,8 +603,6 @@
                 document.getElementById('uangDiterima').value = '';
             }, 300);
         }
-
-        // Fitur Baru: Cetak Ulang Transaksi yang Sudah Berlalu
         window.reprintTransaksi = function(lapId) {
             const l = laporanTerjual.find(item => item.id === lapId);
             if (!l) return alert("Data transaksi tidak ditemukan!");
@@ -618,7 +617,7 @@
             `;
 
             document.getElementById('strukTotal').innerText = formatRupiah(l.subJual);
-            document.getElementById('strukBayar').innerText = formatRupiah(l.subJual); // Asumsi lunas/pas untuk cetak ulang
+            document.getElementById('strukBayar').innerText = formatRupiah(l.subJual);
             document.getElementById('strukKembali').innerText = formatRupiah(0);
 
             setTimeout(() => {
@@ -626,7 +625,7 @@
             }, 300);
         }
 
-   window.refundTransaksi = function(lapId, barangId, qtyBalik) {
+        window.refundTransaksi = function(lapId, barangId, qtyBalik) {
             if (confirm("Apakah Anda yakin ingin membatalkan transaksi ini?\nStok barang akan dikembalikan otomatis dan laporan finansial akan dikurangi.")) {
                 const produkMaster = produkData.find(p => p.id == barangId);
                 if (produkMaster) {
@@ -659,7 +658,7 @@
                 let lolosFilter = false;
 
                 if (filter === "semua") lolosFilter = true;
-                else if (filter === "hari" && tglLap.toDateString() === Thermal_Year = sekarang.toDateString()) lolosFilter = true;
+                else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
@@ -683,7 +682,6 @@
                         `<button disabled style="background:#4b5563; color:#9ca3af; border:none; padding:3px 6px; border-radius:4px; cursor:not-allowed;">Selesai</button>` : 
                         `<button onclick="refundTransaksi('${l.id}', '${l.barangId || 0}', ${l.qty})" style="background:#dc2626; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:4px;">Refund</button>`;
 
-                    // Penambahan tombol Cetak Ulang di Log Riwayat Transaksi Admin
                     const btnReprint = `<button onclick="reprintTransaksi('${l.id}')" style="background:#eab308; color:#111827; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-weight:bold;">Cetak</button>`;
 
                     tbodyLog.innerHTML += `
