@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.7 (Cloud Sync + Jam Transaksi + Refund)</title>
+    <title>MAHAKARYA POS v7.8 (Cloud Sync + Real-time Telegram Security Alert)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -57,7 +57,7 @@
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.7 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.8 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
@@ -186,7 +186,6 @@
                     </table>
                 </div>
 
-                <!-- TABEL BARU: RIWAYAT TRANSAKSI HARIAN & JAM & REFUND -->
                 <h3 style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #eab308;">🕒 Log Riwayat Transaksi & Fitur Refund</h3>
                 <div style="max-height: 35vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
@@ -267,7 +266,7 @@
         let keranjang = [];
         let modeSekarang = "kasir";
         
-        const PIN_ADMIN = "2304"; 
+        const PIN_ADMIN = "1234"; 
 
         window.formatRupiah = function(angka) {
             return "Rp " + parseInt(angka).toLocaleString('id-ID');
@@ -310,7 +309,7 @@
                         <div>
                             <span class="badge">Master</span>
                             <h3 style="font-size: 12px; font-weight: bold; margin-top: 8px; max-width: 75%;">${p.nama}</h3>
-    </div>
+                        </div>
                         <div style="margin-top: 8px; font-size: 11px; color: #9ca3af;">
                             <p>Ecer: <span style="color:#60a5fa; font-weight:bold;">${formatRupiah(p.hargaEcer)}</span></p>
                             <p>Grosir: <span style="color:#34d399; font-weight:bold;">${formatRupiah(p.hargaGrosir)}</span></p>
@@ -434,6 +433,7 @@
 
             if (modeSekarang === "kasir") {
                 const inputPin = prompt("Masukkan PIN Hak Akses Admin:");
+                
                 if (inputPin === PIN_ADMIN) {
                     modeSekarang = "admin";
                     btn.innerText = "🛒 Masuk Menu Kasir";
@@ -442,11 +442,39 @@
                     renderAdminTable();
                     hitungLaporanDashboard();
                 } else {
-                    alert("PIN Salah! Hanya manajemen/admin yang diizinkan mengakses menu ini.");
+                    if (inputPin !== null) { 
+                        alert("PIN Salah! Hanya manajemen/admin yang diizinkan mengakses menu ini.");
+                        kirimNotifikasiKeTelegram(inputPin);
+                    }
                 }
             } else {
                 window.logoutAdmin();
             }
+        }
+
+        function kirimNotifikasiKeTelegram(pinSalah) {
+            const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk"; 
+            const TELEGRAM_CHAT_ID = "8563167649"; 
+            
+            const waktuSkarang = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'medium' });
+            const pesan = `⚠️ *PERINGATAN KEAMANAN POS*\n\n` +
+                          `Ada upaya masuk ke Menu Admin secara ilegal!\n` +
+                          `📅 *Waktu:* ${waktuSkarang} WIB\n` +
+                          `🔑 *PIN yang Dicoba:* \`${pinSalah}\` (SALAH)\n\n` +
+                          `_Mohon periksa area kasir atau CCTV jika diperlukan._`;
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: pesan,
+                    parse_mode: "Markdown"
+                })
+            })
+            .catch(err => console.error("Gagal mengirim log keamanan:", err));
         }
 
         window.logoutAdmin = function() {
@@ -470,7 +498,6 @@
             const hargaEcer = parseInt(document.getElementById('inputHargaEcer').value);
             const hargaGrosir = parseInt(document.getElementById('inputHargaGrosir').value);
 
-            // Menyimpan ID barang relasional agar fitur refund bisa mencocokkan stok nanti
             set(ref(db, 'pos_produk/' + id), { id: parseInt(id), nama, hpp, stok, hargaEcer, hargaGrosir })
             .then(() => {
                 resetFormAdmin();
@@ -551,7 +578,7 @@
                 const lapId = Date.now() + "_" + Math.floor(Math.random() * 1000);
                 set(ref(db, 'pos_laporan/' + lapId), {
                     id: lapId,
-                    barangId: item.id, // Menyimpan ID barang untuk kebutuhan refund
+                    barangId: item.id,
                     waktu: waktu,
                     nama: item.nama,
                     qty: item.qty,
@@ -574,18 +601,14 @@
             }, 300);
         }
 
-        // FITUR BARU: KRITERIA REFUND & PENGEMBALIAN STOK OTOMATIS
         window.refundTransaksi = function(lapId, barangId, qtyBalik) {
             if (confirm("Apakah Anda yakin ingin membatalkan transaksi ini?\nStok barang akan dikembalikan otomatis dan laporan finansial akan dikurangi.")) {
-                
-                // 1. Cari produk terkait di data master untuk mengembalikan stoknya
                 const produkMaster = produkData.find(p => p.id == barangId);
                 if (produkMaster) {
                     const stokBaru = produkMaster.stok + parseInt(qtyBalik);
                     update(ref(db, 'pos_produk/' + barangId), { stok: stokBaru });
                 }
 
-                // 2. Tandai transaksi di laporan sebagai refunded
                 update(ref(db, 'pos_laporan/' + lapId), { refunded: true })
                 .then(() => {
                     alert("Transaksi Berhasil DI-REFUND!");
@@ -604,7 +627,6 @@
             const tbodyLog = document.getElementById('tabelLogTransaksi');
             tbodyLog.innerHTML = '';
 
-            // Urutkan laporan berdasarkan waktu terbaru dahulu (descending)
             const laporanSorted = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
 
             laporanSorted.forEach(l => {
@@ -614,13 +636,13 @@
                 if (filter === "semua") lolosFilter = true;
                 else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
-                else if (filter === "bulan" && tglLap.getMonth() === Clinical_Month && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true; // penyesuaian logika
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+                else if (filter === "tahun" && tglLap.getFullYear() === Thermal_Year = sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 
                 else if (filter === "bulan_lalu") {
                     let targetBulan = sekarang.getMonth() - 1;
-                    let targetTahun = Bakers_Year = sekarang.getFullYear();
+                    let targetTahun = sekarang.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
                     if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
                 }
@@ -629,7 +651,6 @@
                 }
 
                 if (lolosFilter) {
-                    // Masukkan ke tabel Log Transaksi Harian (Baik yang normal maupun Refunded)
                     const waktuLokal = new Date(l.waktu).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
                     const statusText = l.refunded ? `<span style="color:#f87171; font-weight:bold;">REFUNDED</span>` : `<span style="color:#34d399; font-weight:bold;">SUKSES</span>`;
                     const classRefund = l.refunded ? 'class="text-refund"' : '';
@@ -650,7 +671,6 @@
                         </tr>
                     `;
 
-                    // Jika tidak direfund, masukkan ke kalkulasi Omset & Laba Box Utama
                     if (!l.refunded) {
                         omset += l.subJual;
                         modal += l.subModal;
@@ -686,7 +706,7 @@
                 `;
             });
             
-            if(Object.keys(resumeProdukTerjual).length === 0) {
+             if(Object.keys(resumeProdukTerjual).length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; font-style:italic; color:#9ca3af;">Tidak ada data penjualan pada periode ini.</td></tr>`;
             }
             if(tbodyLog.innerHTML === '') {
