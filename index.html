@@ -416,25 +416,82 @@
         }
 
         window.updateKeranjang = function() {
-            const list = document.getElementById('listKeranjang');
-            let total = 0;
-            list.innerHTML = '';
-            keranjang.forEach(item => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
-                total += (harga * item.qty);
-                list.innerHTML += `
-                    <div class="item-keranjang">
-                        <div style="display:flex; justify-content:space-between; font-size:12px; align-items:center;">
-                            <span>${item.nama} (${item.qty}x)</span>
-                            <span style="font-weight:bold;">${formatRupiah(harga * item.qty)}</span>
-                        </div>
+    const list = document.getElementById('listKeranjang');
+    let total = 0;
+    list.innerHTML = '';
+    
+    keranjang.forEach((item, index) => {
+        const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
+        total += (harga * item.qty);
+        
+        list.innerHTML += `
+            <div class="item-keranjang" style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
+                    <span>${item.nama}</span>
+                    <span style="color: #60a5fa;">${formatRupiah(harga * item.qty)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <!-- Input untuk ketik manual kuantitas barang -->
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 11px; color: #9ca3af;">Qty:</span>
+                        <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
+                            onchange="ubahQtyManual(${index}, this.value)" 
+                            style="width: 60px; padding: 4px 6px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 12px; text-align: center; font-weight: bold;">
+                        <span style="font-size: 11px; color: #9ca3af;">/ ${item.stok} Pcs</span>
                     </div>
-                `;
-            });
+                    
+                    <!-- Tombol Aksi Tambah, Kurang, dan Hapus -->
+                    <div style="display: flex; gap: 4px;">
+                        <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer;">-</button>
+                        <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer;">+</button>
+                        <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
             document.getElementById('totalAkhir').innerText = formatRupiah(total);
-            renderTombolUangCepat(total);
-            hitungKembalian();
-        }
+    renderTombolUangCepat(total);
+    hitungKembalian();
+}
+
+// FUNGSI BARU: Mengubah kuantitas lewat tombol + dan -
+window.sesuaikanQty = function(index, perubahan) {
+    const item = keranjang[index];
+    const qtyBaru = item.qty + perubahan;
+    
+    if (qtyBaru <= 0) {
+        hapusItemKeranjang(index);
+    } else if (qtyBaru > item.stok) {
+        alert(`⚠️ Gagal menambah jumlah! Stok maksimal untuk ${item.nama} adalah ${item.stok} Pcs.`);
+    } else {
+        item.qty = qtyBaru;
+        updateKeranjang();
+    }
+}
+
+// FUNGSI BARU: Mengubah kuantitas secara langsung via ketik manual
+window.ubahQtyManual = function(index, nilai) {
+    const item = keranjang[index];
+    let qtyInput = parseInt(nilai) || 1;
+    
+    if (qtyInput <= 0) {
+        hapusItemKeranjang(index);
+    } else if (qtyInput > item.stok) {
+        alert(`⚠️ Jumlah melebihi batas ketersediaan! Stok maksimal ${item.nama} adalah ${item.stok} Pcs.`);
+        item.qty = item.stok; // Set otomatis ke stok maksimum yang tersedia
+        updateKeranjang();
+    } else {
+        item.qty = qtyInput;
+        updateKeranjang();
+    }
+}
+
+// FUNGSI BARU: Menghapus item dari keranjang belanja
+window.hapusItemKeranjang = function(index) {
+    keranjang.splice(index, 1);
+    updateKeranjang();
+}
 
         function renderTombolUangCepat(total) {
             const container = document.getElementById('containerUangCepat');
