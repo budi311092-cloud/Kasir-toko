@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.4 (Anti-Duplikasi + Cloud)</title>
+    <title>MAHAKARYA POS v7.9.5 (Abjad Sort + Total Aset)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -38,13 +38,14 @@
         .admin-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; padding: 15px; max-width: 1400px; margin: 0 auto; }
         @media (min-width: 1024px) { .admin-layout { grid-template-columns: 1fr 2fr; } }
         
-        /* Dashboard Laporan */
+        /* Dashboard Laporan & Aset */
         .grid-laporan { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 20px; }
         @media (min-width: 640px) { .grid-laporan { grid-template-columns: repeat(3, 1fr); } }
         .box-laporan { padding: 15px; border-radius: 8px; color: white; }
         .box-omset { background-color: #1e3a8a; border: 1px solid #3b82f6; }
         .box-modal { background-color: #1f2937; border: 1px solid #4b5563; }
         .box-laba { background-color: #064e3b; border: 1px solid #10b981; }
+        .box-aset { background-color: #581c87; border: 1px solid #a855f7; margin-bottom: 15px; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #e5e7eb; }
         th, td { padding: 10px; border-bottom: 1px solid #374151; }
@@ -60,14 +61,14 @@
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.4 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.5 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
     <div id="areaKasir" class="main-container">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir)</h2>
+                <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span style="font-size: 11px; font-weight: normal; color:#9ca3af;">(Urutan A-Z)</span></h2>
                 <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
             </div>
             <div id="gridProduk" class="grid-produk"><p class="loading-text">Menghubungkan ke Cloud database...</p></div>
@@ -214,11 +215,19 @@
                 </div>
             </div>
 
+            <!-- Bagian Inventori & Kontrol Stok + Fitur Total Aset -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
                     <input type="text" id="cariInventori" placeholder="Cari nama barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 230px;" oninput="pencarianInventori()">
                 </div>
+                
+                <!-- BOX TOTAL ASET BARU -->
+                <div class="box-laporan box-aset">
+                    <span style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #e9d5ff;">💰 Total Nilai Aset Toko (Berdasar Modal Sisa Stok):</span>
+                    <h3 id="totalAsetToko" style="font-size: 18px; font-weight: bold; color: #f3e8ff;">Rp 0</h3>
+                </div>
+
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
                         <thead>
@@ -237,10 +246,11 @@
             </div>
         </div>
     </div>
+
     <!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
-            <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA PLASTIK</h2>
+            <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
             <p>Arjawinangun, Cirebon</p>
             <p style="font-weight: bold;">Telp/WA: 081916230420</p>
             <p>--------------------------------</p>
@@ -255,7 +265,6 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -288,7 +297,12 @@
         onValue(ref(db, 'pos_produk'), (snapshot) => {
             const data = snapshot.val();
             produkData = data ? Object.values(data) : [];
+            
+            // PERUBAHAN UTAMA: Otomatis Mengurutkan Semua Produk Berdasarkan Nama (Abjad A-Z)
+            produkData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }));
+
             renderProduk();
+            hitungTotalAset(); // Hitung total aset setiap ada perubahan data
             if (modeSekarang === "admin") {
                 renderAdminTable();
                 hitungLaporanDashboard();
@@ -307,6 +321,17 @@
         }, (error) => {
             console.error("Gagal memuat laporan:", error);
         });
+
+        // FITUR BARU: Menghitung Total Nilai Aset Toko (HPP * Stok)
+        function hitungTotalAset() {
+            let totalAset = 0;
+            produkData.forEach(p => {
+                if (p.stok > 0) {
+                    totalAset += (parseInt(p.hpp) * parseInt(p.stok));
+                }
+            });
+            document.getElementById('totalAsetToko').innerText = formatRupiah(totalAset);
+        }
 
         window.renderProduk = function(produkToDisplay = produkData) {
             const grid = document.getElementById('gridProduk');
@@ -420,7 +445,6 @@
             document.getElementById('totalAkhir').innerText = formatRupiah(total);
             hitungKembalian();
         }
-
         window.hitungKembalian = function() {
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
@@ -496,6 +520,7 @@
             })
             .catch(err => console.error("Gagal mengirim log keamanan:", err));
         }
+
         window.logoutAdmin = function() {
             const btn = document.getElementById('btnMode');
             const kasir = document.getElementById('areaKasir');
@@ -508,7 +533,6 @@
             renderProduk();
         }
 
-        // FITUR BARU: Sistem Proteksi Duplikasi Nama Barang
         window.simpanProduk = function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value;
@@ -519,12 +543,11 @@
             const hargaEcer = parseInt(document.getElementById('inputHargaEcer').value);
             const hargaGrosir = parseInt(document.getElementById('inputHargaGrosir').value);
 
-            // Cek duplikasi: nama sama tetapi ID-nya berbeda (mencegah penolakan saat edit)
             const namaSama = produkData.some(p => p.nama.toLowerCase() === nama.toLowerCase() && p.id != id);
             
             if (namaSama) {
                 alert(`❌ Nama barang "${nama}" sudah ada di inventori!\nSilakan gunakan nama lain atau edit barang yang sudah ada agar data tidak ganda.`);
-                return; // Stop eksekusi, tidak disimpan ke Firebase
+                return;
             }
 
             set(ref(db, 'pos_produk/' + id), { id: parseInt(id), nama, hpp, stok, hargaEcer, hargaGrosir })
@@ -645,7 +668,6 @@
                 alert("Transaksi Sukses Disimpan!");
             }
         }
-
         window.reprintTransaksi = function(lapId) {
             const l = laporanTerjual.find(item => item.id === lapId);
             if (!l) return alert("Data transaksi tidak ditemukan!");
@@ -752,7 +774,8 @@
                     }
                 }
             });
-        document.getElementById('lapOmset').innerText = formatRupiah(omset);
+
+            document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
 
