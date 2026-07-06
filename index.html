@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.5 (Abjad Sort + Total Aset)</title>
+    <title>MAHAKARYA POS v7.9.5 (Nota Terkelompok + Fitur Cari Log)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -149,7 +149,7 @@
             </div>
         </div>
     </div>
-<!-- MENU UTAMA ADMIN -->
+    <!-- MENU UTAMA ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -238,16 +238,18 @@
                     </table>
                 </div>
 
-                <h3 style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #eab308;">🕒 Log Riwayat Transaksi & Fitur Refund</h3>
-                <div style="max-height: 35vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="font-size: 13px; font-weight: bold; color: #eab308;">🕒 Log Riwayat Transaksi Per Nota</h3>
+                    <input type="text" id="cariLogTransaksi" placeholder="Cari No Nota atau Tanggal (Contoh: 2026-07-06)..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 280px;" oninput="hitungLaporanDashboard()">
+                </div>
+                <div style="max-height: 45vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
                         <thead>
                             <tr>
-                                <th>Waktu Transaksi</th>
-                                <th>Nama Barang</th>
-                                <th>Qty</th>
-                                <th>Tipe</th>
-                                <th>Total Jual</th>
+                                <th>No. Nota</th>
+                                <th>Waktu / Tanggal</th>
+                                <th>Rincian Item Produk Belanja</th>
+                                <th>Total Belanja</th>
                                 <th>Status</th>
                                 <th style="text-align: center;">Aksi</th>
                             </tr>
@@ -294,6 +296,7 @@
             <p>Arjawinangun, Cirebon</p>
             <p style="font-weight: bold;">Telp/WA: 081916230420</p>
             <p>--------------------------------</p>
+            <p id="strukIdNota" style="font-weight: bold;"></p>
             <p id="strukWaktu"></p>
         </center>
         <p>--------------------------------</p>
@@ -305,7 +308,7 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
-    <script type="module">
+      <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -332,7 +335,6 @@
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
 
-        // MANAJEMEN INPUT PIN KEYPAD (LAYAR UTAMA)
         window.tekanPin = function(angka) {
             if (inputPinString.length < 8) { 
                 inputPinString += angka;
@@ -364,9 +366,7 @@
             }
         }
 
-        // FUNGSI UTAMA PINDAH HALAMAN (DENGAN PROTEKSI PIN ADMIN SAAT PERPINDAHAN)
         window.bukaMenuUtama = function(role) {
-            // JIKA MENCOBA MASUK ADMIN DARI MODE KASIR, WAJIB PROMPT PIN
             if (role === "admin" && modeSekarang === "kasir") {
                 const konfirmasiPin = prompt("Masukkan PIN Admin untuk mengakses halaman ini:");
                 if (konfirmasiPin !== PIN_ADMIN) {
@@ -471,8 +471,7 @@
                 `;
             });
         }
-
-        window.tambahKeKeranjang = function(id) {
+          window.tambahKeKeranjang = function(id) {
             const produk = produkData.find(p => p.id === id);
             const itemDiKeranjang = keranjang.find(item => item.id === id);
             const jumlahSekarang = itemDiKeranjang ? itemDiKeranjang.qty : 0;
@@ -503,6 +502,7 @@
                 updateKeranjang();
             }
         }
+
         window.inputQtyManual = function(id, value) {
             let parsedVal = parseInt(value) || 0;
             const item = keranjang.find(item => item.id === id);
@@ -602,9 +602,8 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             })
             .catch(err => console.error("Gagal mengirim log keamanan:", err));
-        }
-
-        window.simpanProduk = function(e) {
+          }
+          window.simpanProduk = function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value;
             const id = editId || Date.now();
@@ -675,6 +674,8 @@
                 remove(ref(db, 'pos_produk/' + id));
             }
         }
+
+        // PROSES TRANSAKSI SEBAGAI SATU NOTA UTUH
         window.prosesTransaksi = function() {
             if (keranjang.length === 0) return alert("Keranjang belanja kosong!");
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
@@ -684,15 +685,25 @@
             const wajibPrint = document.getElementById('allowPrint').checked;
             const waktu = new Date().toISOString();
             const strukWaktuStr = new Date().toLocaleString('id-ID');
+            
+            // GENERATE NOMOR NOTA UNIK
+            const tglBulan = new Date().toLocaleString('id-ID', {year:'2-digit', month:'2-digit', day:'2-digit'}).replace(/\//g,'');
+            const nomorNota = "MK-" + tglBulan + "-" + Math.floor(1000 + Math.random() * 9000);
 
             if (wajibPrint) {
+                document.getElementById('strukIdNota').innerText = "NOTA: " + nomorNota;
                 document.getElementById('strukWaktu').innerText = strukWaktuStr;
                 document.getElementById('strukItem').innerHTML = '';
             }
 
+            let itemsLaporan = [];
+            let totalModalNota = 0;
+
             keranjang.forEach(item => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
                 const subtotal = harga * item.qty;
+                const submodal = item.hpp * item.qty;
+                totalModalNota += submodal;
 
                 if (wajibPrint) {
                     document.getElementById('strukItem').innerHTML += `
@@ -701,24 +712,32 @@
                     `;
                 }
 
+                // Potong Stok Produk Master
                 const itemMaster = produkData.find(p => p.id === item.id);
                 if (itemMaster) {
                     set(ref(db, 'pos_produk/' + item.id + '/stok'), itemMaster.stok - item.qty);
                 }
 
-                const lapId = Date.now() + "_" + Math.floor(Math.random() * 1000);
-                set(ref(db, 'pos_laporan/' + lapId), {
-                    id: lapId,
+                // Masukkan rincian produk ke dalam array objek nota
+                itemsLaporan.push({
                     barangId: item.id,
-                    waktu: waktu,
                     nama: item.nama,
                     qty: item.qty,
                     tipe: item.tipeHarga,
                     hargaJual: harga,
-                    subModal: item.hpp * item.qty,
-                    subJual: subtotal,
-                    refunded: false
+                    subModal: submodal,
+                    subJual: subtotal
                 });
+            });
+
+            // Simpan Nota Utuh ke Firebase Cloud
+            set(ref(db, 'pos_laporan/' + nomorNota), {
+                idNota: nomorNota,
+                waktu: waktu,
+                items: itemsLaporan,
+                totalOmset: total,
+                totalModal: totalModalNota,
+                refunded: false
             });
 
             if (wajibPrint) {
@@ -734,45 +753,57 @@
             } else {
                 kosongkanKeranjang();
                 document.getElementById('uangDiterima').value = '';
-                alert("Transaksi Sukses Disimpan!");
+                alert("Transaksi Sukses Disimpan!\nNomor Nota: " + nomorNota);
             }
-        }
+          }
+          window.reprintTransaksi = function(idNota) {
+            const nota = laporanTerjual.find(item => item.idNota === idNota);
+            if (!nota) return alert("Data transaksi tidak ditemukan!");
 
-        window.reprintTransaksi = function(lapId) {
-            const l = laporanTerjual.find(item => item.id === lapId);
-            if (!l) return alert("Data transaksi tidak ditemukan!");
-
-            const tglSaja = new Date(l.waktu).toLocaleString('id-ID');
-            document.getElementById('strukWaktu').innerText = tglSaja + " (SALINAN)";
+            const tglSaja = new Date(nota.waktu).toLocaleString('id-ID');
+            document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota + " (COPY)";
+            document.getElementById('strukWaktu').innerText = tglSaja;
             
             const strukItemDiv = document.getElementById('strukItem');
-            strukItemDiv.innerHTML = `
-                <div style="display:flex; justify-content:space-between;"><span>${l.nama}</span><span>${l.qty}x</span></div>
-                <div style="display:flex; justify-content:space-between; font-size:11px; color:#4b5563;"><span>@ ${formatRupiah(l.hargaJual)}</span><span>${formatRupiah(l.subJual)}</span></div>
-            `;
+            strukItemDiv.innerHTML = '';
+            
+            nota.items.forEach(item => {
+                strukItemDiv.innerHTML += `
+                    <div style="display:flex; justify-content:space-between;"><span>${item.nama}</span><span>${item.qty}x</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#4b5563;"><span>@ ${formatRupiah(item.hargaJual)}</span><span>${formatRupiah(item.subJual)}</span></div>
+                `;
+            });
 
-            document.getElementById('strukTotal').innerText = formatRupiah(l.subJual);
-            document.getElementById('strukBayar').innerText = formatRupiah(l.subJual);
+            document.getElementById('strukTotal').innerText = formatRupiah(nota.totalOmset);
+            document.getElementById('strukBayar').innerText = formatRupiah(nota.totalOmset);
             document.getElementById('strukKembali').innerText = formatRupiah(0);
 
             setTimeout(() => { window.print(); }, 300);
         }
 
-        window.refundTransaksi = function(lapId, barangId, qtyBalik) {
-            if (confirm("Apakah Anda yakin ingin membatalkan transaksi ini?")) {
-                const produkMaster = produkData.find(p => p.id == barangId);
-                if (produkMaster) {
-                    const stokBaru = produkMaster.stok + parseInt(qtyBalik);
-                    update(ref(db, 'pos_produk/' + barangId), { stok: stokBaru });
-                }
+        window.refundTransaksi = function(idNota) {
+            if (confirm("Apakah Anda yakin ingin melakukan REFUND (Membatalkan seluruh item) pada nota " + idNota + "?")) {
+                const nota = laporanTerjual.find(item => item.idNota === idNota);
+                if (!nota) return;
 
-                update(ref(db, 'pos_laporan/' + lapId), { refunded: true })
-                .then(() => { alert("Transaksi Berhasil DI-REFUND!"); });
+                // Kembalikan sisa stok seluruh barang yang ada di nota
+                nota.items.forEach(item => {
+                    const produkMaster = produkData.find(p => p.id == item.barangId);
+                    if (produkMaster) {
+                        const stokBaru = produkMaster.stok + parseInt(item.qty);
+                        update(ref(db, 'pos_produk/' + item.barangId), { stok: stokBaru });
+                    }
+                });
+
+                update(ref(db, 'pos_laporan/' + idNota), { refunded: true })
+                .then(() => { alert("Seluruh item pada Nota " + idNota + " berhasil di-refund!"); });
             }
         }
 
+        // MANAGEMENT FILTER & PENCARIAN LOG TRANSAKSI DENGAN FORMAT NOTA BARU
         window.hitungLaporanDashboard = function() {
             const filter = document.getElementById('filterTanggal').value;
+            const cariKeyword = document.getElementById('cariLogTransaksi').value.toLowerCase().trim();
             const sekarang = new Date();
             
             let omset = 0;
@@ -782,60 +813,90 @@
             const tbodyLog = document.getElementById('tabelLogTransaksi');
             tbodyLog.innerHTML = '';
 
+            // Urutkan riwayat nota dari yang paling baru
             const laporanSorted = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
 
-            laporanSorted.forEach(l => {
-                const tglLap = new Date(l.waktu);
-                let lolosFilter = false;
+            laporanSorted.forEach(nota => {
+                const tglLap = new Date(nota.waktu);
+                let lolosFilterTanggal = false;
 
-                if (filter === "semua") lolosFilter = true;
-                else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilter = true;
-                else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
-                else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
-                else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+                // 1. Filterisasi Waktu Dropdown
+                if (filter === "semua") lolosFilterTanggal = true;
+                else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilterTanggal = true;
+                else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilterTanggal = true;
+                else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilterTanggal = true;
+                else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilterTanggal = true;
                 else if (filter === "bulan_lalu") {
                     let targetBulan = sekarang.getMonth() - 1;
-                    let targetTahun = sekarang.getFullYear();
+                    let targetTahun = sewing.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
-                    if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
+                    if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilterTanggal = true;
                 }
                 else if (filter === "tahun_lalu" && tglLap.getFullYear() === (sekarang.getFullYear() - 1)) {
-                    lolosFilter = true;
+                    lolosFilterTanggal = true;
                 }
 
-                if (lolosFilter) {
-                    const waktuLokal = new Date(l.waktu).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
-                    const statusText = l.refunded ? `<span style="color:#f87171; font-weight:bold;">REFUNDED</span>` : `<span style="color:#34d399; font-weight:bold;">SUKSES</span>`;
-                    const classRefund = l.refunded ? 'class="text-refund"' : '';
+                if (lolosFilterTanggal) {
+                    const waktuLokal = new Date(nota.waktu).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
                     
-                    const btnRefund = l.refunded ? 
-                        `<button disabled style="background:#4b5563; color:#9ca3af; border:none; padding:3px 6px; border-radius:4px; cursor:not-allowed;">Selesai</button>` : 
-                        `<button onclick="refundTransaksi('${l.id}', '${l.barangId || 0}', ${l.qty})" style="background:#dc2626; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:4px;">Refund</button>`;
-
-                    const btnReprint = `<button onclick="reprintTransaksi('${l.id}')" style="background:#eab308; color:#111827; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-weight:bold;">Cetak</button>`;
-
-                    tbodyLog.innerHTML += `
-                        <tr ${classRefund}>
-                            <td>${waktuLokal} WIB</td>
-                            <td><strong>${l.nama}</strong></td>
-                            <td style="text-align:center;">${l.qty}</td>
-                            <td style="text-transform:capitalize;">${l.tipe}</td>
-                            <td>${formatRupiah(l.subJual)}</td>
-                            <td>${statusText}</td>
-                            <td style="text-align:center; display:flex; justify-content:center;">${btnRefund} ${btnReprint}</td>
-                        </tr>
-                    `;
-
-                    if (!l.refunded) {
-                        omset += l.subJual;
-                        modal += l.subModal;
-
-                        if (!resumeProdukTerjual[l.nama]) {
-                            resumeProdukTerjual[l.nama] = { qty: 0, omset: 0, modal: 0 };
+                    // 2. Fitur Pencarian Log Ringkas (Cari No Nota, Tanggal String, atau Barang didalamnya)
+                    let textSemuaBarang = nota.items ? nota.items.map(i => i.nama.toLowerCase()).join(" ") : "";
+                    let cocokParian = true;
+                    
+                    if (cariKeyword !== "") {
+                        if (!nota.idNota.toLowerCase().includes(cariKeyword) && 
+                            !waktuLokal.toLowerCase().includes(cariKeyword) &&
+                            !textSemuaBarang.includes(cariKeyword)) {
+                            cocokParian = false;
                         }
-                        resumeProdukTerjual[l.nama].qty += l.qty;
-                        resumeProdukTerjual[l.nama].omset += l.subJual;
-                        resumeProdukTerjual[l.nama].modal += l.subModal;
+                    }
+
+                    if (cocokParian) {
+                        const statusText = nota.refunded ? `<span style="color:#f87171; font-weight:bold;">REFUNDED</span>` : `<span style="color:#34d399; font-weight:bold;">SUKSES</span>`;
+                        const classRefund = nota.refunded ? 'class="text-refund"' : '';
+                        
+                        const btnRefund = nota.refunded ? 
+                            `<button disabled style="background:#4b5563; color:#9ca3af; border:none; padding:4px 6px; border-radius:4px; cursor:not-allowed; font-size:11px;">Selesai</button>` : 
+                            `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#dc2626; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px; margin-right:4px;">Refund</button>`;
+
+                        const btnReprint = `<button onclick="reprintTransaksi('${nota.idNota}')" style="background:#eab308; color:#111827; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px;">Cetak</button>`;
+
+                        // Membuat Rincian Teks Item Belanja Dalam Satu Baris Sel di Tabel
+                        let rincianItemHtml = "<ul style='padding-left:14px; margin:0;'>";
+                        if (nota.items && Array.isArray(nota.items)) {
+                            nota.items.forEach(it => {
+                                rincianItemHtml += `<li>${it.nama} <span style="color:#9ca3af;">(${it.qty}x ${it.tipe})</span></li>`;
+                            });
+                        }
+                        rincianItemHtml += "</ul>";
+
+                        tbodyLog.innerHTML += `
+                            <tr ${classRefund}>
+                                <td><strong style="color:#60a5fa; font-family:monospace;">${nota.idNota}</strong></td>
+                                <td>${waktuLokal} WIB</td>
+                                <td>${rincianItemHtml}</td>
+                                <td style="font-weight:bold; color:#f3f4f6;">${formatRupiah(nota.totalOmset)}</td>
+                                <td>${statusText}</td>
+                                <td style="text-align:center;"><div style="display:flex; justify-content:center; align-items:center;">${btnRefund} ${btnReprint}</div></td>
+                            </tr>
+                        `;
+
+                        // Akumulasikan Laporan Omset Jika Status Transaksi Tidak Di-Refund
+                        if (!nota.refunded) {
+                            omset += nota.totalOmset;
+                            modal += nota.totalModal;
+
+                            if (nota.items && Array.isArray(nota.items)) {
+                                nota.items.forEach(item => {
+                                    if (!resumeProdukTerjual[item.nama]) {
+                                        resumeProdukTerjual[item.nama] = { qty: 0, omset: 0, modal: 0 };
+                                    }
+                                    resumeProdukTerjual[item.nama].qty += item.qty;
+                                    resumeProdukTerjual[item.nama].omset += item.subJual;
+                                    resumeProdukTerjual[item.nama].modal += item.subModal;
+                                });
+                            }
+                        }
                     }
                 }
             });
@@ -844,13 +905,13 @@
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
 
-            const tbody = document.getElementById('tabelTerjual');
-            tbody.innerHTML = '';
-            
-            Object.keys(resumeProdukTerjual).forEach(namaBarang => {
+            // Render Tabel Ringkasan Terjual Kolektif
+            const tbodyTerjual = document.getElementById('tabelTerjual');
+            tbodyTerjual.innerHTML = '';
+        Object.keys(resumeProdukTerjual).forEach(namaBarang => {
                 const item = resumeProdukTerjual[namaBarang];
                 const profit = item.omset - item.modal;
-                tbody.innerHTML += `
+                tbodyTerjual.innerHTML += `
                     <tr>
                         <td><strong>${namaBarang}</strong></td>
                         <td style="text-align:center; font-weight:bold; color:#eab308;">${item.qty}</td>
@@ -862,10 +923,10 @@
             });
             
             if(Object.keys(resumeProdukTerjual).length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; font-style:italic; color:#9ca3af;">Tidak ada data penjualan pada periode ini.</td></tr>`;
+                tbodyTerjual.innerHTML = `<tr><td colspan="5" style="text-align:center; font-style:italic; color:#9ca3af;">Tidak ada data penjualan pada periode ini.</td></tr>`;
             }
             if(tbodyLog.innerHTML === '') {
-                tbodyLog.innerHTML = `<tr><td colspan="7" style="text-align:center; font-style:italic; color:#9ca3af;">Belum ada log transaksi masuk.</td></tr>`;
+                tbodyLog.innerHTML = `<tr><td colspan="6" style="text-align:center; font-style:italic; color:#9ca3af;">Data transaksi tidak ditemukan / Kosong.</td></tr>`;
             }
         }
 
