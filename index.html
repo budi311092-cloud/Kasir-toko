@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.5 (Nota Terkelompok + Fitur Cari Log)</title>
+    <title>MAHAKARYA POS v7.9.6 (Tombol Cepat Uang Diterima)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -34,6 +34,13 @@
         .select-custom { padding: 6px 12px; background: #374151; color: white; border: 1px solid #4b5563; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-proses { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
+        /* Container Tombol Uang Cepat */
+        .grid-uang-cepat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+        .btn-uang-cepat { background: #4b5563; color: white; border: 1px solid #6b7280; padding: 6px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: background 0.2s; text-align: center; }
+        .btn-uang-cepat:hover { background: #374151; border-color: #3b82f6; }
+        .btn-uang-pas { background: #059669; border-color: #10b981; }
+        .btn-uang-pas:hover { background: #047857; }
+
         /* Layout Admin */
         .admin-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; padding: 15px; max-width: 1400px; margin: 0 auto; }
         @media (min-width: 1024px) { .admin-layout { grid-template-columns: 1fr 2fr; } }
@@ -75,7 +82,7 @@
 <body>
 
     <header id="mainHeader" class="hidden">
-        <h1 id="headerTitle" style="font-size: 16px; font-weight: bold;">MAHAKARYA POS v7.9.5 🌐</h1>
+        <h1 id="headerTitle" style="font-size: 16px; font-weight: bold;">MAHAKARYA POS v7.9.6 🌐</h1>
         <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
     </header>
 
@@ -135,6 +142,10 @@
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
                     <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
                 </div>
+                
+                <!-- POP-UP PILIHAN NOMINAL CEPAT -->
+                <div id="containerUangCepat" class="grid-uang-cepat"></div>
+
                 <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
                     <span style="color: #9ca3af;">Kembalian:</span>
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
@@ -149,7 +160,7 @@
             </div>
         </div>
     </div>
-    <!-- MENU UTAMA ADMIN -->
+     <!-- MENU UTAMA ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -308,7 +319,8 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
-      <script type="module">
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -351,8 +363,7 @@
             const display = document.getElementById('pinDisplay');
             display.innerText = "• ".repeat(inputPinString.length);
         }
-
-        window.verifikasiPin = function() {
+    window.verifikasiPin = function() {
             if (inputPinString === PIN_KASIR) {
                 bukaMenuUtama("kasir");
             } else if (inputPinString === PIN_ADMIN) {
@@ -388,7 +399,7 @@
             const btnMode = document.getElementById('btnMode');
 
             if (role === "kasir") {
-                hTitle.innerText = "MAHAKARYA POS v7.9.5 🌐 (Mode Kasir)";
+                hTitle.innerText = "MAHAKARYA POS v7.9.6 🌐 (Mode Kasir)";
                 kasirContainer.classList.remove('hidden');
                 adminContainer.classList.add('hidden');
                 
@@ -398,7 +409,7 @@
                 
                 renderProduk();
             } else if (role === "admin") {
-                hTitle.innerText = "MAHAKARYA POS v7.9.5 🌐 (Mode Admin)";
+                hTitle.innerText = "MAHAKARYA POS v7.9.6 🌐 (Mode Admin)";
                 kasirContainer.classList.add('hidden');
                 adminContainer.classList.remove('hidden');
                 
@@ -471,7 +482,8 @@
                 `;
             });
         }
-          window.tambahKeKeranjang = function(id) {
+
+        window.tambahKeKeranjang = function(id) {
             const produk = produkData.find(p => p.id === id);
             const itemDiKeranjang = keranjang.find(item => item.id === id);
             const jumlahSekarang = itemDiKeranjang ? itemDiKeranjang.qty : 0;
@@ -484,7 +496,6 @@
             }
             updateKeranjang();
         }
-
         window.ubahTipeHargaManual = function(id, tipe) {
             const item = keranjang.find(item => item.id === id);
             if (item) { item.tipeHarga = tipe; updateKeranjang(); }
@@ -556,6 +567,51 @@
 
             list.scrollTop = scrollPos;
             document.getElementById('totalAkhir').innerText = formatRupiah(total);
+            renderTombolUangCepat(total);
+            hitungKembalian();
+        }
+
+        // GENERATE DAFTAR TOMBOL UANG NOMINAL CEPAT SECARA OTOMATIS
+        function renderTombolUangCepat(totalKeranjang) {
+            const container = document.getElementById('containerUangCepat');
+            container.innerHTML = '';
+            if (totalKeranjang <= 0) return;
+
+            // Kumpulan pecahan lembaran mata uang rupiah standar
+            const pecahanRupiah = [2000, 5000, 10000, 20000, 50000, 100000];
+            let listNominalPilihan = [];
+
+            // 1. Tambahkan opsi Utama: "Uang Pas"
+            listNominalPilihan.push({ teks: "Uang Pas", nilai: totalKeranjang, isPas: true });
+
+            // 2. Cari pecahan lembaran standar tunggal yang bisa menutupi total belanjaan
+            let lembaranTunggalCocok = pecahanRupiah.find(p => p > totalKeranjang);
+            if (lembaranTunggalCocok) {
+                listNominalPilihan.push({ teks: formatRupiah(lembaranTunggalCocok), nilai: lembaranTunggalCocok });
+            }
+
+            // 3. Tambahkan pecahan bulat kelipatan terdekat (misal pembulatan ke atas Rp10.000, Rp20.000 atau Rp50.000 terdekat)
+            let rentangPembulatan = [10000, 20000, 50000, 100000];
+            rentangPembulatan.forEach(pembulat => {
+                let nominalBulatAtas = Math.ceil(totalKeranjang / pembulat) * pembulat;
+                if (nominalBulatAtas > totalKeranjang && !listNominalPilihan.some(item => item.nilai === nominalBulatAtas)) {
+                    listNominalPilihan.push({ teks: formatRupiah(nominalBulatAtas), nilai: nominalBulatAtas });
+                }
+            });
+
+            // Urutkan nominal dari terkecil ke terbesar lalu tampilkan maksimal 6 tombol tercepat
+            listNominalPilihan.sort((a, b) => a.nilai - b.nilai);
+            listNominalPilihan.slice(0, 6).forEach(opt => {
+                container.innerHTML += `
+                    <button class="btn-uang-cepat ${opt.isPas ? 'btn-uang-pas' : ''}" onclick="pilihUangCepatManual(${opt.nilai})">
+                        ${opt.teks}
+                    </button>
+                `;
+            });
+        }
+
+        window.pilihUangCepatManual = function(nominal) {
+            document.getElementById('uangDiterima').value = nominal;
             hitungKembalian();
         }
 
@@ -602,8 +658,8 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             })
             .catch(err => console.error("Gagal mengirim log keamanan:", err));
-          }
-          window.simpanProduk = function(e) {
+        }
+        window.simpanProduk = function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value;
             const id = editId || Date.now();
@@ -675,7 +731,6 @@
             }
         }
 
-        // PROSES TRANSAKSI SEBAGAI SATU NOTA UTUH
         window.prosesTransaksi = function() {
             if (keranjang.length === 0) return alert("Keranjang belanja kosong!");
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
@@ -686,7 +741,6 @@
             const waktu = new Date().toISOString();
             const strukWaktuStr = new Date().toLocaleString('id-ID');
             
-            // GENERATE NOMOR NOTA UNIK
             const tglBulan = new Date().toLocaleString('id-ID', {year:'2-digit', month:'2-digit', day:'2-digit'}).replace(/\//g,'');
             const nomorNota = "MK-" + tglBulan + "-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -712,13 +766,11 @@
                     `;
                 }
 
-                // Potong Stok Produk Master
                 const itemMaster = produkData.find(p => p.id === item.id);
                 if (itemMaster) {
                     set(ref(db, 'pos_produk/' + item.id + '/stok'), itemMaster.stok - item.qty);
                 }
 
-                // Masukkan rincian produk ke dalam array objek nota
                 itemsLaporan.push({
                     barangId: item.id,
                     nama: item.nama,
@@ -730,7 +782,6 @@
                 });
             });
 
-            // Simpan Nota Utuh ke Firebase Cloud
             set(ref(db, 'pos_laporan/' + nomorNota), {
                 idNota: nomorNota,
                 waktu: waktu,
@@ -755,8 +806,8 @@
                 document.getElementById('uangDiterima').value = '';
                 alert("Transaksi Sukses Disimpan!\nNomor Nota: " + nomorNota);
             }
-          }
-          window.reprintTransaksi = function(idNota) {
+        }
+        window.reprintTransaksi = function(idNota) {
             const nota = laporanTerjual.find(item => item.idNota === idNota);
             if (!nota) return alert("Data transaksi tidak ditemukan!");
 
@@ -786,7 +837,6 @@
                 const nota = laporanTerjual.find(item => item.idNota === idNota);
                 if (!nota) return;
 
-                // Kembalikan sisa stok seluruh barang yang ada di nota
                 nota.items.forEach(item => {
                     const produkMaster = produkData.find(p => p.id == item.barangId);
                     if (produkMaster) {
@@ -800,7 +850,6 @@
             }
         }
 
-        // MANAGEMENT FILTER & PENCARIAN LOG TRANSAKSI DENGAN FORMAT NOTA BARU
         window.hitungLaporanDashboard = function() {
             const filter = document.getElementById('filterTanggal').value;
             const cariKeyword = document.getElementById('cariLogTransaksi').value.toLowerCase().trim();
@@ -813,22 +862,20 @@
             const tbodyLog = document.getElementById('tabelLogTransaksi');
             tbodyLog.innerHTML = '';
 
-            // Urutkan riwayat nota dari yang paling baru
             const laporanSorted = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
 
             laporanSorted.forEach(nota => {
                 const tglLap = new Date(nota.waktu);
                 let lolosFilterTanggal = false;
 
-                // 1. Filterisasi Waktu Dropdown
                 if (filter === "semua") lolosFilterTanggal = true;
                 else if (filter === "hari" && tglLap.toDateString() === sekarang.toDateString()) lolosFilterTanggal = true;
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilterTanggal = true;
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilterTanggal = true;
-                else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilterTanggal = true;
+                else if (filter === "tahun" && tglLap.getFullYear() === now().getFullYear()) lolosFilterTanggal = true;
                 else if (filter === "bulan_lalu") {
                     let targetBulan = sekarang.getMonth() - 1;
-                    let targetTahun = sewing.getFullYear();
+                    let targetTahun = sekarang.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
                     if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilterTanggal = true;
                 }
@@ -838,8 +885,6 @@
 
                 if (lolosFilterTanggal) {
                     const waktuLokal = new Date(nota.waktu).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
-                    
-                    // 2. Fitur Pencarian Log Ringkas (Cari No Nota, Tanggal String, atau Barang didalamnya)
                     let textSemuaBarang = nota.items ? nota.items.map(i => i.nama.toLowerCase()).join(" ") : "";
                     let cocokParian = true;
                     
@@ -861,7 +906,6 @@
 
                         const btnReprint = `<button onclick="reprintTransaksi('${nota.idNota}')" style="background:#eab308; color:#111827; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px;">Cetak</button>`;
 
-                        // Membuat Rincian Teks Item Belanja Dalam Satu Baris Sel di Tabel
                         let rincianItemHtml = "<ul style='padding-left:14px; margin:0;'>";
                         if (nota.items && Array.isArray(nota.items)) {
                             nota.items.forEach(it => {
@@ -881,7 +925,6 @@
                             </tr>
                         `;
 
-                        // Akumulasikan Laporan Omset Jika Status Transaksi Tidak Di-Refund
                         if (!nota.refunded) {
                             omset += nota.totalOmset;
                             modal += nota.totalModal;
@@ -905,10 +948,10 @@
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
 
-            // Render Tabel Ringkasan Terjual Kolektif
             const tbodyTerjual = document.getElementById('tabelTerjual');
             tbodyTerjual.innerHTML = '';
-        Object.keys(resumeProdukTerjual).forEach(namaBarang => {
+            
+            Object.keys(resumeProdukTerjual).forEach(namaBarang => {
                 const item = resumeProdukTerjual[namaBarang];
                 const profit = item.omset - item.modal;
                 tbodyTerjual.innerHTML += `
