@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.1 (Stable Cloud + Reprint)</title>
+    <title>MAHAKARYA POS v7.9.2 (Stable Cloud + Inventori Search)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -57,7 +57,7 @@
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.1 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.2 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
@@ -65,7 +65,7 @@
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir)</h2>
-                <input type="text" id="cariProduk" placeholder="Cari produk..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
+                <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
             </div>
             <div id="gridProduk" class="grid-produk"><p class="loading-text">Menghubungkan ke Cloud database...</p></div>
         </div>
@@ -205,8 +205,12 @@
                 </div>
             </div>
 
+            <!-- Fitur Baru: Kolom Pencari pada Bagian Inventori & Kontrol Stok -->
             <div class="card">
-                <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 10px;">📦 Inventori & Kontrol Stok</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
+                    <input type="text" id="cariInventori" placeholder="Cari nama barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 230px;" oninput="pencarianInventori()">
+                </div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
                         <thead>
@@ -224,8 +228,8 @@
                 </div>
             </div>
         </div>
-                        </div>
-                        <!-- Area Struk Toko -->
+    </div>
+<!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
@@ -259,7 +263,6 @@
             measurementId: "G-V6R21M8X0D"
         };
 
-        // Inisialisasi Database dengan struktur pemanggilan modul yang distabilkan
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -274,7 +277,6 @@
             return "Rp " + parseInt(angka).toLocaleString('id-ID');
         }
 
-        // Handler Listener Realtime Database
         onValue(ref(db, 'pos_produk'), (snapshot) => {
             const data = snapshot.val();
             produkData = data ? Object.values(data) : [];
@@ -429,6 +431,13 @@
             renderProduk(filtered);
         }
 
+        // Logika Baru: Realtime Filter Pencarian di Tabel Inventori Admin
+        window.pencarianInventori = function() {
+            const keyword = document.getElementById('cariInventori').value.toLowerCase();
+            const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
+            renderAdminTable(filtered);
+        }
+
         window.pindahMode = function() {
             const btn = document.getElementById('btnMode');
             const kasir = document.getElementById('areaKasir');
@@ -442,6 +451,7 @@
                     btn.innerText = "🛒 Masuk Menu Kasir";
                     kasir.classList.add('hidden');
                     admin.classList.remove('hidden');
+                    document.getElementById('cariInventori').value = ''; // Reset input pencarian saat masuk
                     renderAdminTable();
                     hitungLaporanDashboard();
                 } else {
@@ -451,10 +461,9 @@
                     }
                 }
             } else {
-               window.logoutAdmin();
+                window.logoutAdmin();
             }
         }
-
         function kirimNotifikasiKeTelegram(pinSalah) {
             const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk"; 
             const TELEGRAM_CHAT_ID = "8563167649"; 
@@ -513,10 +522,16 @@
             document.getElementById('editId').value = '';
         }
 
-        window.renderAdminTable = function() {
+        window.renderAdminTable = function(dataToDisplay = produkData) {
             const tbody = document.getElementById('tabelAdmin');
             tbody.innerHTML = '';
-            produkData.forEach(p => {
+            
+            if (dataToDisplay.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; font-style:italic; color:#9ca3af; padding: 15px;">Barang tidak ditemukan.</td></tr>`;
+                return;
+            }
+
+            dataToDisplay.forEach(p => {
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${p.nama}</strong></td>
@@ -603,6 +618,7 @@
                 document.getElementById('uangDiterima').value = '';
             }, 300);
         }
+
         window.reprintTransaksi = function(lapId) {
             const l = laporanTerjual.find(item => item.id === lapId);
             if (!l) return alert("Data transaksi tidak ditemukan!");
@@ -664,7 +680,7 @@
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 
                 else if (filter === "bulan_lalu") {
-                    let targetBulan = sekarang.getMonth() - 1;
+                    let targetBulan = Thermal_Year = sekarang.getMonth() - 1;
                     let targetTahun = sekarang.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
                     if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
