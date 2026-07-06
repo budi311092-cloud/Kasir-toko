@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.7 (Login PIN Guard)</title>
+    <title>MAHAKARYA POS v7.9.7 (Login PIN Guard - Clean)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -11,7 +11,7 @@
         /* Layar Login Lockscreen */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111827; z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .login-box { background: #1f2937; padding: 30px; border-radius: 16px; border: 1px solid #374151; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; }
-        .pin-display { background: #111827; border: 1px solid #4b5563; border-radius: 8px; padding: 12px; font-size: 24px; font-weight: bold; letter-spacing: 6px; text-align: center; margin-bottom: 20px; color: #eab308; min-height: 55px; }
+        .pin-display { background: #111827; border: 1px solid #4b5563; border-radius: 8px; padding: 12px; font-size: 24px; font-weight: bold; letter-spacing: 6px; text-align: center; margin-bottom: 20px; color: #eab308; min-height: 55px; line-height: 30px; }
         .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .btn-pin { background: #374151; color: white; border: 1px solid #4b5563; font-size: 18px; font-weight: bold; padding: 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
         .btn-pin:hover { background: #4b5563; }
@@ -28,33 +28,20 @@
         @media (min-width: 640px) { .grid-produk { grid-template-columns: repeat(3, 1fr); } }
         .item-produk { border: 1px solid #4b5563; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; background: #374151; position: relative; color: white; }
         .item-produk:hover { border-color: #3b82f6; }
-        .badge { background: #1e3a8a; color: #93c5fd; font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: bold; width: fit-content; }
         .badge-stok { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: bold; }
         .stok-aman { color: #34d399; }
         .stok-habis { color: #f87171; background: #7f1d1d; padding: 2px 6px; border-radius: 4px; }
         .item-keranjang { background: #374151; padding: 10px; border-radius: 8px; border: 1px solid #4b5563; margin-bottom: 8px; }
         .input-text { width: 100%; padding: 8px 12px; border: 1px solid #4b5563; background: #374151; color: white; border-radius: 6px; margin-top: 4px; margin-bottom: 12px; font-size: 14px; }
-        .select-custom { padding: 6px 12px; background: #374151; color: white; border: 1px solid #4b5563; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-proses { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
         /* Layout Admin */
         .admin-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; padding: 15px; max-width: 1400px; margin: 0 auto; }
         @media (min-width: 1024px) { .admin-layout { grid-template-columns: 1fr 2fr; } }
         
-        .grid-laporan { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 20px; }
-        @media (min-width: 640px) { .grid-laporan { grid-template-columns: repeat(3, 1fr); } }
-        .box-laporan { padding: 15px; border-radius: 8px; color: white; }
-        .box-omset { background-color: #1e3a8a; border: 1px solid #3b82f6; }
-        .box-modal { background-color: #1f2937; border: 1px solid #4b5563; }
-        .box-laba { background-color: #064e3b; border: 1px solid #10b981; }
-        .box-aset { background-color: #581c87; border: 1px solid #a855f7; margin-bottom: 15px; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #e5e7eb; }
         th, td { padding: 10px; border-bottom: 1px solid #374151; }
         th { background: #374151; color: #9ca3af; }
-
-        .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; border: 1px solid #4b5563; }
-        .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
         .btn-action-tabel { border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; margin-right: 2px; color: white; }
     </style>
 </head>
@@ -82,12 +69,10 @@
                 <button class="btn-pin" onclick="tekanPin('0')">0</button>
                 <button class="btn-pin" onclick="konfirmasiLogin()" style="background:#10b981; color:white; border-color:#059669;">Masuk</button>
             </div>
-            
-            <p style="font-size: 11px; color: #6b7280; margin-top: 20px;">Kasir: 1111 | Admin: 1234</p>
         </div>
     </div>
 
-    <!-- AREA UTAMA APLIKASI (TERKUNCI DI AWAL) -->
+    <!-- AREA UTAMA APLIKASI -->
     <div id="kontenUtama" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
         <header>
             <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.7 🌐 <span id="labelUser" style="font-size:13px; color:#eab308; margin-left:10px;"></span></h1>
@@ -195,17 +180,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // DAFTAR PIN OTENTIKASI
         const CONFIG_PIN = {
             KASIR: "0000",
             ADMIN: "2304"
         };
 
-        let pinInput Sekarang = "";
+        let pinInputSekarang = "";
         let produkData = [];
         let keranjang = [];
 
-        // Fungsi Layar Input PIN
         window.tekanPin = function(angka) {
             if (pinInputSekarang.length < 6) {
                 pinInputSekarang += angka;
@@ -219,7 +202,6 @@
         }
 
         function perbaruiTampilanPin() {
-            // Mengubah teks angka menjadi simbol bintang demi privasi
             document.getElementById('pinDisplay').innerText = "•".repeat(pinInputSekarang.length);
         }
 
@@ -250,7 +232,6 @@
             }
             hapusPin();
         }
-
         window.logoutSistem = function() {
             document.getElementById('kontenUtama').classList.add('hidden');
             document.getElementById('layarLogin').classList.remove('hidden');
@@ -258,14 +239,14 @@
             hapusPin();
         }
 
-        // Database Firebase Sync
         onValue(ref(db, 'pos_produk'), (snapshot) => {
             const data = snapshot.val();
             produkData = data ? Object.values(data) : [];
             renderProduk();
             renderAdminTable();
         });
-            window.renderProduk = function() {
+
+        window.renderProduk = function() {
             const grid = document.getElementById('gridProduk');
             if(!grid) return;
             grid.innerHTML = '';
@@ -295,6 +276,51 @@
             });
         }
 
+        window.tambahKeKeranjang = function(id) { 
+            const produk = produkData.find(p => p.id === id); 
+            const itemDiKeranjang = keranjang.find(item => item.id === id); 
+            const jumlahSekarang = itemDiKeranjang ? itemDiKeranjang.qty : 0; 
+            if (jumlahSekarang >= produk.stok) return alert("Stok kasir habis!"); 
+            if (itemDiKeranjang) { itemDiKeranjang.qty++; } else { keranjang.push({ ...produk, qty: 1, tipeHarga: 'ecer' }); } 
+            updateKeranjang(); 
+        }
+
+        window.updateKeranjang = function() { 
+            const list = document.getElementById('listKeranjang'); 
+            let total = 0; list.innerHTML = ''; 
+            keranjang.forEach(item => { 
+                const harga = item.hargaEcer; 
+                const subtotal = harga * item.qty; 
+                total += subtotal; 
+                list.innerHTML += `<div class="item-keranjang"><div style="display:flex; justify-content:space-between;"><span>${item.nama}</span><span>Rp ${subtotal.toLocaleString()}</span></div><div style="display:flex; justify-content:space-between; margin-top:5px;"><span style="font-size:11px; color:#9ca3af;">Qty: ${item.qty}</span></div></div>`; 
+            }); 
+            document.getElementById('totalAkhir').innerText = "Rp " + total.toLocaleString(); 
+            hitungKembalian(); 
+        }
+
+        window.hitungKembalian = function() { 
+            const total = keranjang.reduce((acc, item) => acc + (item.hargaEcer * item.qty), 0); 
+            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0; 
+            document.getElementById('uangKembalian').innerText = bayar >= total ? "Rp " + (bayar - total).toLocaleString() : "Rp 0"; 
+        }
+
+        window.kosongkanKeranjang = function() { keranjang = []; updateKeranjang(); }
+
+        window.prosesTransaksi = function() {
+            if (keranjang.length === 0) return alert("Keranjang kosong!");
+            const total = keranjang.reduce((acc, item) => acc + (item.hargaEcer * item.qty), 0);
+            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
+            if (bayar < total) return alert("Uang kurang!");
+
+            keranjang.forEach(item => {
+                const itemMaster = produkData.find(p => p.id === item.id);
+                if (itemMaster) set(ref(db, 'pos_produk/' + item.id + '/stok'), itemMaster.stok - item.qty);
+            });
+            kosongkanKeranjang(); 
+            document.getElementById('uangDiterima').value = ''; 
+            alert("Transaksi Berhasil!");
+        }
+
         window.tarikStokGudang = function(id) {
             const p = produkData.find(item => item.id === id);
             if (!p || p.stokGudang <= 0) return alert("Stok gudang kosong!");
@@ -308,4 +334,4 @@
         }
     </script>
 </body>
-</html>                
+</html>
