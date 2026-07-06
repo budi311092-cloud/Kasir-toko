@@ -733,28 +733,37 @@
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const filter = document.getElementById('filterTanggal').value;
-            const textKeyword = document.getElementById('cariLaporan').value.toLowerCase();
-            const dateKeyword = document.getElementById('cariTanggalLaporan').value;
             const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
             
             let kamusKuantitasBarang = {}; 
             const sekarang = new Date();
-            const formatMulaiHariIni = new Date(sekarang.getFullYear(), Thermal=sekarang.getMonth(), sekarang.getDate()).getTime();
+            
+            // Perbaikan: Ambil string tanggal lokal (YYYY-MM-DD) untuk perbandingan akurat
+            const formatYMD = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            const stringHariIni = formatYMD(sekarang);
+            
+            const kemarin = new Date();
+            kemarin.setDate(sekarang.getDate() - 1);
+            const stringKemarin = formatYMD(kemarin);
 
             laporanTerjual.forEach(nota => {
                 const tNota = new Date(nota.waktu);
+                const stringNota = formatYMD(tNota); // Tanggal nota dalam format YYYY-MM-DD lokal
                 let lolosFilter = false;
 
-                const selisihMilidetik = sekarang.getTime() - tNota.getTime();
-                const selisihHari = Math.floor(selisihMilidetik / (1000 * 60 * 60 * 24));
+                // Hitung selisih hari yang presisi berdasarkan kalender lokal
+                const tanggalMulaiSekarang = new Date(sekarang.getFullYear(), sekarang.getMonth(), sekarang.getDate());
+                const tanggalMulaiNota = new Date(tNota.getFullYear(), tNota.getMonth(), tNota.getDate());
+                const selisihHari = Math.round((tanggalMulaiSekarang - tanggalMulaiNota) / (1000 * 60 * 60 * 24));
 
-                if (filter === "semua") { lolosFilter = true; } 
-                else if (filter === "hari") { if (tNota.getTime() >= formatMulaiHariIni) lolosFilter = true; } 
-                else if (filter === "kemarin") {
-                    const batasBawahKemarin = formatMulaiHariIni - (1000*60*60*24);
-                    if (tNota.getTime() >= batasBawahKemarin && tNota.getTime() < formatMulaiHariIni) lolosFilter = true;
+                if (filter === "semua") { 
+                    lolosFilter = true; 
+                } else if (filter === "hari") { 
+                    if (stringNota === stringHariIni) lolosFilter = true; 
+                } else if (filter === "kemarin") {
+                    if (stringNota === stringKemarin) lolosFilter = true;
                 } else if (filter === "minggu_ini") {
-                    if (selisihHari <= 7 && tNota.getDay() <= sekarang.getDay()) lolosFilter = true;
+                    if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true;
                 } else if (filter === "minggu_kemarin") {
                     if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true;
                 } else if (filter === "tahun_ini") {
