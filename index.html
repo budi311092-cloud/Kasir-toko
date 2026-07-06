@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.2 (Stable Cloud + Inventori Search)</title>
+    <title>MAHAKARYA POS v7.9.3 (Stable Cloud + Print Toggle)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -51,13 +51,17 @@
         th { background: #374151; color: #9ca3af; }
         .text-refund { text-decoration: line-through; color: #9ca3af !important; opacity: 0.6; }
 
+        /* Styling Checkbox Pilihan Print */
+        .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; user-select: none; border: 1px solid #4b5563; }
+        .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
+
         @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.2 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.3 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
@@ -88,11 +92,18 @@
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
                     <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
                 </div>
-                <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
                     <span style="color: #9ca3af;">Kembalian:</span>
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
                 </div>
-                <button onclick="prosesTransaksi()" class="btn-proses">Proses & Cetak Struk</button>
+
+                <!-- Opsi Menu Baru: Pilihan Cetak Struk atau Tidak -->
+                <label class="container-checkbox">
+                    <input type="checkbox" id="allowPrint" checked>
+                    <span>🖨️ Cetak Struk Fisik (Thermal)</span>
+                </label>
+
+                <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
     </div>
@@ -203,10 +214,8 @@
                         <tbody id="tabelLogTransaksi"></tbody>
                     </table>
                 </div>
-            </div>
-
-            <!-- Fitur Baru: Kolom Pencari pada Bagian Inventori & Kontrol Stok -->
-            <div class="card">
+    </div>
+    <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
                     <input type="text" id="cariInventori" placeholder="Cari nama barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 230px;" oninput="pencarianInventori()">
@@ -229,7 +238,8 @@
             </div>
         </div>
     </div>
-<!-- Area Struk Toko -->
+
+    <!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
@@ -375,7 +385,6 @@
                 updateKeranjang();
             }
         }
-
         window.updateKeranjang = function() {
             const list = document.getElementById('listKeranjang');
             let total = 0;
@@ -431,7 +440,6 @@
             renderProduk(filtered);
         }
 
-        // Logika Baru: Realtime Filter Pencarian di Tabel Inventori Admin
         window.pencarianInventori = function() {
             const keyword = document.getElementById('cariInventori').value.toLowerCase();
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
@@ -451,7 +459,7 @@
                     btn.innerText = "🛒 Masuk Menu Kasir";
                     kasir.classList.add('hidden');
                     admin.classList.remove('hidden');
-                    document.getElementById('cariInventori').value = ''; // Reset input pencarian saat masuk
+                    document.getElementById('cariInventori').value = ''; 
                     renderAdminTable();
                     hitungLaporanDashboard();
                 } else {
@@ -464,6 +472,7 @@
                 window.logoutAdmin();
             }
         }
+
         function kirimNotifikasiKeTelegram(pinSalah) {
             const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk"; 
             const TELEGRAM_CHAT_ID = "8563167649"; 
@@ -565,28 +574,31 @@
                 remove(ref(db, 'pos_produk/' + id));
             }
         }
-
         window.prosesTransaksi = function() {
             if (keranjang.length === 0) return alert("Keranjang belanja kosong!");
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             if (bayar < total) return alert("Uang diterima kurang!");
 
+            const wajibPrint = document.getElementById('allowPrint').checked;
             const waktu = new Date().toISOString();
             const strukWaktuStr = new Date().toLocaleString('id-ID');
 
-            document.getElementById('strukWaktu').innerText = strukWaktuStr;
-            const strukItemDiv = document.getElementById('strukItem');
-            strukItemDiv.innerHTML = '';
+            if (wajibPrint) {
+                document.getElementById('strukWaktu').innerText = strukWaktuStr;
+                document.getElementById('strukItem').innerHTML = '';
+            }
 
             keranjang.forEach(item => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
                 const subtotal = harga * item.qty;
 
-                strukItemDiv.innerHTML += `
-                    <div style="display:flex; justify-content:space-between;"><span>${item.nama}</span><span>${item.qty}x</span></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#4b5563;"><span>@ ${formatRupiah(harga)}</span><span>${formatRupiah(subtotal)}</span></div>
-                `;
+                if (wajibPrint) {
+                    document.getElementById('strukItem').innerHTML += `
+                        <div style="display:flex; justify-content:space-between;"><span>${item.nama}</span><span>${item.qty}x</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px; color:#4b5563;"><span>@ ${formatRupiah(harga)}</span><span>${formatRupiah(subtotal)}</span></div>
+                    `;
+                }
 
                 const itemMaster = produkData.find(p => p.id === item.id);
                 if (itemMaster) {
@@ -608,15 +620,22 @@
                 });
             });
 
-            document.getElementById('strukTotal').innerText = formatRupiah(total);
-            document.getElementById('strukBayar').innerText = formatRupiah(bayar);
-            document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
+            if (wajibPrint) {
+                document.getElementById('strukTotal').innerText = formatRupiah(total);
+                document.getElementById('strukBayar').innerText = formatRupiah(bayar);
+                document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
 
-            setTimeout(() => {
-                window.print();
+                setTimeout(() => {
+                    window.print();
+                    kosongkanKeranjang();
+                    document.getElementById('uangDiterima').value = '';
+                }, 300);
+            } else {
+                // Logika Jalur Cepat (Tanpa Print)
                 kosongkanKeranjang();
                 document.getElementById('uangDiterima').value = '';
-            }, 300);
+                alert("Transaksi Sukses Disimpan!");
+            }
         }
 
         window.reprintTransaksi = function(lapId) {
