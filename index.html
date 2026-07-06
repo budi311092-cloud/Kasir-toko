@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v7.9.3 (Stable Cloud + Print Toggle)</title>
+    <title>MAHAKARYA POS v7.9.4 (Anti-Duplikasi + Cloud)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -51,7 +51,6 @@
         th { background: #374151; color: #9ca3af; }
         .text-refund { text-decoration: line-through; color: #9ca3af !important; opacity: 0.6; }
 
-        /* Styling Checkbox Pilihan Print */
         .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; user-select: none; border: 1px solid #4b5563; }
         .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
 
@@ -61,7 +60,7 @@
 <body>
 
     <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.3 🌐</h1>
+        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.4 🌐</h1>
         <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
     </header>
 
@@ -97,7 +96,6 @@
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
                 </div>
 
-                <!-- Opsi Menu Baru: Pilihan Cetak Struk atau Tidak -->
                 <label class="container-checkbox">
                     <input type="checkbox" id="allowPrint" checked>
                     <span>🖨️ Cetak Struk Fisik (Thermal)</span>
@@ -214,8 +212,9 @@
                         <tbody id="tabelLogTransaksi"></tbody>
                     </table>
                 </div>
-    </div>
-    <div class="card">
+            </div>
+
+            <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
                     <input type="text" id="cariInventori" placeholder="Cari nama barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 230px;" oninput="pencarianInventori()">
@@ -238,11 +237,10 @@
             </div>
         </div>
     </div>
-
     <!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
-            <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
+            <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA PLASTIK</h2>
             <p>Arjawinangun, Cirebon</p>
             <p style="font-weight: bold;">Telp/WA: 081916230420</p>
             <p>--------------------------------</p>
@@ -385,6 +383,7 @@
                 updateKeranjang();
             }
         }
+
         window.updateKeranjang = function() {
             const list = document.getElementById('listKeranjang');
             let total = 0;
@@ -497,7 +496,6 @@
             })
             .catch(err => console.error("Gagal mengirim log keamanan:", err));
         }
-
         window.logoutAdmin = function() {
             const btn = document.getElementById('btnMode');
             const kasir = document.getElementById('areaKasir');
@@ -510,14 +508,24 @@
             renderProduk();
         }
 
+        // FITUR BARU: Sistem Proteksi Duplikasi Nama Barang
         window.simpanProduk = function(e) {
             e.preventDefault();
-            const id = document.getElementById('editId').value || Date.now();
-            const nama = document.getElementById('inputNama').value;
+            const editId = document.getElementById('editId').value;
+            const id = editId || Date.now();
+            const nama = document.getElementById('inputNama').value.trim();
             const hpp = parseInt(document.getElementById('inputHpp').value);
             const stok = parseInt(document.getElementById('inputStok').value);
             const hargaEcer = parseInt(document.getElementById('inputHargaEcer').value);
             const hargaGrosir = parseInt(document.getElementById('inputHargaGrosir').value);
+
+            // Cek duplikasi: nama sama tetapi ID-nya berbeda (mencegah penolakan saat edit)
+            const namaSama = produkData.some(p => p.nama.toLowerCase() === nama.toLowerCase() && p.id != id);
+            
+            if (namaSama) {
+                alert(`❌ Nama barang "${nama}" sudah ada di inventori!\nSilakan gunakan nama lain atau edit barang yang sudah ada agar data tidak ganda.`);
+                return; // Stop eksekusi, tidak disimpan ke Firebase
+            }
 
             set(ref(db, 'pos_produk/' + id), { id: parseInt(id), nama, hpp, stok, hargaEcer, hargaGrosir })
             .then(() => {
@@ -574,6 +582,7 @@
                 remove(ref(db, 'pos_produk/' + id));
             }
         }
+
         window.prosesTransaksi = function() {
             if (keranjang.length === 0) return alert("Keranjang belanja kosong!");
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
@@ -631,7 +640,6 @@
                     document.getElementById('uangDiterima').value = '';
                 }, 300);
             } else {
-                // Logika Jalur Cepat (Tanpa Print)
                 kosongkanKeranjang();
                 document.getElementById('uangDiterima').value = '';
                 alert("Transaksi Sukses Disimpan!");
@@ -668,7 +676,7 @@
                     update(ref(db, 'pos_produk/' + barangId), { stok: stokBaru });
                 }
 
-                update(ref(db, 'pos_laporan/' + lapId), { refunded: true })
+                update(ref(ref(db, 'pos_laporan/' + lapId), { refunded: true }))
                 .then(() => {
                     alert("Transaksi Berhasil DI-REFUND!");
                 });
@@ -699,7 +707,7 @@
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 
                 else if (filter === "bulan_lalu") {
-                    let targetBulan = Thermal_Year = sekarang.getMonth() - 1;
+                    let targetBulan = sekarang.getMonth() - 1;
                     let targetTahun = sekarang.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
                     if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
@@ -744,8 +752,7 @@
                     }
                 }
             });
-
-            document.getElementById('lapOmset').innerText = formatRupiah(omset);
+        document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
 
