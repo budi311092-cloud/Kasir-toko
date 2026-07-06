@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v8.2.0 (Hybrid Offline-Online)</title>
+    <title>MAHAKARYA POS v8.3.0 (Hybrid Offline-Online)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -46,7 +46,7 @@
         .box-aset { background-color: #581c87; border: 1px solid #a855f7; margin-bottom: 15px; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #e5e7eb; }
-        th, td { padding: 10px; border-bottom: 1px solid #374151; }
+        th, td { padding: 10px; border-bottom: 1px solid #374151; vertical-align: top; }
         th { background: #374151; color: #9ca3af; }
         .text-refund { text-decoration: line-through; color: #9ca3af !important; opacity: 0.6; }
 
@@ -69,6 +69,8 @@
         .pin-btn { background: #323b49; color: white; border: none; font-size: 20px; font-weight: bold; padding: 18px 0; border-radius: 10px; cursor: pointer; }
         .pin-btn.masuk { background: #059669; color: #a7f3d0; font-size: 15px; }
 
+        .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
+
         @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
@@ -76,13 +78,13 @@
 
     <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
-            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.2.0 🌐</h1>
+            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.3.0 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
         </div>
         <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
     </header>
 
-    <!-- LAYER PIN (DENGAN INPUT KEYBOARD AKTIF) -->
+    <!-- LAYER PIN -->
     <div id="areaLoginPin" class="pin-screen-container">
         <div class="pin-card">
             <div class="pin-title">MAHAKARYA POS</div>
@@ -128,7 +130,7 @@
 
             <div style="border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-bottom: 15px;">
-                    <span>Total">Total Akhir:</span>
+                    <span>Total Akhir:</span>
                     <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
                 </div>
                 <div>
@@ -136,7 +138,6 @@
                     <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
                 </div>
                 
-                <!-- DIKEMBALIKAN: GRID UANG CEPAT NOMINAL DAN PECAHAN -->
                 <div id="containerUangCepat" class="grid-uang-cepat"></div>
 
                 <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
@@ -144,7 +145,6 @@
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
                 </div>
 
-                <!-- DIKEMBALIKAN: PILIHAN CHECKBOX CETAK STRUK -->
                 <label class="container-checkbox">
                     <input type="checkbox" id="allowPrint" checked>
                     <span>🖨️ Cetak Struk Fisik (Thermal)</span>
@@ -153,7 +153,7 @@
             </div>
         </div>
                 </div>
-                <!-- ADMIN -->
+          <!-- ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
@@ -186,14 +186,32 @@
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
+
+            <!-- BARU: RINCIAN QUANTITY BARANG TERJUAL BERDASARKAN FILTER WAKTU -->
+            <div class="card" style="margin-top: 20px; padding: 15px; border-color: #4b5563;">
+                <h3 style="font-size: 13px; font-weight: bold; color: #eab308; margin-bottom: 10px;">📦 Rincian Barang Terjual (Filter Terpilih)</h3>
+                <div style="max-height: 25vh; overflow-y: auto;">
+                    <table style="font-size: 11px;">
+                        <thead><tr><th>Nama Barang</th><th style="text-align:right;">Qty Terjual</th></tr></thead>
+                        <tbody id="listBarangTerjualFilter"><tr><td colspan="2" style="text-align:center; color:#9ca3af;">Belum ada data</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
+                    
+                    <!-- UPDATE: FILTER TANGGAL LENGKAP -->
                     <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
                         <option value="hari">Hari Ini</option>
+                        <option value="kemarin">Kemarin</option>
+                        <option value="minggu_ini">Minggu Ini</option>
+                        <option value="minggu_kemarin">Minggu Kemarin</option>
+                        <option value="tahun_ini">Tahun Ini</option>
+                        <option value="tahun_kemarin">Tahun Kemarin</option>
                         <option value="semua">Semua Waktu</option>
                     </select>
                 </div>
@@ -202,9 +220,9 @@
                     <div class="box-laporan box-modal"><p style="font-size: 11px;">MODAL</p><h3 id="lapModal">Rp 0</h3></div>
                     <div class="box-laporan box-laba"><p style="font-size: 11px;">LABA</p><h3 id="lapLaba">Rp 0</h3></div>
                 </div>
-                <div style="max-height: 35vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
+                <div style="max-height: 45vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>No. Nota</th><th>Waktu</th><th>Total Belanja</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th>No. Nota & Detail Barang</th><th>Waktu</th><th>Total Belanja</th><th>Aksi</th></tr></thead>
                         <tbody id="tabelLogTransaksi"></tbody>
                     </table>
                 </div>
@@ -222,7 +240,7 @@
         </div>
     </div>
 
-    <!-- STRUK -->
+    <!-- STRUK (PRINTER THERMAL) -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
@@ -260,7 +278,6 @@
         let modeSekarang = "login";
         let isOnline = navigator.onLine;
 
-        // DATA UTUH PIN ADMIN & KASIR
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
 
@@ -302,7 +319,6 @@
                 }
             });
         }
-
         window.tekanPin = function(a) { 
             const input = document.getElementById('pinDisplayInput');
             if(input.value.length < 4) { 
@@ -310,6 +326,7 @@
                 batasiDanCekPin();
             } 
         }
+        
         window.hapusPin = function() { 
             document.getElementById('pinDisplayInput').value = ""; 
         }
@@ -334,7 +351,16 @@
             bukaMenuUtama("kasir");
         }
 
+        // GAMBAR 2 FIX: KEAMANAN PIN SAAT KLIK MENU ADMIN DARI KASIR
         window.bukaMenuUtama = function(role) {
+            if (role === "admin" && modeSekarang !== "admin") {
+                const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
+                if (konfirmasiPin !== PIN_ADMIN) {
+                    alert("❌ Akses ditolak! PIN Admin salah.");
+                    return;
+                }
+            }
+
             modeSekarang = role;
             document.getElementById('areaLoginPin').classList.add('hidden');
             document.getElementById('mainHeader').classList.remove('hidden');
@@ -400,11 +426,7 @@
                     <div class="item-keranjang">
                         <div style="display:flex; justify-content:space-between; font-size:12px; align-items:center;">
                             <span>${item.nama} (${item.qty}x)</span>
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <button class="btn-qty" onclick="ubahQtyLokal(${item.id}, -1)">-</button>
-                                <button class="btn-qty plus" onclick="ubahQtyLokal(${item.id}, 1)">+</button>
-                                <span style="font-weight:bold; margin-left:5px;">${formatRupiah(harga * item.qty)}</span>
-                            </div>
+                            <span style="font-weight:bold;">${formatRupiah(harga * item.qty)}</span>
                         </div>
                     </div>
                 `;
@@ -414,22 +436,6 @@
             hitungKembalian();
         }
 
-        window.ubahQtyLokal = function(id, delta) {
-            const idx = keranjang.findIndex(i => i.id === id);
-            if(idx !== -1) {
-                keranjang[idx].qty += delta;
-                if(keranjang[idx].qty <= 0) keranjang.splice(idx, 1);
-                else {
-                    const orig = produkData.find(p => p.id === id);
-                    if(keranjang[idx].qty > orig.stok) { alert("Stok tidak mencukupi!"); keranjang[idx].qty = orig.stok; }
-                }
-                updateKeranjang();
-            }
-        }
-
-        window.kosongkanKeranjang = function() { keranjang = []; updateKeranjang(); }
-
-        // DIKEMBALIKAN: LOGIKA GENERATE TOMBOL NOMINAL UANG CEPAT KASIR
         function renderTombolUangCepat(total) {
             const container = document.getElementById('containerUangCepat');
             container.innerHTML = '';
@@ -437,11 +443,8 @@
 
             let opsi = [];
             opsi.push({ teks: "Uang Pas", nilai: total, kelas: "btn-uang-pas" });
-            
-            // Nominal di atas total
             let bulatAtas = Math.ceil(total / 10000) * 10000;
             if (bulatAtas !== total) opsi.push({ teks: formatRupiah(bulatAtas), nilai: bulatAtas, kelas: "" });
-            
             if (total <= 50000) opsi.push({ teks: "Rp 50.000", nilai: 50000, kelas: "" });
             if (total <= 100000) opsi.push({ teks: "Rp 100.000", nilai: 100000, kelas: "" });
 
@@ -499,19 +502,8 @@
                 perbaruiInfoAntrean();
             }
 
-            // PROSES CETAK STRUK THERMAL AKTIF
             if(document.getElementById('allowPrint').checked) {
-                document.getElementById('strukIdNota').innerText = "NOTA: " + nomorNota;
-                document.getElementById('strukWaktu').innerText = waktu.replace('T', ' ').slice(0, 19);
-                const itemDiv = document.getElementById('strukItem');
-                itemDiv.innerHTML = '';
-                itemsLaporan.forEach(it => {
-                    itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
-                });
-                document.getElementById('strukTotal').innerText = formatRupiah(total);
-                document.getElementById('strukBayar').innerText = formatRupiah(bayar);
-                document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
-                window.print();
+                cetakStrukUlangLokal(nomorNota);
             }
 
             keranjang = [];
@@ -520,16 +512,34 @@
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
         }
-        // DIKEMBALIKAN & DISINKRONKAN: FITUR REFUND PER TRANSAKSI (AMANKAN STOK)
+
+        // GAMBAR 1 FIX: TOMBOL CETAK ULANG PERNOTA DARI LAPORAN
+        window.cetakStrukUlangLokal = function(idNota) {
+            const nota = laporanTerjual.find(n => n.idNota === idNota);
+            if(!nota) return alert("Data nota tidak ditemukan!");
+
+            document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota;
+            document.getElementById('strukWaktu').innerText = nota.waktu.replace('T', ' ').slice(0, 19);
+            const itemDiv = document.getElementById('strukItem');
+            itemDiv.innerHTML = '';
+            
+            nota.items.forEach(it => {
+                itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
+            });
+            
+            document.getElementById('strukTotal').innerText = formatRupiah(nota.totalOmset);
+            document.getElementById('strukBayar').innerText = formatRupiah(nota.totalOmset); // Default print
+            document.getElementById('strukKembali').innerText = "Rp 0";
+            
+            window.print();
+        }
+
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin membatalkan (Refund) Nota " + idNota + "? Stok barang akan dikembalikan.")) return;
-            
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota || nota.refunded) return;
 
             nota.refunded = true;
-
-            // Kembalikan jumlah stok barang ke lokal data
             nota.items.forEach(item => {
                 const master = produkData.find(p => p.id === item.barangId);
                 if(master) master.stok += item.qty;
@@ -544,12 +554,11 @@
                     const master = produkData.find(p => p.id === item.barangId);
                     if(master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
                 });
-                alert("Refund Sukses Secara Realtime Cloud!");
+                alert("Refund Sukses Secara Realtime!");
             } else {
-                // Catat di antrean jika offline
                 antreanOffline.push({ idNota: idNota, action: "refund", items: nota.items });
                 localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
-                alert("Refund Tersimpan Lokal (Akan Disinkronkan Saat Online!)");
+                alert("Refund Tersimpan Lokal!");
             }
 
             hitungLaporanDashboard();
@@ -561,22 +570,13 @@
             antreanOffline.forEach(nota => {
                 if(nota.action === "refund") {
                     set(ref(db, 'pos_laporan/' + nota.idNota + '/refunded'), true);
-                    nota.items.forEach(item => {
-                        const master = produkData.find(p => p.id === item.barangId);
-                        if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
-                    });
                 } else {
                     set(ref(db, 'pos_laporan/' + nota.idNota), nota);
-                    nota.items.forEach(item => {
-                        const master = produkData.find(p => p.id === item.barangId);
-                        if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
-                    });
                 }
             });
             antreanOffline = [];
             localStorage.removeItem('antrean_offline');
             perbaruiInfoAntrean();
-            alert("🟢 Semua aktivitas offline berhasil disinkronkan ke Cloud.");
         }
 
         function perbaruiInfoAntrean() {
@@ -584,7 +584,6 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline Belum Sinkron)`;
             else info.innerText = "";
         }
-
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
             produkData.forEach(p => {
@@ -593,27 +592,94 @@
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
 
+        // GAMBAR 1 FIX: PENAMBAHAN FILTER WAKTU SUPER LENGKAP & BREAKDOWN BARANG TERJUAL
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
+            const filter = document.getElementById('filterTanggal').value;
             const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
+            
+            let kamusKuantitasBarang = {}; 
+
+            const sekarang = new Date();
+            const formatMulaiHariIni = new Date(sekarang.getFullYear(), sekarang.getMonth(), sekarang.getDate()).getTime();
+
             laporanTerjual.forEach(nota => {
+                const tNota = new Date(nota.waktu);
+                let lolosFilter = false;
+
+                // Hitung selisih hari & minggu untuk filter kustom
+                const selisihMilidetik = sekarang.getTime() - tNota.getTime();
+                const selisihHari = Math.floor(selisihMilidetik / (1000 * 60 * 60 * 24));
+
+                if (filter === "semua") {
+                    lolosFilter = true;
+                } else if (filter === "hari") {
+                    if (tNota.getTime() >= formatMulaiHariIni) lolosFilter = true;
+                } else if (filter === "kemarin") {
+                    const batasBawahKemarin = formatMulaiHariIni - (1000*60*60*24);
+                    if (tNota.getTime() >= batasBawahKemarin && tNota.getTime() < formatMulaiHariIni) lolosFilter = true;
+                } else if (filter === "minggu_ini") {
+                    if (selisihHari <= 7 && tNota.getDay() <= sekarang.getDay()) lolosFilter = true;
+                } else if (filter === "minggu_kemarin") {
+                    if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true;
+                } else if (filter === "tahun_ini") {
+                    if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+                } else if (filter === "tahun_kemarin") {
+                    if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true;
+                }
+
+                if (!lolosFilter) return;
+
                 if(!nota.refunded) {
                     omset += nota.totalOmset; 
                     modal += nota.totalModal;
+
+                    // Akumulasikan barang untuk dicatat pada rangkuman inventori terjual
+                    nota.items.forEach(it => {
+                        kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty;
+                    });
                 }
+
+                // GAMBAR 1 FIX: TAMPILKAN RINCIAN ITEM LANGSUNG DI BAWAH NOTA
+                let teksRincianItem = "";
+                nota.items.forEach(it => {
+                    teksRincianItem += `• ${it.nama} (${it.qty} Pcs)<br>`;
+                });
+
                 tbody.innerHTML += `
                     <tr class="${nota.refunded ? 'text-refund':''}">
-                        <td>${nota.idNota}</td>
+                        <td>
+                            <strong style="color:#60a5fa;">${nota.idNota}</strong>
+                            <div class="detail-nota-text">${teksRincianItem}</div>
+                        </td>
                         <td>${nota.waktu.slice(11,16)}</td>
                         <td>${formatRupiah(nota.totalOmset)}</td>
                         <td>
-                            ${nota.refunded ? '<span style="color:#f87171;">Batal/Refund</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:2px 6px; border-radius:4px; cursor:pointer;">Refund</button>`}
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                <button onclick="cetakStrukUlangLokal('${nota.idNota}')" style="background:#1e3a8a; color:#60a5fa; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🖨️ Cetak</button>
+                                ${nota.refunded ? '<span style="color:#f87171; font-size:11px; text-align:center;">Refunded</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px;">Refund</button>`}
+                            </div>
                         </td>
                     </tr>`;
             });
+
+            // Update Tampilan Dashboard Omset
             document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
+
+            // Render Hasil Rangkuman Barang Terjual ke Tabel Kiri
+            const containerRangkuman = document.getElementById('listBarangTerjualFilter');
+            containerRangkuman.innerHTML = '';
+            
+            const urutanBarangTerjual = Object.keys(kamusKuantitasBarang);
+            if (urutanBarangTerjual.length === 0) {
+                containerRangkuman.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#9ca3af;">Tidak ada transaksi</td></tr>`;
+            } else {
+                urutanBarangTerjual.forEach(nama => {
+                    containerRangkuman.innerHTML += `<tr><td>${nama}</td><td style="text-align:right; font-weight:bold; color:#34d399;">${kamusKuantitasBarang[nama]} Pcs</td></tr>`;
+                });
+            }
         }
     </script>
 </body>
