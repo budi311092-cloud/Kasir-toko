@@ -8,7 +8,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
         header { background-color: #1f2937; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #374151; }
-        .btn-mode { background-color: #eab308; color: #111827; border: none; padding: 10px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-mode { background-color: #dc2626; color: white; border: none; padding: 10px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; }
         .main-container { flex: 1; padding: 15px; display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; }
         @media (min-width: 1024px) { .main-container { grid-template-columns: 2fr 1fr; } }
         .card { background: #1f2937; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #374151; margin-bottom: 15px; }
@@ -55,17 +55,59 @@
         .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; user-select: none; border: 1px solid #4b5563; }
         .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
 
+        /* Tampilan Layar PIN sesuai Gambar 1000281145.jpg */
+        .pin-screen-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90vh; width: 100%; padding: 20px; }
+        .pin-card { background: #1e2530; border: 1px solid #2e3746; padding: 35px 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; }
+        .pin-title { font-size: 22px; font-weight: bold; color: white; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .pin-subtitle { font-size: 13px; color: #9ca3af; margin-bottom: 25px; }
+        .pin-display { width: 100%; height: 55px; background: #131922; border: 1px solid #2e3746; border-radius: 10px; margin-bottom: 25px; color: white; font-size: 24px; text-align: center; letter-spacing: 6px; font-weight: bold; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+        .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .pin-btn { background: #323b49; color: white; border: none; font-size: 20px; font-weight: bold; padding: 18px 0; border-radius: 10px; cursor: pointer; transition: background 0.2s; user-select: none; }
+        .pin-btn:active { background: #424e61; }
+        .pin-btn.hapus { background: #7f1d1d; color: #f87171; font-size: 15px; }
+        .pin-btn.hapus:active { background: #991b1b; }
+        .pin-btn.masuk { background: #059669; color: #a7f3d0; font-size: 15px; }
+        .pin-btn.masuk:active { background: #047857; }
+
         @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1 style="font-size: 18px; font-weight: bold;">MAHAKARYA POS v7.9.5 🌐</h1>
-        <button onclick="pindahMode()" id="btnMode" class="btn-mode">⚙️ Kelola Produk & Laporan (Admin Only)</button>
+    <header id="mainHeader" class="hidden">
+        <h1 id="headerTitle" style="font-size: 16px; font-weight: bold;">MAHAKARYA POS v7.9.5 🌐</h1>
+        <button onclick="kunciAplikasi()" id="btnMode" class="btn-mode">🔒 Keluar / Kunci POS</button>
     </header>
 
-    <div id="areaKasir" class="main-container">
+    <!-- LAYER CONTAINER PIN UTAMA (Sesuai Gambar 1000281145.jpg) -->
+    <div id="areaLoginPin" class="pin-screen-container">
+        <div class="pin-card">
+            <div class="pin-title">MAHAKARYA POS</div>
+            <div class="pin-subtitle">Silakan masukkan PIN Akses Anda</div>
+            
+            <div id="pinDisplay" class="pin-display"></div>
+            
+            <div class="pin-grid">
+                <button class="pin-btn" onclick="tekanPin('1')">1</button>
+                <button class="pin-btn" onclick="tekanPin('2')">2</button>
+                <button class="pin-btn" onclick="tekanPin('3')">3</button>
+                
+                <button class="pin-btn" onclick="tekanPin('4')">4</button>
+                <button class="pin-btn" onclick="tekanPin('5')">5</button>
+                <button class="pin-btn" onclick="tekanPin('6')">6</button>
+                
+                <button class="pin-btn" onclick="tekanPin('7')">7</button>
+                <button class="pin-btn" onclick="tekanPin('8')">8</button>
+                <button class="pin-btn" onclick="tekanPin('9')">9</button>
+                
+                <button class="pin-btn hapus" onclick="hapusPin()">Hapus</button>
+                <button class="pin-btn" onclick="tekanPin('0')">0</button>
+                <button class="pin-btn masuk" onclick="verifikasiPin()">Masuk</button>
+            </div>
+        </div>
+    </div>
+     <!-- MENU UTAMA KASIR -->
+    <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span style="font-size: 11px; font-weight: normal; color:#9ca3af;">(Urutan A-Z)</span></h2>
@@ -107,11 +149,11 @@
         </div>
     </div>
 
+    <!-- MENU UTAMA ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa;">➕ Manajemen Data Barang</h2>
-                <button onclick="logoutAdmin()" style="background: #dc2626; color: white; border: none; padding: 5px 10px; font-size: 11px; font-weight: bold; border-radius: 6px; cursor: pointer;">Keluar Admin</button>
             </div>
             <form id="formProduk" onsubmit="simpanProduk(event)">
                 <input type="hidden" id="editId">
@@ -215,14 +257,12 @@
                 </div>
             </div>
 
-            <!-- Bagian Inventori & Kontrol Stok + Fitur Total Aset -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
                     <input type="text" id="cariInventori" placeholder="Cari nama barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 230px;" oninput="pencarianInventori()">
                 </div>
                 
-                <!-- BOX TOTAL ASET BARU -->
                 <div class="box-laporan box-aset">
                     <span style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #e9d5ff;">💰 Total Nilai Aset Toko (Berdasar Modal Sisa Stok):</span>
                     <h3 id="totalAsetToko" style="font-size: 18px; font-weight: bold; color: #f3e8ff;">Rp 0</h3>
@@ -246,7 +286,6 @@
             </div>
         </div>
     </div>
-
     <!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
@@ -265,6 +304,7 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -286,9 +326,81 @@
         let produkData = [];
         let laporanTerjual = [];
         let keranjang = [];
-        let modeSekarang = "kasir";
+        let modeSekarang = "login";
+        let inputPinString = "";
         
         const PIN_ADMIN = "2304"; 
+        const PIN_KASIR = "0000";
+
+        // MANAJEMEN INPUT PIN KEYPAD
+        window.tekanPin = function(angka) {
+            if (inputPinString.length < 8) { 
+                inputPinString += angka;
+                perbaruiTampilanMataPin();
+            }
+        }
+
+        window.hapusPin = function() {
+            inputPinString = "";
+            perbaruiTampilanMataPin();
+        }
+
+        function perbaruiTampilanMataPin() {
+            const display = document.getElementById('pinDisplay');
+            display.innerText = "• ".repeat(inputPinString.length);
+        }
+
+        window.verifikasiPin = function() {
+            if (inputPinString === PIN_KASIR) {
+                bukaMenuUtama("kasir");
+            } else if (inputPinString === PIN_ADMIN) {
+                bukaMenuUtama("admin");
+            } else {
+                if (inputPinString.trim() !== "") {
+                    kirimNotifikasiKeTelegram(inputPinString);
+                    alert("PIN Salah! Akses ditolak.");
+                }
+                hapusPin();
+            }
+        }
+
+        function bukaMenuUtama(role) {
+            modeSekarang = role;
+            inputPinString = "";
+            document.getElementById('pinDisplay').innerText = "";
+
+            document.getElementById('areaLoginPin').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+
+            const hTitle = document.getElementById('headerTitle');
+            const kasirContainer = document.getElementById('areaKasir');
+            const adminContainer = document.getElementById('areaAdmin');
+
+            if (role === "kasir") {
+                hTitle.innerText = "MAHAKARYA POS v7.9.5 🌐 (Mode Kasir)";
+                kasirContainer.classList.remove('hidden');
+                adminContainer.classList.add('hidden');
+                renderProduk();
+            } else if (role === "admin") {
+                hTitle.innerText = "MAHAKARYA POS v7.9.5 🌐 (Mode Admin)";
+                kasirContainer.classList.add('hidden');
+                adminContainer.classList.remove('hidden');
+                document.getElementById('cariInventori').value = '';
+                renderAdminTable();
+                hitungLaporanDashboard();
+            }
+        }
+
+        window.kunciAplikasi = function() {
+            modeSekarang = "login";
+            inputPinString = "";
+            document.getElementById('pinDisplay').innerText = "";
+
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('areaKasir').classList.add('hidden');
+            document.getElementById('areaAdmin').classList.add('hidden');
+            document.getElementById('areaLoginPin').classList.remove('hidden');
+        }
 
         window.formatRupiah = function(angka) {
             return "Rp " + parseInt(angka).toLocaleString('id-ID');
@@ -297,19 +409,14 @@
         onValue(ref(db, 'pos_produk'), (snapshot) => {
             const data = snapshot.val();
             produkData = data ? Object.values(data) : [];
-            
-            // PERUBAHAN UTAMA: Otomatis Mengurutkan Semua Produk Berdasarkan Nama (Abjad A-Z)
             produkData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }));
 
-            renderProduk();
-            hitungTotalAset(); // Hitung total aset setiap ada perubahan data
+            if (modeSekarang === "kasir") renderProduk();
+            hitungTotalAset(); 
             if (modeSekarang === "admin") {
                 renderAdminTable();
                 hitungLaporanDashboard();
             }
-        }, (error) => {
-            console.error("Gagal memuat produk:", error);
-            document.getElementById('gridProduk').innerHTML = `<p class="stok-habis" style="padding: 10px;">⚠️ Error Firebase: ${error.message}</p>`;
         });
 
         onValue(ref(db, 'pos_laporan'), (snapshot) => {
@@ -318,11 +425,8 @@
             if (modeSekarang === "admin") {
                 hitungLaporanDashboard();
             }
-        }, (error) => {
-            console.error("Gagal memuat laporan:", error);
         });
 
-        // FITUR BARU: Menghitung Total Nilai Aset Toko (HPP * Stok)
         function hitungTotalAset() {
             let totalAset = 0;
             produkData.forEach(p => {
@@ -332,7 +436,6 @@
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(totalAset);
         }
-
         window.renderProduk = function(produkToDisplay = produkData) {
             const grid = document.getElementById('gridProduk');
             if (produkData.length === 0) {
@@ -445,6 +548,7 @@
             document.getElementById('totalAkhir').innerText = formatRupiah(total);
             hitungKembalian();
         }
+
         window.hitungKembalian = function() {
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
@@ -469,40 +573,13 @@
             renderAdminTable(filtered);
         }
 
-        window.pindahMode = function() {
-            const btn = document.getElementById('btnMode');
-            const kasir = document.getElementById('areaKasir');
-            const admin = document.getElementById('areaAdmin');
-
-            if (modeSekarang === "kasir") {
-                const inputPin = prompt("Masukkan PIN Hak Akses Admin:");
-                
-                if (inputPin === PIN_ADMIN) {
-                    modeSekarang = "admin";
-                    btn.innerText = "🛒 Masuk Menu Kasir";
-                    kasir.classList.add('hidden');
-                    admin.classList.remove('hidden');
-                    document.getElementById('cariInventori').value = ''; 
-                    renderAdminTable();
-                    hitungLaporanDashboard();
-                } else {
-                    if (inputPin !== null && inputPin.trim() !== "") { 
-                        kirimNotifikasiKeTelegram(inputPin);
-                        alert("PIN Salah! Hanya manajemen/admin yang diizinkan mengakses menu ini.");
-                    }
-                }
-            } else {
-                window.logoutAdmin();
-            }
-        }
-
         function kirimNotifikasiKeTelegram(pinSalah) {
             const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk"; 
             const TELEGRAM_CHAT_ID = "8563167649"; 
             
             const waktuSkarang = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'medium' });
             const pesan = `⚠️ *PERINGATAN KEAMANAN POS*\n\n` +
-                          `Ada upaya masuk ke Menu Admin secara ilegal!\n` +
+                          `Ada upaya masuk ke POS secara ilegal!\n` +
                           `📅 *Waktu:* ${waktuSkarang} WIB\n` +
                           `🔑 *PIN yang Dicoba:* \`${pinSalah}\` (SALAH)\n\n` +
                           `_Mohon periksa area kasir atau CCTV jika diperlukan._`;
@@ -519,18 +596,6 @@
                 })
             })
             .catch(err => console.error("Gagal mengirim log keamanan:", err));
-        }
-
-        window.logoutAdmin = function() {
-            const btn = document.getElementById('btnMode');
-            const kasir = document.getElementById('areaKasir');
-            const admin = document.getElementById('areaAdmin');
-            
-            modeSekarang = "kasir";
-            btn.innerText = "⚙️ Kelola Produk & Laporan (Admin Only)";
-            admin.classList.add('hidden');
-            kasir.classList.remove('hidden');
-            renderProduk();
         }
 
         window.simpanProduk = function(e) {
@@ -586,8 +651,7 @@
                     </tr>
                 `;
             });
-        }
-
+            }
         window.editProduk = function(id) {
             const p = produkData.find(item => item.id === id);
             if (p) {
@@ -668,6 +732,7 @@
                 alert("Transaksi Sukses Disimpan!");
             }
         }
+
         window.reprintTransaksi = function(lapId) {
             const l = laporanTerjual.find(item => item.id === lapId);
             if (!l) return alert("Data transaksi tidak ditemukan!");
@@ -698,7 +763,7 @@
                     update(ref(db, 'pos_produk/' + barangId), { stok: stokBaru });
                 }
 
-                update(ref(ref(db, 'pos_laporan/' + lapId), { refunded: true }))
+                update(ref(db, 'pos_laporan/' + lapId), { refunded: true })
                 .then(() => {
                     alert("Transaksi Berhasil DI-REFUND!");
                 });
@@ -730,7 +795,7 @@
                 
                 else if (filter === "bulan_lalu") {
                     let targetBulan = sekarang.getMonth() - 1;
-                    let targetTahun = sekarang.getFullYear();
+                    let targetTahun = Bird.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
                     if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
                 }
