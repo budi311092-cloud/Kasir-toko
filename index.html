@@ -8,7 +8,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
         header { background-color: #1f2937; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #374151; }
-        .btn-mode { background-color: #dc2626; color: white; border: none; padding: 10px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-mode { color: white; border: none; padding: 10px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; transition: background 0.2s; }
         .main-container { flex: 1; padding: 15px; display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; }
         @media (min-width: 1024px) { .main-container { grid-template-columns: 2fr 1fr; } }
         .card { background: #1f2937; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #374151; margin-bottom: 15px; }
@@ -55,7 +55,7 @@
         .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; user-select: none; border: 1px solid #4b5563; }
         .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
 
-        /* Tampilan Layar PIN sesuai Gambar 1000281145.jpg */
+        /* Tampilan Layar PIN */
         .pin-screen-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90vh; width: 100%; padding: 20px; }
         .pin-card { background: #1e2530; border: 1px solid #2e3746; padding: 35px 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; }
         .pin-title { font-size: 22px; font-weight: bold; color: white; letter-spacing: 0.5px; margin-bottom: 6px; }
@@ -76,10 +76,10 @@
 
     <header id="mainHeader" class="hidden">
         <h1 id="headerTitle" style="font-size: 16px; font-weight: bold;">MAHAKARYA POS v7.9.5 🌐</h1>
-        <button onclick="kunciAplikasi()" id="btnMode" class="btn-mode">🔒 Keluar / Kunci POS</button>
+        <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
     </header>
 
-    <!-- LAYER CONTAINER PIN UTAMA (Sesuai Gambar 1000281145.jpg) -->
+    <!-- LAYER CONTAINER PIN UTAMA -->
     <div id="areaLoginPin" class="pin-screen-container">
         <div class="pin-card">
             <div class="pin-title">MAHAKARYA POS</div>
@@ -106,7 +106,8 @@
             </div>
         </div>
     </div>
-     <!-- MENU UTAMA KASIR -->
+
+    <!-- MENU UTAMA KASIR -->
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -148,8 +149,7 @@
             </div>
         </div>
     </div>
-
-    <!-- MENU UTAMA ADMIN -->
+<!-- MENU UTAMA ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -286,6 +286,7 @@
             </div>
         </div>
     </div>
+
     <!-- Area Struk Toko -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
@@ -304,7 +305,6 @@
         <p>--------------------------------</p>
         <center><p>Terima Kasih</p></center>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -332,7 +332,7 @@
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
 
-        // MANAJEMEN INPUT PIN KEYPAD
+        // MANAJEMEN INPUT PIN KEYPAD (LAYAR UTAMA)
         window.tekanPin = function(angka) {
             if (inputPinString.length < 8) { 
                 inputPinString += angka;
@@ -364,7 +364,17 @@
             }
         }
 
-        function bukaMenuUtama(role) {
+        // FUNGSI UTAMA PINDAH HALAMAN (DENGAN PROTEKSI PIN ADMIN SAAT PERPINDAHAN)
+        window.bukaMenuUtama = function(role) {
+            // JIKA MENCOBA MASUK ADMIN DARI MODE KASIR, WAJIB PROMPT PIN
+            if (role === "admin" && modeSekarang === "kasir") {
+                const konfirmasiPin = prompt("Masukkan PIN Admin untuk mengakses halaman ini:");
+                if (konfirmasiPin !== PIN_ADMIN) {
+                    alert("❌ PIN Admin Salah! Akses halaman Admin ditolak.");
+                    return; 
+                }
+            }
+
             modeSekarang = role;
             inputPinString = "";
             document.getElementById('pinDisplay').innerText = "";
@@ -375,31 +385,31 @@
             const hTitle = document.getElementById('headerTitle');
             const kasirContainer = document.getElementById('areaKasir');
             const adminContainer = document.getElementById('areaAdmin');
+            const btnMode = document.getElementById('btnMode');
 
             if (role === "kasir") {
                 hTitle.innerText = "MAHAKARYA POS v7.9.5 🌐 (Mode Kasir)";
                 kasirContainer.classList.remove('hidden');
                 adminContainer.classList.add('hidden');
+                
+                btnMode.innerText = "🛠️ Pindah Ke Admin";
+                btnMode.style.backgroundColor = "#2563eb"; 
+                btnMode.onclick = () => bukaMenuUtama('admin');
+                
                 renderProduk();
             } else if (role === "admin") {
                 hTitle.innerText = "MAHAKARYA POS v7.9.5 🌐 (Mode Admin)";
                 kasirContainer.classList.add('hidden');
                 adminContainer.classList.remove('hidden');
+                
+                btnMode.innerText = "🛒 Pindah Ke Kasir";
+                btnMode.style.backgroundColor = "#10b981"; 
+                btnMode.onclick = () => bukaMenuUtama('kasir');
+                
                 document.getElementById('cariInventori').value = '';
                 renderAdminTable();
                 hitungLaporanDashboard();
             }
-        }
-
-        window.kunciAplikasi = function() {
-            modeSekarang = "login";
-            inputPinString = "";
-            document.getElementById('pinDisplay').innerText = "";
-
-            document.getElementById('mainHeader').classList.add('hidden');
-            document.getElementById('areaKasir').classList.add('hidden');
-            document.getElementById('areaAdmin').classList.add('hidden');
-            document.getElementById('areaLoginPin').classList.remove('hidden');
         }
 
         window.formatRupiah = function(angka) {
@@ -436,6 +446,7 @@
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(totalAset);
         }
+
         window.renderProduk = function(produkToDisplay = produkData) {
             const grid = document.getElementById('gridProduk');
             if (produkData.length === 0) {
@@ -492,7 +503,6 @@
                 updateKeranjang();
             }
         }
-
         window.inputQtyManual = function(id, value) {
             let parsedVal = parseInt(value) || 0;
             const item = keranjang.find(item => item.id === id);
@@ -589,11 +599,7 @@
             fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: pesan,
-                    parse_mode: "Markdown"
-                })
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             })
             .catch(err => console.error("Gagal mengirim log keamanan:", err));
         }
@@ -609,9 +615,8 @@
             const hargaGrosir = parseInt(document.getElementById('inputHargaGrosir').value);
 
             const namaSama = produkData.some(p => p.nama.toLowerCase() === nama.toLowerCase() && p.id != id);
-            
             if (namaSama) {
-                alert(`❌ Nama barang "${nama}" sudah ada di inventori!\nSilakan gunakan nama lain atau edit barang yang sudah ada agar data tidak ganda.`);
+                alert(`❌ Nama barang "${nama}" sudah ada di inventori!`);
                 return;
             }
 
@@ -651,7 +656,8 @@
                     </tr>
                 `;
             });
-            }
+        }
+
         window.editProduk = function(id) {
             const p = produkData.find(item => item.id === id);
             if (p) {
@@ -669,7 +675,6 @@
                 remove(ref(db, 'pos_produk/' + id));
             }
         }
-
         window.prosesTransaksi = function() {
             if (keranjang.length === 0) return alert("Keranjang belanja kosong!");
             const total = keranjang.reduce((acc, item) => acc + (item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir) * item.qty, 0);
@@ -750,13 +755,11 @@
             document.getElementById('strukBayar').innerText = formatRupiah(l.subJual);
             document.getElementById('strukKembali').innerText = formatRupiah(0);
 
-            setTimeout(() => {
-                window.print();
-            }, 300);
+            setTimeout(() => { window.print(); }, 300);
         }
 
         window.refundTransaksi = function(lapId, barangId, qtyBalik) {
-            if (confirm("Apakah Anda yakin ingin membatalkan transaksi ini?\nStok barang akan dikembalikan otomatis dan laporan finansial akan dikurangi.")) {
+            if (confirm("Apakah Anda yakin ingin membatalkan transaksi ini?")) {
                 const produkMaster = produkData.find(p => p.id == barangId);
                 if (produkMaster) {
                     const stokBaru = produkMaster.stok + parseInt(qtyBalik);
@@ -764,9 +767,7 @@
                 }
 
                 update(ref(db, 'pos_laporan/' + lapId), { refunded: true })
-                .then(() => {
-                    alert("Transaksi Berhasil DI-REFUND!");
-                });
+                .then(() => { alert("Transaksi Berhasil DI-REFUND!"); });
             }
         }
 
@@ -792,10 +793,9 @@
                 else if (filter === "minggu" && (sekarang - tglLap) <= 7 * 24 * 60 * 60 * 1000) lolosFilter = true;
                 else if (filter === "bulan" && tglLap.getMonth() === sekarang.getMonth() && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 else if (filter === "tahun" && tglLap.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
-                
                 else if (filter === "bulan_lalu") {
                     let targetBulan = sekarang.getMonth() - 1;
-                    let targetTahun = Bird.getFullYear();
+                    let targetTahun = sekarang.getFullYear();
                     if (targetBulan < 0) { targetBulan = 11; targetTahun -= 1; }
                     if (tglLap.getMonth() === targetBulan && tglLap.getFullYear() === targetTahun) lolosFilter = true;
                 }
