@@ -209,20 +209,21 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="cariLaporan" placeholder="Cari nota / nama barang..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 180px;" oninput="hitungLaporanDashboard()">
-                        <input type="date" id="cariTanggalLaporan" style="padding: 5px 10px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px;" onchange="hitungLaporanDashboard()">
-                        <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
-                            <option value="hari">Hari Ini</option>
-                            <option value="kemarin">Kemarin</option>
-                            <option value="minggu_ini">Minggu Ini</option>
-                            <option value="minggu_kemarin">Minggu Kemarin</option>
-                            <option value="tahun_ini">Tahun Ini</option>
-                            <option value="tahun_kemarin">Tahun Kemarin</option>
-                            <option value="semua" selected>Semua Waktu</option>
-                        </select>
-                    </div>
-                </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+    <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset Laporan</button>
+        <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
+            <option value="hari">Hari Ini</option>
+            <option value="kemarin">Kemarin</option>
+            <option value="minggu_ini">Minggu Ini</option>
+            <option value="minggu_kemarin">Minggu Kemarin</option>
+            <option value="tahun_ini">Tahun Ini</option>
+            <option value="tahun_kemarin">Tahun Kemarin</option>
+            <option value="semua">Semua Waktu</option>
+        </select>
+        </div>
+     </div>
                 <div class="grid-laporan">
                     <div class="box-laporan box-omset"><p style="font-size: 11px;">OMSET</p><h3 id="lapOmset">Rp 0</h3></div>
                     <div class="box-laporan box-modal"><p style="font-size: 11px;">MODAL</p><h3 id="lapModal">Rp 0</h3></div>
@@ -729,7 +730,40 @@
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
+        // ================= BARU: FITUR RESET TOTAL LAPORAN =================
+        window.resetSemuaLaporanTransaksi = function() {
+            const konfirmasi1 = confirm("⚠️ PERINGATAN CRITICAL!\n\nApakah Anda yakin ingin MENGHAPUS SEMUA riwayat transaksi secara permanen? Tindakan ini tidak dapat dibatalkan.");
+            if (!konfirmasi1) return;
 
+            const konfirmasi2 = prompt("🔑 KONFIRMASI KEAMANAN:\nSilakan ketik kata 'HAPUS' untuk membersihkan seluruh data laporan:");
+            if (konfirmasi2 !== "HAPUS") {
+                alert("❌ Pembatalan: Kata kunci salah. Data Anda aman.");
+                return;
+            }
+
+            // Bersihkan data lokal
+            laporanTerjual = [];
+            localStorage.setItem('local_laporan', JSON.stringify([]));
+            localStorage.removeItem('antrean_offline');
+
+            // Bersihkan data di Cloud Firebase (jika sedang online)
+            if (isOnline) {
+                set(ref(db, 'pos_laporan'), null)
+                    .then(() => {
+                        alert("✅ Sukses! Seluruh data laporan transaksi di Firebase dan Lokal berhasil dibersihkan.");
+                        hitungLaporanDashboard();
+                    })
+                    .catch((err) => {
+                        alert("⚠️ Laporan lokal terhapus, namun gagal membersihkan Firebase: " + err.message);
+                        hitungLaporanDashboard();
+                    });
+            } else {
+                alert("✅ Sukses! Data laporan lokal telah dibersihkan. (Catatan: Anda sedang Offline, data di Firebase perlu dibersihkan manual saat online).");
+                hitungLaporanDashboard();
+            }
+        }
+
+        // ================= PERBAIKAN: LOGIKA FILTER TANGGAL ANTI-BUG =================
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const filter = document.getElementById('filterTanggal').value;
@@ -738,30 +772,33 @@
             let kamusKuantitasBarang = {}; 
             const sekarang = new Date();
             
-            // Perbaikan: Ambil string tanggal lokal (YYYY-MM-DD) untuk perbandingan akurat
-            const formatYMD = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-            const stringHariIni = formatYMD(sekarang);
+            // Konversi ke format tanggal lokal Indonesia (Jakarta) demi menghindari bug UTC/ISO String
+            const dapatkanTanggalLokalString = (objekTanggal) => {
+                return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }); // Hasil format: YYYY-MM-DD sesuai zona WIB
+            };
+
+            const hariIniString = dapatkanTanggalLokalString(sekarang);
             
-            const kemarin = new Date();
-            kemarin.setDate(sekarang.getDate() - 1);
-            const stringKemarin = formatYMD(kemarin);
+            const objekKemarin = new Date();
+            objekKemarin.setDate(sekarang.getDate() - 1);
+            const kemarinString = dapatkanTanggalLokalString(objekKemarin);
 
             laporanTerjual.forEach(nota => {
                 const tNota = new Date(nota.waktu);
-                const stringNota = formatYMD(tNota); // Tanggal nota dalam format YYYY-MM-DD lokal
+                const tanggalNotaString = dapatkanTanggalLokalString(tNota);
                 let lolosFilter = false;
 
-                // Hitung selisih hari yang presisi berdasarkan kalender lokal
-                const tanggalMulaiSekarang = new Date(sekarang.getFullYear(), sekarang.getMonth(), sekarang.getDate());
-                const tanggalMulaiNota = new Date(tNota.getFullYear(), tNota.getMonth(), tNota.getDate());
-                const selisihHari = Math.round((tanggalMulaiSekarang - tanggalMulaiNota) / (1000 * 60 * 60 * 24));
+                // Hitung selisih hari kalender riil
+                const date1 = new Date(hariIniString);
+                const date2 = new Date(tanggalNotaString);
+                const selisihHari = Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
 
                 if (filter === "semua") { 
                     lolosFilter = true; 
                 } else if (filter === "hari") { 
-                    if (stringNota === stringHariIni) lolosFilter = true; 
+                    if (tanggalNotaString === hariIniString) lolosFilter = true; 
                 } else if (filter === "kemarin") {
-                    if (stringNota === stringKemarin) lolosFilter = true;
+                    if (tanggalNotaString === kemarinString) lolosFilter = true;
                 } else if (filter === "minggu_ini") {
                     if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true;
                 } else if (filter === "minggu_kemarin") {
@@ -770,19 +807,6 @@
                     if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
                 } else if (filter === "tahun_kemarin") {
                     if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true;
-                }
-
-                // Filter Pencarian Tambahan Berdasarkan Tanggal Spesifik
-                if (dateKeyword) {
-                    const stringNotaDate = nota.waktu.slice(0, 10); // format YYYY-MM-DD
-                    if (stringNotaDate !== dateKeyword) lolosFilter = false;
-                }
-
-                // Filter Pencarian Teks (Nomor Nota atau Nama Barang)
-                if (textKeyword) {
-                    const matchNota = nota.idNota.toLowerCase().includes(textKeyword);
-                    const matchBarang = nota.items.some(it => it.nama.toLowerCase().includes(textKeyword));
-                    if (!matchNota && !matchBarang) lolosFilter = false;
                 }
 
                 if (!lolosFilter) return;
@@ -796,13 +820,16 @@
                 let teksRincianItem = "";
                 nota.items.forEach(it => { teksRincianItem += `• ${it.nama} (${it.qty} Pcs)<br>`; });
 
+                // Jam tampilan nota menggunakan konversi local agar sesuai waktu transaksi asli di Indonesia
+                const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
+
                 tbody.innerHTML += `
                     <tr class="${nota.refunded ? 'text-refund':''}">
                         <td>
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
                             <div class="detail-nota-text">${teksRincianItem}</div>
                         </td>
-                        <td>${nota.waktu.replace('T', ' ').slice(0,16)}</td>
+                        <td>${opsiJamLokal} WIB</td>
                         <td>${formatRupiah(nota.totalOmset)}</td>
                         <td>
                             <div style="display:flex; flex-direction:column; gap:4px;">
@@ -828,6 +855,7 @@
                 });
             }
         }
+
     </script>
 </body>
 </html>
