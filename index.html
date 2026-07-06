@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v8.1.0 (Hybrid Offline-Online)</title>
+    <title>MAHAKARYA POS v8.2.0 (Hybrid Offline-Online)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -18,12 +18,18 @@
         .item-produk { border: 1px solid #4b5563; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; background: #374151; position: relative; color: white; }
         .item-produk:hover { border-color: #3b82f6; }
         .badge-stok { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: bold; }
+        .stok-aman { color: #34d399; }
+        .stok-habis { color: #f87171; background: #7f1d1d; padding: 2px 6px; border-radius: 4px; }
         .item-keranjang { background: #374151; padding: 10px; border-radius: 8px; border: 1px solid #4b5563; margin-bottom: 8px; }
         .input-text { width: 100%; padding: 8px 12px; border: 1px solid #4b5563; background: #374151; color: white; border-radius: 6px; margin-top: 4px; margin-bottom: 12px; font-size: 14px; }
         .select-custom { padding: 6px 12px; background: #374151; color: white; border: 1px solid #4b5563; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-proses { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
         .grid-uang-cepat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+        .btn-uang-cepat { background: #4b5563; color: white; border: 1px solid #6b7280; padding: 6px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: background 0.2s; text-align: center; }
+        .btn-uang-cepat:hover { background: #374151; border-color: #3b82f6; }
+        .btn-uang-pas { background: #059669; border-color: #10b981; }
+
         .status-koneksi { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 20px; margin-right: 10px; }
         .online-bg { background: #064e3b; color: #34d399; border: 1px solid #059669; }
         .offline-bg { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
@@ -42,11 +48,11 @@
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #e5e7eb; }
         th, td { padding: 10px; border-bottom: 1px solid #374151; }
         th { background: #374151; color: #9ca3af; }
+        .text-refund { text-decoration: line-through; color: #9ca3af !important; opacity: 0.6; }
 
         .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; border: 1px solid #4b5563; }
         .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
 
-        /* Style Layar PIN Aktif */
         .pin-screen-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90vh; width: 100%; padding: 20px; }
         .pin-card { background: #1e2530; border: 1px solid #2e3746; padding: 35px 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; }
         .pin-title { font-size: 22px; font-weight: bold; color: white; margin-bottom: 6px; }
@@ -70,7 +76,7 @@
 
     <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
-            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.1.0 🌐</h1>
+            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.2.0 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
         </div>
         <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
@@ -100,7 +106,8 @@
             </div>
         </div>
     </div>
-     <!-- KASIR -->
+
+    <!-- KASIR -->
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -121,13 +128,15 @@
 
             <div style="border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-bottom: 15px;">
-                    <span>Total Akhir:</span>
+                    <span>Total">Total Akhir:</span>
                     <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
                 </div>
                 <div>
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
                     <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
                 </div>
+                
+                <!-- DIKEMBALIKAN: GRID UANG CEPAT NOMINAL DAN PECAHAN -->
                 <div id="containerUangCepat" class="grid-uang-cepat"></div>
 
                 <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
@@ -135,6 +144,7 @@
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
                 </div>
 
+                <!-- DIKEMBALIKAN: PILIHAN CHECKBOX CETAK STRUK -->
                 <label class="container-checkbox">
                     <input type="checkbox" id="allowPrint" checked>
                     <span>🖨️ Cetak Struk Fisik (Thermal)</span>
@@ -142,9 +152,8 @@
                 <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
-    </div>
-
-    <!-- ADMIN -->
+                </div>
+                <!-- ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
@@ -195,7 +204,7 @@
                 </div>
                 <div style="max-height: 35vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>No. Nota</th><th>Waktu</th><th>Total Belanja</th><th>Status</th></tr></thead>
+                        <thead><tr><th>No. Nota</th><th>Waktu</th><th>Total Belanja</th><th>Aksi</th></tr></thead>
                         <tbody id="tabelLogTransaksi"></tbody>
                     </table>
                 </div>
@@ -212,6 +221,7 @@
             </div>
         </div>
     </div>
+
     <!-- STRUK -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
@@ -250,10 +260,10 @@
         let modeSekarang = "login";
         let isOnline = navigator.onLine;
 
+        // DATA UTUH PIN ADMIN & KASIR
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
 
-        // OTOMATIS JALANKAN FOCUS PADA KOTAK INPUT PIN SAAT HALAMAN DIBUKA
         window.onload = function() {
             document.getElementById('pinDisplayInput').focus();
         }
@@ -293,7 +303,6 @@
             });
         }
 
-        // FUNGSI INPUT HIBRIDA (TOMBOL LAYAR + KEYBOARD ASLI)
         window.tekanPin = function(a) { 
             const input = document.getElementById('pinDisplayInput');
             if(input.value.length < 4) { 
@@ -301,15 +310,13 @@
                 batasiDanCekPin();
             } 
         }
-        
         window.hapusPin = function() { 
             document.getElementById('pinDisplayInput').value = ""; 
         }
 
         window.batasiDanCekPin = function() {
             const input = document.getElementById('pinDisplayInput');
-            // Menghapus karakter selain angka
-            input.value = input.value.replace(/[^0-8]/g, ''); 
+            input.value = input.value.replace(/[^0-9]/g, ''); 
             if(input.value.length === 4) {
                 verifikasiPin();
             }
@@ -326,6 +333,7 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
+
         window.bukaMenuUtama = function(role) {
             modeSekarang = role;
             document.getElementById('areaLoginPin').classList.add('hidden');
@@ -351,14 +359,21 @@
 
         window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
 
-        window.renderProduk = function() {
+        window.pencarianProduk = function() {
+            const teks = document.getElementById('cariProduk').value.toLowerCase();
+            const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
+            renderProduk(filtered);
+        }
+
+        window.renderProduk = function(dataGrid = null) {
             const grid = document.getElementById('gridProduk');
             grid.innerHTML = '';
-            produkData.forEach(p => {
+            const targetData = dataGrid || produkData;
+            targetData.forEach(p => {
                 const habis = p.stok <= 0;
                 grid.innerHTML += `
                     <div onclick="${habis?'':'tambahKeKeranjang('+p.id+')'}" class="item-produk" style="${habis?'opacity:0.5;':''}">
-                        <span class="badge-stok">${p.stok} Pcs</span>
+                        <span class="badge-stok ${habis?'stok-habis':'stok-aman'}">${p.stok} Pcs</span>
                         <div><h3 style="font-size:12px;">${p.nama}</h3></div>
                         <div style="font-size:11px; margin-top:5px; color:#60a5fa;">Ecer: ${formatRupiah(p.hargaEcer)}</div>
                     </div>
@@ -383,14 +398,60 @@
                 total += (harga * item.qty);
                 list.innerHTML += `
                     <div class="item-keranjang">
-                        <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <div style="display:flex; justify-content:space-between; font-size:12px; align-items:center;">
                             <span>${item.nama} (${item.qty}x)</span>
-                            <span>${formatRupiah(harga * item.qty)}</span>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <button class="btn-qty" onclick="ubahQtyLokal(${item.id}, -1)">-</button>
+                                <button class="btn-qty plus" onclick="ubahQtyLokal(${item.id}, 1)">+</button>
+                                <span style="font-weight:bold; margin-left:5px;">${formatRupiah(harga * item.qty)}</span>
+                            </div>
                         </div>
                     </div>
                 `;
             });
             document.getElementById('totalAkhir').innerText = formatRupiah(total);
+            renderTombolUangCepat(total);
+            hitungKembalian();
+        }
+
+        window.ubahQtyLokal = function(id, delta) {
+            const idx = keranjang.findIndex(i => i.id === id);
+            if(idx !== -1) {
+                keranjang[idx].qty += delta;
+                if(keranjang[idx].qty <= 0) keranjang.splice(idx, 1);
+                else {
+                    const orig = produkData.find(p => p.id === id);
+                    if(keranjang[idx].qty > orig.stok) { alert("Stok tidak mencukupi!"); keranjang[idx].qty = orig.stok; }
+                }
+                updateKeranjang();
+            }
+        }
+
+        window.kosongkanKeranjang = function() { keranjang = []; updateKeranjang(); }
+
+        // DIKEMBALIKAN: LOGIKA GENERATE TOMBOL NOMINAL UANG CEPAT KASIR
+        function renderTombolUangCepat(total) {
+            const container = document.getElementById('containerUangCepat');
+            container.innerHTML = '';
+            if (total <= 0) return;
+
+            let opsi = [];
+            opsi.push({ teks: "Uang Pas", nilai: total, kelas: "btn-uang-pas" });
+            
+            // Nominal di atas total
+            let bulatAtas = Math.ceil(total / 10000) * 10000;
+            if (bulatAtas !== total) opsi.push({ teks: formatRupiah(bulatAtas), nilai: bulatAtas, kelas: "" });
+            
+            if (total <= 50000) opsi.push({ teks: "Rp 50.000", nilai: 50000, kelas: "" });
+            if (total <= 100000) opsi.push({ teks: "Rp 100.000", nilai: 100000, kelas: "" });
+
+            opsi.forEach(o => {
+                container.innerHTML += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`;
+            });
+        }
+
+        window.pilihUangCepat = function(nilai) {
+            document.getElementById('uangDiterima').value = nilai;
             hitungKembalian();
         }
 
@@ -438,8 +499,15 @@
                 perbaruiInfoAntrean();
             }
 
+            // PROSES CETAK STRUK THERMAL AKTIF
             if(document.getElementById('allowPrint').checked) {
                 document.getElementById('strukIdNota').innerText = "NOTA: " + nomorNota;
+                document.getElementById('strukWaktu').innerText = waktu.replace('T', ' ').slice(0, 19);
+                const itemDiv = document.getElementById('strukItem');
+                itemDiv.innerHTML = '';
+                itemsLaporan.forEach(it => {
+                    itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
+                });
                 document.getElementById('strukTotal').innerText = formatRupiah(total);
                 document.getElementById('strukBayar').innerText = formatRupiah(bayar);
                 document.getElementById('strukKembali').innerText = formatRupiah(bayar - total);
@@ -450,23 +518,67 @@
             document.getElementById('uangDiterima').value = '';
             updateKeranjang();
             renderProduk();
-            if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses!");
+            if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
+        }
+        // DIKEMBALIKAN & DISINKRONKAN: FITUR REFUND PER TRANSAKSI (AMANKAN STOK)
+        window.refundTransaksi = function(idNota) {
+            if(!confirm("Apakah Anda yakin ingin membatalkan (Refund) Nota " + idNota + "? Stok barang akan dikembalikan.")) return;
+            
+            const nota = laporanTerjual.find(n => n.idNota === idNota);
+            if(!nota || nota.refunded) return;
+
+            nota.refunded = true;
+
+            // Kembalikan jumlah stok barang ke lokal data
+            nota.items.forEach(item => {
+                const master = produkData.find(p => p.id === item.barangId);
+                if(master) master.stok += item.qty;
+            });
+
+            localStorage.setItem('local_produk', JSON.stringify(produkData));
+            localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
+
+            if(isOnline) {
+                set(ref(db, 'pos_laporan/' + idNota + '/refunded'), true);
+                nota.items.forEach(item => {
+                    const master = produkData.find(p => p.id === item.barangId);
+                    if(master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
+                });
+                alert("Refund Sukses Secara Realtime Cloud!");
+            } else {
+                // Catat di antrean jika offline
+                antreanOffline.push({ idNota: idNota, action: "refund", items: nota.items });
+                localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
+                alert("Refund Tersimpan Lokal (Akan Disinkronkan Saat Online!)");
+            }
+
+            hitungLaporanDashboard();
+            renderAdminTable();
         }
 
         function kirimAntreanOfflineKeCloud() {
             if (antreanOffline.length === 0) return;
             antreanOffline.forEach(nota => {
-                set(ref(db, 'pos_laporan/' + nota.idNota), nota);
-                nota.items.forEach(item => {
-                    const master = produkData.find(p => p.id === item.barangId);
-                    if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
-                });
+                if(nota.action === "refund") {
+                    set(ref(db, 'pos_laporan/' + nota.idNota + '/refunded'), true);
+                    nota.items.forEach(item => {
+                        const master = produkData.find(p => p.id === item.barangId);
+                        if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
+                    });
+                } else {
+                    set(ref(db, 'pos_laporan/' + nota.idNota), nota);
+                    nota.items.forEach(item => {
+                        const master = produkData.find(p => p.id === item.barangId);
+                        if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
+                    });
+                }
             });
             antreanOffline = [];
             localStorage.removeItem('antrean_offline');
             perbaruiInfoAntrean();
-            alert("🟢 Transaksi offline berhasil disinkronkan ke Cloud.");
-            }
+            alert("🟢 Semua aktivitas offline berhasil disinkronkan ke Cloud.");
+        }
+
         function perbaruiInfoAntrean() {
             const info = document.getElementById('infoPending');
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline Belum Sinkron)`;
@@ -476,7 +588,7 @@
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
             produkData.forEach(p => {
-                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td>${p.stok}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td></tr>`;
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
@@ -485,8 +597,19 @@
             let omset = 0, modal = 0;
             const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
             laporanTerjual.forEach(nota => {
-                omset += nota.totalOmset; modal += nota.totalModal;
-                tbody.innerHTML += `<tr><td>${nota.idNota}</td><td>${nota.waktu.slice(11,16)}</td><td>${formatRupiah(nota.totalOmset)}</td><td>Sukses</td></tr>`;
+                if(!nota.refunded) {
+                    omset += nota.totalOmset; 
+                    modal += nota.totalModal;
+                }
+                tbody.innerHTML += `
+                    <tr class="${nota.refunded ? 'text-refund':''}">
+                        <td>${nota.idNota}</td>
+                        <td>${nota.waktu.slice(11,16)}</td>
+                        <td>${formatRupiah(nota.totalOmset)}</td>
+                        <td>
+                            ${nota.refunded ? '<span style="color:#f87171;">Batal/Refund</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:2px 6px; border-radius:4px; cursor:pointer;">Refund</button>`}
+                        </td>
+                    </tr>`;
             });
             document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
