@@ -118,22 +118,7 @@
     <!-- KASIR -->
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
-            <!-- SEKSI TAMBAHAN: GALERI FOTO INFO / PROMO TOKO -->
-            <div class="galeri-container">
-                <div class="galeri-item">
-                    <img src="foto1.jpg" alt="Info 1" onerror="this.style.display='none'; this.nextElementSibling.style.position='static'">
-                    <div class="galeri-label">Foto 1 (Promo)</div>
-                </div>
-                <div class="galeri-item">
-                    <img src="foto2.jpg" alt="Info 2" onerror="this.style.display='none'; this.nextElementSibling.style.position='static'">
-                    <div class="galeri-label">Foto 2 (Info Produk)</div>
-                </div>
-                <div class="galeri-item">
-                    <img src="foto3.jpg" alt="Info 3" onerror="this.style.display='none'; this.nextElementSibling.style.position='static'">
-                    <div class="galeri-label">Foto 3 (Pengumuman)</div>
-                </div>
-            </div>
-
+            
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span id="infoPending" style="color:#eab308; font-size:12px;"></span></h2>
                 <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
@@ -291,8 +276,8 @@
         const db = getDatabase(app);
 
         // ======================== PENGATURAN BOT TELEGRAM ========================
-        const TELEGRAM_TOKEN = "MASUKKAN_TOKEN_BOT_TELEGRAM_ANDA_DI_SINI";
-        const TELEGRAM_CHAT_ID = "MASUKKAN_CHAT_ID_TELEGRAM_ANDA_DI_SINI";
+        const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk";
+        const TELEGRAM_CHAT_ID = "8563167649";
         // =========================================================================
 
         let produkData = JSON.parse(localStorage.getItem('local_produk')) || [];
