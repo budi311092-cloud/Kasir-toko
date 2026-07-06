@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v8.0.0 (Hybrid Offline-Online)</title>
+    <title>MAHAKARYA POS v8.1.0 (Hybrid Offline-Online)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -17,34 +17,17 @@
         @media (min-width: 640px) { .grid-produk { grid-template-columns: repeat(3, 1fr); } }
         .item-produk { border: 1px solid #4b5563; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; background: #374151; position: relative; color: white; }
         .item-produk:hover { border-color: #3b82f6; }
-        .badge { background: #1e3a8a; color: #93c5fd; font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: bold; width: fit-content; }
         .badge-stok { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: bold; }
-        .stok-aman { color: #34d399; }
-        .stok-habis { color: #f87171; background: #7f1d1d; padding: 2px 6px; border-radius: 4px; }
         .item-keranjang { background: #374151; padding: 10px; border-radius: 8px; border: 1px solid #4b5563; margin-bottom: 8px; }
-        .btn-qty { width: 24px; height: 24px; background: #4b5563; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .btn-qty.plus { background: #2563eb; color: white; }
-        .input-qty-manual { width: 45px; height: 24px; background: #1f2937; color: white; border: 1px solid #4b5563; text-align: center; border-radius: 4px; font-size: 13px; font-weight: bold; -moz-appearance: textfield; }
-        .input-qty-manual::-webkit-outer-spin-button, .input-qty-manual::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .btn-harga { width: 100%; padding: 6px; border: none; font-weight: bold; font-size: 11px; border-radius: 4px; cursor: pointer; }
-        .btn-harga.active-ecer { background: #2563eb; color: white; }
-        .btn-harga.active-grosir { background: #10b981; color: white; }
-        .btn-harga.inactive { background: #4b5563; color: #d1d5db; }
         .input-text { width: 100%; padding: 8px 12px; border: 1px solid #4b5563; background: #374151; color: white; border-radius: 6px; margin-top: 4px; margin-bottom: 12px; font-size: 14px; }
         .select-custom { padding: 6px 12px; background: #374151; color: white; border: 1px solid #4b5563; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-proses { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
         .grid-uang-cepat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
-        .btn-uang-cepat { background: #4b5563; color: white; border: 1px solid #6b7280; padding: 6px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: background 0.2s; text-align: center; }
-        .btn-uang-cepat:hover { background: #374151; border-color: #3b82f6; }
-        .btn-uang-pas { background: #059669; border-color: #10b981; }
-
-        /* Indikator Sinyal Status */
         .status-koneksi { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 20px; margin-right: 10px; }
         .online-bg { background: #064e3b; color: #34d399; border: 1px solid #059669; }
         .offline-bg { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
 
-        /* Layout Admin */
         .admin-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; padding: 15px; max-width: 1400px; margin: 0 auto; }
         @media (min-width: 1024px) { .admin-layout { grid-template-columns: 1fr 2fr; } }
         
@@ -59,19 +42,25 @@
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; color: #e5e7eb; }
         th, td { padding: 10px; border-bottom: 1px solid #374151; }
         th { background: #374151; color: #9ca3af; }
-        .text-refund { text-decoration: line-through; color: #9ca3af !important; opacity: 0.6; }
 
         .container-checkbox { display: flex; align-items: center; gap: 8px; background: #374151; padding: 10px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; border: 1px solid #4b5563; }
         .container-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
 
+        /* Style Layar PIN Aktif */
         .pin-screen-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90vh; width: 100%; padding: 20px; }
         .pin-card { background: #1e2530; border: 1px solid #2e3746; padding: 35px 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; }
         .pin-title { font-size: 22px; font-weight: bold; color: white; margin-bottom: 6px; }
         .pin-subtitle { font-size: 13px; color: #9ca3af; margin-bottom: 25px; }
-        .pin-display { width: 100%; height: 55px; background: #131922; border: 1px solid #2e3746; border-radius: 10px; margin-bottom: 25px; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        .pin-display { 
+            width: 100%; height: 55px; background: #131922; border: 1px solid #2e3746; border-radius: 10px; 
+            margin-bottom: 25px; color: white; font-size: 24px; text-align: center; font-weight: bold; 
+            letter-spacing: 10px; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .pin-display::placeholder { letter-spacing: 0px; color: #4b5563; font-size: 18px; }
+
         .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .pin-btn { background: #323b49; color: white; border: none; font-size: 20px; font-weight: bold; padding: 18px 0; border-radius: 10px; cursor: pointer; }
-        .pin-btn.hapus { background: #7f1d1d; color: #f87171; font-size: 15px; }
         .pin-btn.masuk { background: #059669; color: #a7f3d0; font-size: 15px; }
 
         @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
@@ -81,18 +70,20 @@
 
     <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
-            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.0.0 🌐</h1>
+            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.1.0 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
         </div>
         <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
     </header>
 
-    <!-- LAYER PIN -->
+    <!-- LAYER PIN (DENGAN INPUT KEYBOARD AKTIF) -->
     <div id="areaLoginPin" class="pin-screen-container">
         <div class="pin-card">
             <div class="pin-title">MAHAKARYA POS</div>
             <div class="pin-subtitle">Silakan masukkan PIN Akses Anda</div>
-            <div id="pinDisplay" class="pin-display"></div>
+            
+            <input type="password" id="pinDisplayInput" class="pin-display" placeholder="Masukkan PIN" maxlength="4" inputmode="numeric" oninput="batasiDanCekPin()">
+            
             <div class="pin-grid">
                 <button class="pin-btn" onclick="tekanPin('1')">1</button>
                 <button class="pin-btn" onclick="tekanPin('2')">2</button>
@@ -103,14 +94,13 @@
                 <button class="pin-btn" onclick="tekanPin('7')">7</button>
                 <button class="pin-btn" onclick="tekanPin('8')">8</button>
                 <button class="pin-btn" onclick="tekanPin('9')">9</button>
-                <button class="pin-btn dadakan" onclick="bukaOfflineKasirDarurat()" style="background:#581c87; font-size:11px; font-weight:bold;">Kasir Darurat (Offline)</button>
+                <button class="pin-btn dadakan" onclick="bukaOfflineKasirDarurat()" style="background:#581c87; font-size:11px; font-weight:bold; padding: 10px 2px;">Kasir Darurat<br>(Offline)</button>
                 <button class="pin-btn" onclick="tekanPin('0')">0</button>
                 <button class="pin-btn masuk" onclick="verifikasiPin()">Masuk</button>
             </div>
         </div>
     </div>
-
-    <!-- KASIR -->
+     <!-- KASIR -->
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -152,8 +142,9 @@
                 <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
-            </div>
-             <!-- ADMIN -->
+    </div>
+
+    <!-- ADMIN -->
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
@@ -214,14 +205,13 @@
                 <div class="box-laporan box-aset"><span style="font-size: 12px;">💰 TOTAL NILAI ASET:</span><h3 id="totalAsetToko">Rp 0</h3></div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Stok</th><th style="text-align:center;">Aksi</th></tr></thead>
+                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Stok</th></tr></thead>
                         <tbody id="tabelAdmin"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- STRUK -->
     <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
         <center>
@@ -241,7 +231,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
@@ -258,13 +248,16 @@
         let antreanOffline = JSON.parse(localStorage.getItem('antrean_offline')) || [];
         let keranjang = [];
         let modeSekarang = "login";
-        let inputPinString = "";
-        letisOnline = navigator.onLine;
+        let isOnline = navigator.onLine;
 
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
 
-        // MONITOR STATUS SINYAL INTERNET
+        // OTOMATIS JALANKAN FOCUS PADA KOTAK INPUT PIN SAAT HALAMAN DIBUKA
+        window.onload = function() {
+            document.getElementById('pinDisplayInput').focus();
+        }
+
         window.addEventListener('online', () => setStatusKoneksi(true));
         window.addEventListener('offline', () => setStatusKoneksi(false));
 
@@ -280,7 +273,7 @@
                 label.className = "status-koneksi offline-bg";
             }
         }
-        // AMBIL DATA DARI CLOUD (JIKA ONLINE) & BACKUP KE LOCALSTORAGE
+
         if (isOnline) {
             onValue(ref(db, 'pos_produk'), (snapshot) => {
                 if (snapshot.exists()) {
@@ -300,21 +293,39 @@
             });
         }
 
-        window.tekanPin = function(a) { if(inputPinString.length < 4) { inputPinString += a; perbaruiPin(); } }
-        window.hapusPin = function() { inputPinString = ""; perbaruiPin(); }
-        function perbaruiPin() { document.getElementById('pinDisplay').innerText = "• ".repeat(inputPinString.length); }
+        // FUNGSI INPUT HIBRIDA (TOMBOL LAYAR + KEYBOARD ASLI)
+        window.tekanPin = function(a) { 
+            const input = document.getElementById('pinDisplayInput');
+            if(input.value.length < 4) { 
+                input.value += a; 
+                batasiDanCekPin();
+            } 
+        }
+        
+        window.hapusPin = function() { 
+            document.getElementById('pinDisplayInput').value = ""; 
+        }
+
+        window.batasiDanCekPin = function() {
+            const input = document.getElementById('pinDisplayInput');
+            // Menghapus karakter selain angka
+            input.value = input.value.replace(/[^0-8]/g, ''); 
+            if(input.value.length === 4) {
+                verifikasiPin();
+            }
+        }
 
         window.verifikasiPin = function() {
-            if (inputPinString === PIN_KASIR) bukaMenuUtama("kasir");
-            else if (inputPinString === PIN_ADMIN) bukaMenuUtama("admin");
-            else { alert("PIN Salah!"); hapusPin(); }
+            const pinSelesai = document.getElementById('pinDisplayInput').value;
+            if (pinSelesai === PIN_KASIR) bukaMenuUtama("kasir");
+            else if (pinSelesai === PIN_ADMIN) bukaMenuUtama("admin");
+            else { alert("PIN Salah!"); hapusPin(); document.getElementById('pinDisplayInput').focus(); }
         }
 
         window.bukaOfflineKasirDarurat = function() {
-            alert("⚠️ Masuk ke mode Kasir Darurat Offline tanpa validasi internet.");
+            alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-
         window.bukaMenuUtama = function(role) {
             modeSekarang = role;
             document.getElementById('areaLoginPin').classList.add('hidden');
@@ -389,7 +400,6 @@
             document.getElementById('uangKembalian').innerText = formatRupiah(Math.max(0, bayar - total));
         }
 
-        // PROSES TRANSAKSI (MENDUKUNG OFFLINE & ONLINE)
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:i.hargaGrosir)*i.qty, 0);
@@ -401,44 +411,33 @@
             let itemsLaporan = [];
             let totalModal = 0;
 
-            // 1. Kurangi stok lokal terlebih dahulu
             keranjang.forEach(item => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
                 totalModal += (item.hpp * item.qty);
-                
                 itemsLaporan.push({
                     barangId: item.id, nama: item.nama, qty: item.qty, hargaJual: harga, subJual: harga * item.qty, subModal: item.hpp * item.qty
                 });
-
                 const master = produkData.find(p => p.id === item.id);
                 if(master) master.stok -= item.qty;
             });
 
-            // Simpan perubahan stok lokal ke Harddisk
             localStorage.setItem('local_produk', JSON.stringify(produkData));
-
             const notaBaru = { idNota: nomorNota, waktu, items: itemsLaporan, totalOmset: total, totalModal, refunded: false };
-
-            // 2. Tulis nota ke riwayat lokal laporan agar kasir bisa langsung rekap
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
 
-            // 3. Eksekusi Pengiriman Berdasarkan Status Koneksi Internet
             if (isOnline) {
-                // Jika ONLINE: Langsung kirim ke Firebase Cloud
                 set(ref(db, 'pos_laporan/' + nomorNota), notaBaru);
                 keranjang.forEach(item => {
                     const master = produkData.find(p => p.id === item.id);
                     if(master) set(ref(db, 'pos_produk/' + item.id + '/stok'), master.stok);
                 });
             } else {
-                // Jika OFFLINE: Masukkan nota ke daftar antrean lokal untuk dikirim nanti
                 antreanOffline.push(notaBaru);
                 localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
                 perbaruiInfoAntrean();
             }
 
-            // Cetak Struk Fisik
             if(document.getElementById('allowPrint').checked) {
                 document.getElementById('strukIdNota').innerText = "NOTA: " + nomorNota;
                 document.getElementById('strukTotal').innerText = formatRupiah(total);
@@ -451,45 +450,33 @@
             document.getElementById('uangDiterima').value = '';
             updateKeranjang();
             renderProduk();
-            if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (Mode: " + (isOnline ? "Online" : "Offline Tertunda") + ")");
-                                }
-        // SINKRONISASI OTOMATIS SAAT INTERNET NYALA KEMBALI
+            if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses!");
+        }
+
         function kirimAntreanOfflineKeCloud() {
             if (antreanOffline.length === 0) return;
-            
-            console.log("Menyinkronkan " + antreanOffline.length + " transaksi offline ke Cloud...");
-            
             antreanOffline.forEach(nota => {
-                // Kirim nota ke Firebase
                 set(ref(db, 'pos_laporan/' + nota.idNota), nota);
-                
-                // Perbarui sisa stok barang di Firebase Cloud satu per satu
                 nota.items.forEach(item => {
                     const master = produkData.find(p => p.id === item.barangId);
                     if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
                 });
             });
-
-            // Kosongkan antrean karena semua sudah berhasil terunggah ke Firebase
             antreanOffline = [];
             localStorage.removeItem('antrean_offline');
             perbaruiInfoAntrean();
-            alert("🟢 Sukses! Semua transaksi offline berhasil disinkronkan ke Cloud.");
-        }
-
+            alert("🟢 Transaksi offline berhasil disinkronkan ke Cloud.");
+            }
         function perbaruiInfoAntrean() {
             const info = document.getElementById('infoPending');
-            if(antreanOffline.length > 0) {
-                info.innerText = `(⏳ ${antreanOffline.length} Nota Offline Belum Terunggah)`;
-            } else {
-                info.innerText = "";
-            }
+            if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline Belum Sinkron)`;
+            else info.innerText = "";
         }
 
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
             produkData.forEach(p => {
-                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td>${p.stok}</td><td>-</td></tr>`;
+                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td>${p.stok}</td></tr>`;
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
@@ -497,12 +484,10 @@
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
-            
             laporanTerjual.forEach(nota => {
                 omset += nota.totalOmset; modal += nota.totalModal;
                 tbody.innerHTML += `<tr><td>${nota.idNota}</td><td>${nota.waktu.slice(11,16)}</td><td>${formatRupiah(nota.totalOmset)}</td><td>Sukses</td></tr>`;
             });
-
             document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
