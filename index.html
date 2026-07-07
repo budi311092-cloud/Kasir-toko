@@ -116,7 +116,6 @@
             </div>
         </div>
     </div>
-
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -163,7 +162,7 @@
 
     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
-            <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
+            <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
                 <input type="hidden" id="editId">
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
@@ -189,7 +188,7 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <button type="submit" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
+                    <button type="submit" id="btnSimpanAdmin" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
@@ -244,7 +243,7 @@
                 <div class="box-laporan box-aset"><span style="font-size: 12px;">💰 TOTAL NILAI ASET:</span><h3 id="totalAsetToko">Rp 0</h3></div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Grosir</th><th>Stok</th></tr></thead>
+                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Grosir</th><th>Stok</th><th style="text-align:center;">Aksi</th></tr></thead>
                         <tbody id="tabelAdmin"></tbody>
                     </table>
                 </div>
@@ -267,7 +266,6 @@
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
         <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -474,7 +472,6 @@
                             <span style="color: ${isGrosir ? '#eab308' : '#60a5fa'};">${formatRupiah(harga * item.qty)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                            <!-- Tombol Toggle Pilihan Tipe Harga -->
                             <div style="display: flex; gap: 4px; align-items: center;">
                                 <button type="button" class="toggle-harga-btn ${isGrosir ? 'active-grosir':'active-ecer'}" onclick="toggleTipeHargaKeranjang(${index})">
                                     ${isGrosir ? '📦 Grosir' : '🛒 Ecer'}
@@ -545,8 +542,7 @@
             opsi.forEach(o => {
                 container.innerHTML += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`;
             });
-        }
-
+                                                                                 }
         window.pilihUangCepat = function(nilai) {
             document.getElementById('uangDiterima').value = nilai;
             hitungKembalian();
@@ -688,6 +684,7 @@
             else info.innerText = "";
         }
 
+        // FITUR DIPERBARUI: Ditambahkan tombol "✏️ Edit" di baris tabel inventori admin
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -695,10 +692,41 @@
             produkData.forEach(p => {
                 if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
 
-                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td>${formatRupiah(p.hargaGrosir || 0)}</td><td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td></tr>`;
+                tbody.innerHTML += `<tr>
+                    <td>${p.nama}</td>
+                    <td>${formatRupiah(p.hpp)}</td>
+                    <td>${formatRupiah(p.hargaEcer)}</td>
+                    <td>${formatRupiah(p.hargaGrosir || 0)}</td>
+                    <td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td>
+                    <td style="text-align:center;">
+                        <button onclick="pemicuEditBarang(${p.id})" style="background:#2563eb; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">✏️ Edit</button>
+                    </td>
+                </tr>`;
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
+        // FITUR BARU: Fungsi untuk memuat data inventori ke dalam Form Manajemen agar siap di-edit
+        window.pemicuEditBarang = function(id) {
+            const p = produkData.find(item => item.id === id);
+            if(!p) return alert("Barang tidak ditemukan!");
+
+            document.getElementById('editId').value = p.id;
+            document.getElementById('inputNama').value = p.nama;
+            document.getElementById('inputHpp').value = p.hpp;
+            document.getElementById('inputStok').value = p.stok;
+            document.getElementById('inputHargaEcer').value = p.hargaEcer;
+            document.getElementById('inputHargaGrosir').value = p.hargaGrosir || 0;
+
+            // Mengubah penanda visual form menjadi Mode Edit
+            document.getElementById('judulFormAdmin').innerText = "✏️ Edit Data Barang: " + p.nama;
+            document.getElementById('judulFormAdmin').style.color = "#60a5fa";
+            document.getElementById('btnSimpanAdmin').innerText = "Perbarui Barang";
+            document.getElementById('btnSimpanAdmin').style.backgroundColor = "#2563eb";
+
+            // Scroll otomatis ke atas form agar admin langsung melihat data yang akan diedit
+            document.getElementById('formProduk').scrollIntoView({ behavior: 'smooth' });
+        }
+
         window.resetSemuaLaporanTransaksi = function() {
             const konfirmasi1 = confirm("⚠️ PERINGATAN CRITICAL!\n\nApakah Anda yakin ingin MENGHAPUS SEMUA riwayat transaksi secara permanen? Tindakan ini tidak dapat dibatalkan.");
             if (!konfirmasi1) return;
@@ -821,7 +849,7 @@
                 });
             }
         }
-                window.simpanProduk = function(event) {
+        window.simpanProduk = function(event) {
             event.preventDefault(); // Menghalangi reload halaman agar tidak kembali ke layar PIN
 
             const idEdit = document.getElementById('editId').value;
@@ -872,9 +900,14 @@
             renderAdminTable();
         }
 
+        // FITUR DIPERBARUI: Mengembalikan UI Form Manajemen ke setelan "Tambah Barang" semula
         window.resetFormAdmin = function() {
             document.getElementById('formProduk').reset();
             document.getElementById('editId').value = '';
+            document.getElementById('judulFormAdmin').innerText = "➕ Manajemen Data Barang";
+            document.getElementById('judulFormAdmin').style.color = "#10b981";
+            document.getElementById('btnSimpanAdmin').innerText = "Simpan Barang";
+            document.getElementById('btnSimpanAdmin').style.backgroundColor = "#10b981";
         }
         
     </script>
