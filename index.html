@@ -518,8 +518,8 @@
             else { item.qty = qtyInput; updateKeranjang(); }
         }
 
+        /* PERBAIKAN: Menghapus teks 'box_laporan' liar agar fungsi berjalan lancar */
         window.hapusItemKeranjang = function(index) {
-            box_laporan
             keranjang.splice(index, 1);
             updateKeranjang();
         }
