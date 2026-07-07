@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHAKARYA POS v8.4.0 (Hybrid Offline-Online)</title>
+    <title>MAHAKARYA POS v8.4.5 (Hybrid Offline-Online)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: #111827; color: #f3f4f6; min-height: 100vh; display: flex; flex-direction: column; }
@@ -29,6 +29,11 @@
         .btn-uang-cepat { background: #4b5563; color: white; border: 1px solid #6b7280; padding: 6px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: background 0.2s; text-align: center; }
         .btn-uang-cepat:hover { background: #374151; border-color: #3b82f6; }
         .btn-uang-pas { background: #059669; border-color: #10b981; }
+
+        /* Style Baru untuk Toggle Tipe Harga di Keranjang */
+        .toggle-harga-btn { background: #1f2937; border: 1px solid #4b5563; color: #9ca3af; padding: 3px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .toggle-harga-btn.active-grosir { background: #eab308; border-color: #ca8a04; color: #111827; }
+        .toggle-harga-btn.active-ecer { background: #3b82f6; border-color: #2563eb; color: white; }
 
         .status-koneksi { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 20px; margin-right: 10px; }
         .online-bg { background: #064e3b; color: #34d399; border: 1px solid #059669; }
@@ -71,23 +76,9 @@
 
         .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
 
-        /* SANGAT KRUSIAL: Perbaikan Sistem Cetak CSS Spesifik Android */
         @media print { 
-            body > *:not(#areaStruk) { 
-                display: none !important; 
-            }
-            #areaStruk { 
-                display: block !important;
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100% !important; 
-                max-width: 58mm; /* Ukuran standar rata-rata printer mini thermal mobile */
-                padding: 0;
-                margin: 0;
-                color: black !important;
-                background: white !important;
-            } 
+            body > *:not(#areaStruk) { display: none !important; }
+            #areaStruk { display: block !important; position: absolute; left: 0; top: 0; width: 100% !important; max-width: 58mm; padding: 0; margin: 0; color: black !important; background: white !important; } 
             @page { size: auto; margin: 0mm; } 
         }
     </style>
@@ -96,7 +87,7 @@
 
     <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
-            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.4.0 🌐</h1>
+            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.4.5 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
         </div>
         <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
@@ -253,14 +244,13 @@
                 <div class="box-laporan box-aset"><span style="font-size: 12px;">💰 TOTAL NILAI ASET:</span><h3 id="totalAsetToko">Rp 0</h3></div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Stok</th></tr></thead>
+                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Grosir</th><th>Stok</th></tr></thead>
                         <tbody id="tabelAdmin"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
     <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
@@ -274,7 +264,7 @@
         <p style="margin: 2px 0;">--------------------------------</p>
         <div style="display:flex; justify-content:space-between;"><span>Total:</span><span id="strukTotal"></span></div>
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
-      <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
+        <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
     </div>
 
     <script type="module">
@@ -389,7 +379,6 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-
         window.bukaMenuUtama = function(role) {
             if (role === "admin" && modeSekarang !== "admin") {
                 const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
@@ -421,6 +410,7 @@
                 hitungLaporanDashboard();
             }
         }
+
         window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
 
         window.pencarianProduk = function() {
@@ -429,6 +419,7 @@
             renderProduk(filtered);
         }
 
+        // FITUR DIPERBARUI: Menampilkan Harga Ecer & Grosir di kartu menu penjualan
         window.renderProduk = function(dataGrid = null) {
             const grid = document.getElementById('gridProduk');
             grid.innerHTML = '';
@@ -438,8 +429,11 @@
                 grid.innerHTML += `
                     <div onclick="${habis?'':'tambahKeKeranjang('+p.id+')'}" class="item-produk" style="${habis?'opacity:0.5;':''}">
                         <span class="badge-stok ${habis?'stok-habis':'stok-aman'}">${p.stok} Pcs</span>
-                        <div><h3 style="font-size:12px;">${p.nama}</h3></div>
-                        <div style="font-size:11px; margin-top:5px; color:#60a5fa;">Ecer: ${formatRupiah(p.hargaEcer)}</div>
+                        <div><h3 style="font-size:12px; font-weight:bold; max-width:80%;">${p.nama}</h3></div>
+                        <div style="font-size:11px; margin-top:8px; display:flex; flex-direction:column; gap:2px;">
+                            <span style="color:#60a5fa;">🛒 Ecer: ${formatRupiah(p.hargaEcer)}</span>
+                            <span style="color:#eab308;">📦 Grosir: ${formatRupiah(p.hargaGrosir || 0)}</span>
+                        </div>
                     </div>
                 `;
             });
@@ -453,33 +447,51 @@
             updateKeranjang();
         }
 
+        // FITUR BARU: Mengubah tipe harga item tertentu di keranjang (Ecer <-> Grosir)
+        window.toggleTipeHargaKeranjang = function(index) {
+            const item = keranjang[index];
+            item.tipeHarga = item.tipeHarga === 'ecer' ? 'grosir' : 'ecer';
+            updateKeranjang();
+        }
+
+        // FITUR DIPERBARUI: Ditambahkan selector tombol Ecer/Grosir di dalam list keranjang
         window.updateKeranjang = function() {
             const list = document.getElementById('listKeranjang');
             let total = 0;
             list.innerHTML = '';
             
             keranjang.forEach((item, index) => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
                 total += (harga * item.qty);
+                
+                const isGrosir = item.tipeHarga === 'grosir';
                 
                 list.innerHTML += `
                     <div class="item-keranjang" style="display: flex; flex-direction: column; gap: 8px;">
                         <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
                             <span>${item.nama}</span>
-                            <span style="color: #60a5fa;">${formatRupiah(harga * item.qty)}</span>
+                            <span style="color: ${isGrosir ? '#eab308' : '#60a5fa'};">${formatRupiah(harga * item.qty)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <span style="font-size: 11px; color: #9ca3af;">Qty:</span>
-                                <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
-                                    onchange="ubahQtyManual(${index}, this.value)" 
-                                    style="width: 60px; padding: 4px 6px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 12px; text-align: center; font-weight: bold;">
-                                <span style="font-size: 11px; color: #9ca3af;">/ ${item.stok} Pcs</span>
+                            <!-- Tombol Toggle Pilihan Tipe Harga -->
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <button type="button" class="toggle-harga-btn ${isGrosir ? 'active-grosir':'active-ecer'}" onclick="toggleTipeHargaKeranjang(${index})">
+                                    ${isGrosir ? '📦 Grosir' : '🛒 Ecer'}
+                                </button>
                             </div>
-                            <div style="display: flex; gap: 4px;">
-                                <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer;">-</button>
-                                <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer;">+</button>
-                                <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                <div style="display: flex; align-items: center; gap: 2px;">
+                                    <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
+                                        onchange="ubahQtyManual(${index}, this.value)" 
+                                        style="width: 45px; padding: 4px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 11px; text-align: center; font-weight: bold;">
+                                    <span style="font-size: 10px; color: #9ca3af;">/${item.stok}</span>
+                                </div>
+                                <div style="display: flex; gap: 2px;">
+                                    <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:11px;">-</button>
+                                    <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:11px;">+</button>
+                                    <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 11px;">🗑️</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -498,7 +510,6 @@
             else if (qtyBaru > item.stok) { alert(`⚠️ Stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
             else { item.qty = qtyBaru; updateKeranjang(); }
         }
-
         window.ubahQtyManual = function(index, nilai) {
             const item = keranjang[index];
             let qtyInput = parseInt(nilai) || 1;
@@ -508,6 +519,7 @@
         }
 
         window.hapusItemKeranjang = function(index) {
+            box_laporan
             keranjang.splice(index, 1);
             updateKeranjang();
         }
@@ -540,14 +552,14 @@
         }
 
         window.hitungKembalian = function() {
-            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:i.hargaGrosir)*i.qty, 0);
+            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             document.getElementById('uangKembalian').innerText = formatRupiah(Math.max(0, bayar - total));
         }
 
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
-            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:i.hargaGrosir)*i.qty, 0);
+            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             if (bayar < total) return alert("Uang kurang!");
 
@@ -557,10 +569,10 @@
             let totalModal = 0;
 
             keranjang.forEach(item => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
                 totalModal += (item.hpp * item.qty);
                 itemsLaporan.push({
-                    barangId: item.id, nama: item.nama, qty: item.qty, hargaJual: harga, subJual: harga * item.qty, subModal: item.hpp * item.qty
+                    barangId: item.id, nama: item.nama, qty: item.qty, hargaJual: harga, subJual: harga * item.qty, subModal: item.hpp * item.qty, tipeHarga: item.tipeHarga
                 });
                 const master = produkData.find(p => p.id === item.id);
                 if(master) master.stok -= item.qty;
@@ -603,6 +615,7 @@
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
         }
+
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
@@ -618,7 +631,8 @@
             itemDiv.innerHTML = '';
             
             nota.items.forEach(it => {
-                itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
+                const labelTipe = it.tipeHarga === 'grosir' ? '(G)' : '(E)';
+                itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} ${labelTipe} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
             });
             
             const uangBayar = nota.nominalBayar !== undefined ? nota.nominalBayar : nota.totalOmset;
@@ -678,14 +692,12 @@
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
             
             produkData.forEach(p => {
-                // FITUR BARU: Filter Pencarian Stok
                 if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
 
-                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td>${formatRupiah(p.hargaGrosir || 0)}</td><td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td></tr>`;
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
-
         window.resetSemuaLaporanTransaksi = function() {
             const konfirmasi1 = confirm("⚠️ PERINGATAN CRITICAL!\n\nApakah Anda yakin ingin MENGHAPUS SEMUA riwayat transaksi secara permanen? Tindakan ini tidak dapat dibatalkan.");
             if (!konfirmasi1) return;
@@ -719,7 +731,7 @@
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const filter = document.getElementById('filterTanggal').value;
-            const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); // FITUR BARU: Ambil input pencarian
+            const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
             
             const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
             
@@ -739,7 +751,7 @@
                 const tNota = new Date(nota.waktu);
                 const tanggalNotaString = dapatkanTanggalLokalString(tNota);
                 const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
-                const teksTanggalLengkap = tNota.toLocaleDateString("id-ID") + " " + opsiJamLokal; // Contoh: "07/07/2026 10:00"
+                const teksTanggalLengkap = tNota.toLocaleDateString("id-ID") + " " + opsiJamLokal; 
 
                 let lolosFilter = false;
 
@@ -757,13 +769,11 @@
 
                 if (!lolosFilter) return;
 
-                // FITUR BARU: Cek kecocokan teks pencarian (Nota, Tanggal, atau Nama Barang di dalam nota)
                 if (kataKunciLaporan) {
                     const cocokNota = nota.idNota.toLowerCase().includes(kataKunciLaporan);
                     const cocokTanggal = teksTanggalLengkap.toLowerCase().includes(kataKunciLaporan);
                     const cocokBarang = nota.items.some(it => it.nama.toLowerCase().includes(kataKunciLaporan));
-                    
-                    if (!cocokNota && !cocokTanggal && !cocokBarang) return; // Jika tidak ada yang cocok, sembunyikan
+                    if (!cocokNota && !cocokTanggal && !cocokBarang) return; 
                 }
 
                 if(!nota.refunded) {
@@ -773,7 +783,10 @@
                 }
 
                 let teksRincianItem = "";
-                nota.items.forEach(it => { teksRincianItem += `• ${it.nama} (${it.qty} Pcs)<br>`; });
+                nota.items.forEach(it => { 
+                    const tipeLabel = it.tipeHarga === 'grosir' ? ' [Grosir]' : '';
+                    teksRincianItem += `• ${it.nama}${tipeLabel} (${it.qty} Pcs)<br>`; 
+                });
 
                 tbody.innerHTML += `
                     <tr class="${nota.refunded ? 'text-refund':''}">
