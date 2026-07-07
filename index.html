@@ -821,6 +821,62 @@
                 });
             }
         }
+                window.simpanProduk = function(event) {
+            event.preventDefault(); // Menghalangi reload halaman agar tidak kembali ke layar PIN
+
+            const idEdit = document.getElementById('editId').value;
+            const nama = document.getElementById('inputNama').value;
+            const hpp = parseFloat(document.getElementById('inputHpp').value) || 0;
+            const stok = parseInt(document.getElementById('inputStok').value) || 0;
+            const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
+            const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
+
+            // Jika sedang mode edit pakai ID lama, jika barang baru buat ID unik baru
+            const idProduk = idEdit ? parseInt(idEdit) : Date.now();
+
+            const produkBaru = {
+                id: idProduk,
+                nama,
+                hpp,
+                stok,
+                hargaEcer,
+                hargaGrosir
+            };
+
+            // 1. Simpan ke Array Lokal & LocalStorage
+            if (idEdit) {
+                const index = produkData.findIndex(p => p.id === parseInt(idEdit));
+                if (index !== -1) produkData[index] = produkBaru;
+            } else {
+                produkData.push(produkBaru);
+            }
+            
+            produkData.sort((a, b) => a.nama.localeCompare(b.nama));
+            localStorage.setItem('local_produk', JSON.stringify(produkData));
+
+            // 2. Simpan ke Cloud Firebase Database jika sedang Online
+            if (isOnline) {
+                set(ref(db, 'pos_produk/' + idProduk), produkBaru)
+                    .then(() => {
+                        alert("✅ Barang berhasil disimpan ke Cloud!");
+                    })
+                    .catch(err => {
+                        console.error("Gagal simpan ke Firebase:", err);
+                    });
+            } else {
+                alert("💾 Barang disimpan lokal (Offline). Akan disinkronkan saat online.");
+            }
+
+            // 3. Reset Form & Segarkan Tampilan Tabel Admin (Tanpa Keluar Menu)
+            resetFormAdmin();
+            renderAdminTable();
+        }
+
+        window.resetFormAdmin = function() {
+            document.getElementById('formProduk').reset();
+            document.getElementById('editId').value = '';
+        }
+        
     </script>
 </body>
 </html>
