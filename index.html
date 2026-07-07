@@ -417,15 +417,14 @@
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
             renderProduk(filtered);
         }
-
-        // FITUR DIPERBARUI: Menampilkan Harga Ecer & Grosir di kartu menu penjualan
         window.renderProduk = function(dataGrid = null) {
             const grid = document.getElementById('gridProduk');
-            grid.innerHTML = '';
             const targetData = dataGrid || produkData;
+            let htmlBuffer = '';
+            
             targetData.forEach(p => {
                 const habis = p.stok <= 0;
-                grid.innerHTML += `
+                htmlBuffer += `
                     <div onclick="${habis?'':'tambahKeKeranjang('+p.id+')'}" class="item-produk" style="${habis?'opacity:0.5;':''}">
                         <span class="badge-stok ${habis?'stok-habis':'stok-aman'}">${p.stok} Pcs</span>
                         <div><h3 style="font-size:12px; font-weight:bold; max-width:80%;">${p.nama}</h3></div>
@@ -436,6 +435,7 @@
                     </div>
                 `;
             });
+            grid.innerHTML = htmlBuffer;
         }
 
         window.tambahKeKeranjang = function(id) {
@@ -446,18 +446,16 @@
             updateKeranjang();
         }
 
-        // FITUR BARU: Mengubah tipe harga item tertentu di keranjang (Ecer <-> Grosir)
         window.toggleTipeHargaKeranjang = function(index) {
             const item = keranjang[index];
             item.tipeHarga = item.tipeHarga === 'ecer' ? 'grosir' : 'ecer';
             updateKeranjang();
         }
 
-        // FITUR DIPERBARUI: Ditambahkan selector tombol Ecer/Grosir di dalam list keranjang
         window.updateKeranjang = function() {
             const list = document.getElementById('listKeranjang');
             let total = 0;
-            list.innerHTML = '';
+            let htmlBuffer = '';
             
             keranjang.forEach((item, index) => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
@@ -465,7 +463,7 @@
                 
                 const isGrosir = item.tipeHarga === 'grosir';
                 
-                list.innerHTML += `
+                htmlBuffer += `
                     <div class="item-keranjang" style="display: flex; flex-direction: column; gap: 8px;">
                         <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
                             <span>${item.nama}</span>
@@ -496,6 +494,7 @@
                 `;
             });
             
+            list.innerHTML = htmlBuffer;
             document.getElementById('totalAkhir').innerText = formatRupiah(total);
             renderTombolUangCepat(total);
             hitungKembalian();
@@ -516,7 +515,6 @@
             else { item.qty = qtyInput; updateKeranjang(); }
         }
 
-        /* PERBAIKAN: Menghapus teks 'box_laporan' liar agar fungsi berjalan lancar */
         window.hapusItemKeranjang = function(index) {
             keranjang.splice(index, 1);
             updateKeranjang();
@@ -529,8 +527,7 @@
 
         function renderTombolUangCepat(total) {
             const container = document.getElementById('containerUangCepat');
-            container.innerHTML = '';
-            if (total <= 0) return;
+            if (total <= 0) { container.innerHTML = ''; return; }
 
             let opsi = [];
             opsi.push({ teks: "Uang Pas", nilai: total, kelas: "btn-uang-pas" });
@@ -539,10 +536,12 @@
             if (total <= 50000) opsi.push({ teks: "Rp 50.000", nilai: 50000, kelas: "" });
             if (total <= 100000) opsi.push({ teks: "Rp 100.000", nilai: 100000, kelas: "" });
 
+            let htmlBuffer = '';
             opsi.forEach(o => {
-                container.innerHTML += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`;
+                htmlBuffer += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`;
             });
-                                                                                 }
+            container.innerHTML = htmlBuffer;
+        }
         window.pilihUangCepat = function(nilai) {
             document.getElementById('uangDiterima').value = nilai;
             hitungKembalian();
@@ -611,8 +610,7 @@
             updateKeranjang();
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
-        }
-
+                }
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
@@ -625,12 +623,13 @@
             document.getElementById('strukWaktu').innerText = tNota.toLocaleDateString("id-ID") + " " + tNota.toLocaleTimeString("id-ID", {hour: '2-digit', minute:'2-digit'});
             
             const itemDiv = document.getElementById('strukItem');
-            itemDiv.innerHTML = '';
+            let itemHtml = '';
             
             nota.items.forEach(it => {
                 const labelTipe = it.tipeHarga === 'grosir' ? '(G)' : '(E)';
-                itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} ${labelTipe} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
+                itemHtml += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} ${labelTipe} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
             });
+            itemDiv.innerHTML = itemHtml;
             
             const uangBayar = nota.nominalBayar !== undefined ? nota.nominalBayar : nota.totalOmset;
             const uangKembali = nota.nominalKembali !== undefined ? nota.nominalKembali : 0;
@@ -684,15 +683,15 @@
             else info.innerText = "";
         }
 
-        // FITUR DIPERBARUI: Ditambahkan tombol "✏️ Edit" di baris tabel inventori admin
         window.renderAdminTable = function() {
-            const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
+            const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
+            let htmlBuffer = '';
             
             produkData.forEach(p => {
                 if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
 
-                tbody.innerHTML += `<tr>
+                htmlBuffer += `<tr>
                     <td>${p.nama}</td>
                     <td>${formatRupiah(p.hpp)}</td>
                     <td>${formatRupiah(p.hargaEcer)}</td>
@@ -703,9 +702,10 @@
                     </td>
                 </tr>`;
             });
+            tbody.innerHTML = htmlBuffer;
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
-        // FITUR BARU: Fungsi untuk memuat data inventori ke dalam Form Manajemen agar siap di-edit
+
         window.pemicuEditBarang = function(id) {
             const p = produkData.find(item => item.id === id);
             if(!p) return alert("Barang tidak ditemukan!");
@@ -717,13 +717,11 @@
             document.getElementById('inputHargaEcer').value = p.hargaEcer;
             document.getElementById('inputHargaGrosir').value = p.hargaGrosir || 0;
 
-            // Mengubah penanda visual form menjadi Mode Edit
             document.getElementById('judulFormAdmin').innerText = "✏️ Edit Data Barang: " + p.nama;
             document.getElementById('judulFormAdmin').style.color = "#60a5fa";
             document.getElementById('btnSimpanAdmin').innerText = "Perbarui Barang";
             document.getElementById('btnSimpanAdmin').style.backgroundColor = "#2563eb";
 
-            // Scroll otomatis ke atas form agar admin langsung melihat data yang akan diedit
             document.getElementById('formProduk').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -756,13 +754,12 @@
                 hitungLaporanDashboard();
             }
         }
-
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const filter = document.getElementById('filterTanggal').value;
             const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
             
-            const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
+            const tbody = document.getElementById('tabelLogTransaksi');
             
             let kamusKuantitasBarang = {}; 
             const sekarang = new Date();
@@ -776,7 +773,13 @@
             objekKemarin.setDate(sekarang.getDate() - 1);
             const kemarinString = dapatkanTanggalLokalString(objekKemarin);
 
-            laporanTerjual.forEach(nota => {
+            // OPTIMASI & PERBAIKAN: Duplikat array lalu urutkan berdasarkan waktu ISO (descending)
+            // Transaksi terbaru (Jam paling malam/akhir) akan selalu berada di posisi paling atas tabel
+            let laporanDiurutkan = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+
+            let htmlBuffer = '';
+
+            laporanDiurutkan.forEach(nota => {
                 const tNota = new Date(nota.waktu);
                 const tanggalNotaString = dapatkanTanggalLokalString(tNota);
                 const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
@@ -817,7 +820,7 @@
                     teksRincianItem += `• ${it.nama}${tipeLabel} (${it.qty} Pcs)<br>`; 
                 });
 
-                tbody.innerHTML += `
+                htmlBuffer += `
                     <tr class="${nota.refunded ? 'text-refund':''}">
                         <td>
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
@@ -834,23 +837,27 @@
                     </tr>`;
             });
 
+            tbody.innerHTML = htmlBuffer;
+
             document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
             document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
 
             const containerRangkuman = document.getElementById('listBarangTerjualFilter');
-            containerRangkuman.innerHTML = '';
+            let rangkumanHtml = '';
             const urutanBarangTerjual = Object.keys(kamusKuantitasBarang);
             if (urutanBarangTerjual.length === 0) {
-                containerRangkuman.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#9ca3af;">Tidak ada transaksi</td></tr>`;
+                rangkumanHtml = `<tr><td colspan="2" style="text-align:center; color:#9ca3af;">Tidak ada transaksi</td></tr>`;
             } else {
                 urutanBarangTerjual.forEach(nama => {
-                    containerRangkuman.innerHTML += `<tr><td>${nama}</td><td style="text-align:right; font-weight:bold; color:#34d399;">${kamusKuantitasBarang[nama]} Pcs</td></tr>`;
+                    rangkumanHtml += `<tr><td>${nama}</td><td style="text-align:right; font-weight:bold; color:#34d399;">${kamusKuantitasBarang[nama]} Pcs</td></tr>`;
                 });
             }
+            containerRangkuman.innerHTML = rangkumanHtml;
         }
+
         window.simpanProduk = function(event) {
-            event.preventDefault(); // Menghalangi reload halaman agar tidak kembali ke layar PIN
+            event.preventDefault(); 
 
             const idEdit = document.getElementById('editId').value;
             const nama = document.getElementById('inputNama').value;
@@ -859,7 +866,6 @@
             const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
             const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
 
-            // Jika sedang mode edit pakai ID lama, jika barang baru buat ID unik baru
             const idProduk = idEdit ? parseInt(idEdit) : Date.now();
 
             const produkBaru = {
@@ -871,7 +877,6 @@
                 hargaGrosir
             };
 
-            // 1. Simpan ke Array Lokal & LocalStorage
             if (idEdit) {
                 const index = produkData.findIndex(p => p.id === parseInt(idEdit));
                 if (index !== -1) produkData[index] = produkBaru;
@@ -882,7 +887,6 @@
             produkData.sort((a, b) => a.nama.localeCompare(b.nama));
             localStorage.setItem('local_produk', JSON.stringify(produkData));
 
-            // 2. Simpan ke Cloud Firebase Database jika sedang Online
             if (isOnline) {
                 set(ref(db, 'pos_produk/' + idProduk), produkBaru)
                     .then(() => {
@@ -895,12 +899,10 @@
                 alert("💾 Barang disimpan lokal (Offline). Akan disinkronkan saat online.");
             }
 
-            // 3. Reset Form & Segarkan Tampilan Tabel Admin (Tanpa Keluar Menu)
             resetFormAdmin();
             renderAdminTable();
         }
 
-        // FITUR DIPERBARUI: Mengembalikan UI Form Manajemen ke setelan "Tambah Barang" semula
         window.resetFormAdmin = function() {
             document.getElementById('formProduk').reset();
             document.getElementById('editId').value = '';
