@@ -77,7 +77,22 @@
 
         .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
 
-        @media print { body * { visibility: hidden; } #areaStruk, #areaStruk * { visibility: visible; } #areaStruk { position: absolute; left: 0; top: 0; width: 100%; } }
+        @media print { 
+    body * { visibility: hidden; } 
+    #areaStruk, #areaStruk * { visibility: visible; } 
+    #areaStruk { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100% !important; 
+        max-width: 80mm; /* Sesuai standar lebar printer thermal */
+        padding: 0;
+        margin: 0;
+    } 
+    /* Menghilangkan header & footer otomatis dari browser seperti tanggal/url */
+    @page { size: auto; margin: 0mm; } 
+        }
+        
     </style>
 </head>
 <body>
