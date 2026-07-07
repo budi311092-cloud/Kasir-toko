@@ -77,35 +77,39 @@
 
         .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
 
+         <style>
         @media print { 
-    body * { visibility: hidden; } 
-    #areaStruk, #areaStruk * { visibility: visible; } 
-    #areaStruk { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100% !important; 
-        max-width: 80mm; /* Sesuai standar lebar printer thermal */
-        padding: 0;
-        margin: 0;
-    } 
-    /* Menghilangkan header & footer otomatis dari browser seperti tanggal/url */
-    @page { size: auto; margin: 0mm; } 
+            /* Sembunyikan seluruh isi halaman web kasir */
+            body > *:not(#areaStruk) { 
+                display: none !important; 
+            }
+            /* Tampilkan area struk secara penuh tanpa intervensi visibility */
+            #areaStruk { 
+                display: block !important;
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100% !important; 
+                max-width: 58mm; /* Menyesuaikan rata-rata printer thermal Android */
+                padding: 0;
+                margin: 0;
+                color: black !important;
+                background: white !important;
+            } 
+            @page { size: auto; margin: 0mm; } 
         }
-        
     </style>
 </head>
 <body>
 
     <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
-            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.4.0 🌐</h1>
+            <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.3.0 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
         </div>
         <button id="btnMode" class="btn-mode">🔄 Memuat Peran...</button>
     </header>
 
-    <!-- LAYER PIN UTAMA -->
     <div id="areaLoginPin" class="pin-screen-container">
         <div class="pin-card">
             <div class="pin-title">MAHAKARYA POS</div>
@@ -130,7 +134,6 @@
         </div>
     </div>
 
-    <!-- KASIR -->
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             
@@ -175,8 +178,7 @@
             </div>
         </div>
     </div>
-     <!-- ADMIN -->
-    <div id="areaAdmin" class="admin-layout hidden">
+     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
@@ -224,21 +226,19 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-    <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
-    <div style="display: flex; gap: 8px; align-items: center;">
-        <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset Laporan</button>
-        <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
-            <option value="hari">Hari Ini</option>
-            <option value="kemarin">Kemarin</option>
-            <option value="minggu_ini">Minggu Ini</option>
-            <option value="minggu_kemarin">Minggu Kemarin</option>
-            <option value="tahun_ini">Tahun Ini</option>
-            <option value="tahun_kemarin">Tahun Kemarin</option>
-            <option value="semua">Semua Waktu</option>
-        </select>
-        </div>
-     </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset Laporan</button>
+                        <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
+                            <option value="hari">Hari Ini</option>
+                            <option value="kemarin">Kemarin</option>
+                            <option value="minggu_ini">Minggu Ini</option>
+                            <option value="minggu_kemarin">Minggu Kemarin</option>
+                            <option value="tahun_ini">Tahun Ini</option>
+                            <option value="tahun_kemarin">Tahun Kemarin</option>
+                            <option value="semua">Semua Waktu</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="grid-laporan">
                     <div class="box-laporan box-omset"><p style="font-size: 11px;">OMSET</p><h3 id="lapOmset">Rp 0</h3></div>
                     <div class="box-laporan box-modal"><p style="font-size: 11px;">MODAL</p><h3 id="lapModal">Rp 0</h3></div>
@@ -252,14 +252,11 @@
                 </div>
             </div>
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:12px; flex-wrap: wrap; gap: 10px;">
-                    <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
-                    <input type="text" id="cariInventori" placeholder="Cari nama barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 200px;" oninput="renderAdminTable()">
-                </div>
+                <h2 style="font-size: 15px; font-weight: bold; margin-bottom:12px;">📦 Inventori & Kontrol Stok</h2>
                 <div class="box-laporan box-aset"><span style="font-size: 12px;">💰 TOTAL NILAI ASET:</span><h3 id="totalAsetToko">Rp 0</h3></div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer / Grosir</th><th>Stok</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Stok</th></tr></thead>
                         <tbody id="tabelAdmin"></tbody>
                     </table>
                 </div>
@@ -267,24 +264,22 @@
         </div>
     </div>
 
-    <!-- STRUK AREA -->
-    <div id="areaStruk" class="hidden" style="font-family: monospace; font-size: 12px; width: 80mm; padding: 10px; color: black; background: white;">
+    <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA STORE</h2>
             <p>Arjawinangun, Cirebon</p>
-            <p>--------------------------------</p>
+            <p style="margin: 2px 0;">--------------------------------</p>
             <p id="strukIdNota" style="font-weight: bold;"></p>
             <p id="strukWaktu"></p>
         </center>
-        <p>--------------------------------</p>
+        <p style="margin: 2px 0;">--------------------------------</p>
         <div id="strukItem" style="display: flex; flex-direction: column; gap: 4px;"></div>
-        <p>--------------------------------</p>
+        <p style="margin: 2px 0;">--------------------------------</p>
         <div style="display:flex; justify-content:space-between;"><span>Total:</span><span id="strukTotal"></span></div>
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
         <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
     </div>
-
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -298,10 +293,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ======================== PENGATURAN BOT TELEGRAM ========================
         const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk";
         const TELEGRAM_CHAT_ID = "8563167649";
-        // =========================================================================
 
         let produkData = JSON.parse(localStorage.getItem('local_produk')) || [];
         let laporanTerjual = JSON.parse(localStorage.getItem('local_laporan')) || [];
@@ -350,10 +343,9 @@
                 }
             });
         }
-        // Fungsi Notifikasi Telegram Otomatis
+
         function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
             if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
-            
             const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
             const pesan = `⚠️ *PERINGATAN KEAMANAN POS* ⚠️\n\n` +
                           `Ada percobaan akses masuk ilegal ke sistem!\n` +
@@ -364,36 +356,24 @@
                           `_Mohon periksa kasir Anda segera jika aktivitas ini mencurigakan._`;
 
             const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-            
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: pesan,
-                    parse_mode: "Markdown"
-                })
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
         }
 
         window.tekanPin = function(a) { 
             const input = document.getElementById('pinDisplayInput');
-            if(input.value.length < 4) { 
-                input.value += a; 
-                batasiDanCekPin();
-            } 
+            if(input.value.length < 4) { input.value += a; batasiDanCekPin(); } 
         }
         
-        window.hapusPin = function() { 
-            document.getElementById('pinDisplayInput').value = ""; 
-        }
+        window.hapusPin = function() { document.getElementById('pinDisplayInput').value = ""; }
 
         window.batasiDanCekPin = function() {
             const input = document.getElementById('pinDisplayInput');
             input.value = input.value.replace(/[^0-9]/g, ''); 
-            if(input.value.length === 4) {
-                verifikasiPin();
-            }
+            if(input.value.length === 4) { verifikasiPin(); }
         }
 
         window.verifikasiPin = function() {
@@ -412,8 +392,7 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-
-        window.bukaMenuUtama = function(role) {
+    window.bukaMenuUtama = function(role) {
             if (role === "admin" && modeSekarang !== "admin") {
                 const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
                 if (konfirmasiPin !== PIN_ADMIN) {
@@ -463,25 +442,17 @@
                     <div onclick="${habis?'':'tambahKeKeranjang('+p.id+')'}" class="item-produk" style="${habis?'opacity:0.5;':''}">
                         <span class="badge-stok ${habis?'stok-habis':'stok-aman'}">${p.stok} Pcs</span>
                         <div><h3 style="font-size:12px;">${p.nama}</h3></div>
-                        <div style="font-size:11px; margin-top:5px; color:#60a5fa;">
-                            Ecer: ${formatRupiah(p.hargaEcer)}<br>
-                            Grosir: ${formatRupiah(p.hargaGrosir || 0)}
-                        </div>
+                        <div style="font-size:11px; margin-top:5px; color:#60a5fa;">Ecer: ${formatRupiah(p.hargaEcer)}</div>
                     </div>
                 `;
             });
         }
-        
+
         window.tambahKeKeranjang = function(id) {
             const p = produkData.find(item => item.id === id);
             const diKeranjang = keranjang.find(item => item.id === id);
             if(diKeranjang && diKeranjang.qty >= p.stok) return alert("Stok habis!");
             if(diKeranjang) diKeranjang.qty++; else keranjang.push({...p, qty: 1, tipeHarga:'ecer'});
-            updateKeranjang();
-        }
-
-        window.ubahTipeHargaKeranjang = function(index, tipe) {
-            keranjang[index].tipeHarga = tipe;
             updateKeranjang();
         }
 
@@ -491,7 +462,7 @@
             list.innerHTML = '';
             
             keranjang.forEach((item, index) => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || item.hargaEcer);
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
                 total += (harga * item.qty);
                 
                 list.innerHTML += `
@@ -500,24 +471,18 @@
                             <span>${item.nama}</span>
                             <span style="color: #60a5fa;">${formatRupiah(harga * item.qty)}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 4px;">
                                 <span style="font-size: 11px; color: #9ca3af;">Qty:</span>
                                 <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
                                     onchange="ubahQtyManual(${index}, this.value)" 
-                                    style="width: 50px; padding: 4px 6px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 11px; text-align: center; font-weight: bold;">
-                                <span style="font-size: 11px; color: #9ca3af;">/ ${item.stok}</span>
-                            </div>
-                            <div>
-                                <select onchange="ubahTipeHargaKeranjang(${index}, this.value)" class="select-custom" style="padding: 3px 6px; font-size: 11px;">
-                                    <option value="ecer" ${item.tipeHarga === 'ecer' ? 'selected' : ''}>Ecer</option>
-                                    <option value="grosir" ${item.tipeHarga === 'grosir' ? 'selected' : ''}>Grosir</option>
-                                </select>
+                                    style="width: 60px; padding: 4px 6px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 12px; text-align: center; font-weight: bold;">
+                                <span style="font-size: 11px; color: #9ca3af;">/ ${item.stok} Pcs</span>
                             </div>
                             <div style="display: flex; gap: 4px;">
-                                <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer;">-</button>
-                                <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer;">+</button>
-                                <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 11px;">🗑️</button>
+                                <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer;">-</button>
+                                <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer;">+</button>
+                                <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button>
                             </div>
                         </div>
                     </div>
@@ -528,6 +493,7 @@
             renderTombolUangCepat(total);
             hitungKembalian();
         }
+
         window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
             const qtyBaru = item.qty + perubahan;
@@ -574,14 +540,14 @@
         window.pilihUangCepat = function(nilai) {
             document.getElementById('uangDiterima').value = nilai;
             hitungKembalian();
-        }
-
-        window.hitungKembalian = function() {
-            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir||i.hargaEcer))*i.qty, 0);
+    }
+    window.hitungKembalian = function() {
+            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:i.hargaGrosir)*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             document.getElementById('uangKembalian').innerText = formatRupiah(Math.max(0, bayar - total));
         }
-                window.prosesTransaksi = function() {
+
+        window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:i.hargaGrosir)*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
@@ -603,7 +569,6 @@
             });
 
             localStorage.setItem('local_produk', JSON.stringify(produkData));
-            // Perbaikan: Simpan nominal bayar dan kembalian riil ke dalam object nota agar bisa dicetak ulang kapan saja
             const kembalian = bayar - total;
             const notaBaru = { 
                 idNota: nomorNota, 
@@ -612,8 +577,8 @@
                 totalOmset: total, 
                 totalModal, 
                 refunded: false,
-                nominalBayar: bayar, // Menyimpan uang yang diterima
-                nominalKembali: kembalian // Menyimpan kembalian asli
+                nominalBayar: bayar,
+                nominalKembali: kembalian
             };
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -631,10 +596,7 @@
             }
 
             if(document.getElementById('allowPrint').checked) {
-                // Berikan sedikit jeda waktu agar DOM browser siap menerima data cetak
-                setTimeout(() => {
-                    cetakStrukUlangLokal(nomorNota);
-                }, 300);
+                setTimeout(() => { cetakStrukUlangLokal(nomorNota); }, 300);
             }
 
             keranjang = [];
@@ -648,16 +610,12 @@
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
-            // Pastikan area struk terlihat oleh driver printer saat proses pencetakan berlangsung
             const areaStruk = document.getElementById('areaStruk');
-            areaStruk.classList.remove('hidden');
+            areaStruk.style.display = "block"; // Munculkan paksa di DOM sebelum cetak
 
             document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota;
-            
-            // Format waktu agar lebih rapi dibaca di kertas struk (WIB)
             const tNota = new Date(nota.waktu);
-            const waktuLokalStr = tNota.toLocaleDateString("id-ID") + " " + tNota.toLocaleTimeString("id-ID", {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('strukWaktu').innerText = waktuLokalStr;
+            document.getElementById('strukWaktu').innerText = tNota.toLocaleDateString("id-ID") + " " + tNota.toLocaleTimeString("id-ID", {hour: '2-digit', minute:'2-digit'});
             
             const itemDiv = document.getElementById('strukItem');
             itemDiv.innerHTML = '';
@@ -666,7 +624,6 @@
                 itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
             });
             
-            // Ambil nominal dinamis dari nota transaksi riil (jika nota lama belum punya, gunakan fallback total omset)
             const uangBayar = nota.nominalBayar !== undefined ? nota.nominalBayar : nota.totalOmset;
             const uangKembali = nota.nominalKembali !== undefined ? nota.nominalKembali : 0;
 
@@ -674,13 +631,10 @@
             document.getElementById('strukBayar').innerText = formatRupiah(uangBayar);
             document.getElementById('strukKembali').innerText = formatRupiah(uangKembali);
             
-            // Trigger perintah cetak sistem
             window.print();
             
-            // Sembunyikan kembali area struk dari layar aplikasi utama setelah dialog cetak selesai
-            setTimeout(() => {
-                areaStruk.classList.add('hidden');
-            }, 500);
+            // Sembunyikan kembali dari DOM utama setelah memicu dialog print sistem
+            setTimeout(() => { areaStruk.style.style.display = "none"; }, 400);
         }
 
         window.refundTransaksi = function(idNota) {
@@ -708,6 +662,7 @@
             hitungLaporanDashboard();
             renderAdminTable();
         }
+
         function kirimAntreanOfflineKeCloud() {
             if (antreanOffline.length === 0) return;
             antreanOffline.forEach(nota => { set(ref(db, 'pos_laporan/' + nota.idNota), nota); });
@@ -720,65 +675,16 @@
             const info = document.getElementById('infoPending');
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
-                                               }
-        window.simpanProduk = function(event) {
-            event.preventDefault();
-            const id = document.getElementById('editId').value || Date.now();
-            const nama = document.getElementById('inputNama').value;
-            const hpp = parseFloat(document.getElementById('inputHpp').value) || 0;
-            const stok = parseInt(document.getElementById('inputStok').value) || 0;
-            const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
-            const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
-
-            const produkBaru = { id: parseInt(id), nama, hpp, stok, hargaEcer, hargaGrosir };
-            
-            const index = produkData.findIndex(p => p.id === parseInt(id));
-            if(index !== -1) produkData[index] = produkBaru; else produkData.push(produkBaru);
-            
-            localStorage.setItem('local_produk', JSON.stringify(produkData));
-            if(isOnline) set(ref(db, 'pos_produk/' + id), produkBaru);
-
-            resetFormAdmin();
-            renderAdminTable();
-            renderProduk();
-            alert("Barang Berhasil Disimpan!");
-        }
-
-        window.resetFormAdmin = function() {
-            document.getElementById('formProduk').reset();
-            document.getElementById('editId').value = '';
-        }
-
-        window.editProduk = function(id) {
-            const p = produkData.find(item => item.id === id);
-            if(!p) return;
-            document.getElementById('editId').value = p.id;
-            document.getElementById('inputNama').value = p.nama;
-            document.getElementById('inputHpp').value = p.hpp;
-            document.getElementById('inputStok').value = p.stok;
-            document.getElementById('inputHargaEcer').value = p.hargaEcer;
-            document.getElementById('inputHargaGrosir').value = p.hargaGrosir || 0;
-            document.getElementById('inputNama').focus();
         }
 
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
-            const keyword = document.getElementById('cariInventori').value.toLowerCase();
-            
-            const filtered = produkData.filter(p => p.nama.toLowerCase().includes(keyword));
-
-            filtered.forEach(p => {
-                tbody.innerHTML += `<tr>
-                    <td>${p.nama}</td>
-                    <td>${formatRupiah(p.hpp)}</td>
-                    <td>${formatRupiah(p.hargaEcer)} / ${formatRupiah(p.hargaGrosir || 0)}</td>
-                    <td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td>
-                    <td><button onclick="editProduk(${p.id})" style="background:#2563eb; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px;">✏️ Edit</button></td>
-                </tr>`;
+            produkData.forEach(p => {
+                tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td></tr>`;
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
-        // ================= BARU: FITUR RESET TOTAL LAPORAN =================
+
         window.resetSemuaLaporanTransaksi = function() {
             const konfirmasi1 = confirm("⚠️ PERINGATAN CRITICAL!\n\nApakah Anda yakin ingin MENGHAPUS SEMUA riwayat transaksi secara permanen? Tindakan ini tidak dapat dibatalkan.");
             if (!konfirmasi1) return;
@@ -789,12 +695,10 @@
                 return;
             }
 
-            // Bersihkan data lokal
             laporanTerjual = [];
             localStorage.setItem('local_laporan', JSON.stringify([]));
             localStorage.removeItem('antrean_offline');
 
-            // Bersihkan data di Cloud Firebase (jika sedang online)
             if (isOnline) {
                 set(ref(db, 'pos_laporan'), null)
                     .then(() => {
@@ -806,12 +710,11 @@
                         hitungLaporanDashboard();
                     });
             } else {
-                alert("✅ Sukses! Data laporan lokal telah dibersihkan. (Catatan: Anda sedang Offline, data di Firebase perlu dibersihkan manual saat online).");
+                alert("✅ Sukses! Data laporan lokal telah dibersihkan. (Data cloud Firebase perlu dibersihkan manual saat online).");
                 hitungLaporanDashboard();
             }
         }
 
-        // ================= PERBAIKAN: LOGIKA FILTER TANGGAL ANTI-BUG =================
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const filter = document.getElementById('filterTanggal').value;
@@ -820,13 +723,11 @@
             let kamusKuantitasBarang = {}; 
             const sekarang = new Date();
             
-            // Konversi ke format tanggal lokal Indonesia (Jakarta) demi menghindari bug UTC/ISO String
             const dapatkanTanggalLokalString = (objekTanggal) => {
-                return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }); // Hasil format: YYYY-MM-DD sesuai zona WIB
+                return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
             };
 
             const hariIniString = dapatkanTanggalLokalString(sekarang);
-            
             const objekKemarin = new Date();
             objekKemarin.setDate(sekarang.getDate() - 1);
             const kemarinString = dapatkanTanggalLokalString(objekKemarin);
@@ -836,26 +737,17 @@
                 const tanggalNotaString = dapatkanTanggalLokalString(tNota);
                 let lolosFilter = false;
 
-                // Hitung selisih hari kalender riil
                 const date1 = new Date(hariIniString);
                 const date2 = new Date(tanggalNotaString);
                 const selisihHari = Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
 
-                if (filter === "semua") { 
-                    lolosFilter = true; 
-                } else if (filter === "hari") { 
-                    if (tanggalNotaString === hariIniString) lolosFilter = true; 
-                } else if (filter === "kemarin") {
-                    if (tanggalNotaString === kemarinString) lolosFilter = true;
-                } else if (filter === "minggu_ini") {
-                    if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true;
-                } else if (filter === "minggu_kemarin") {
-                    if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true;
-                } else if (filter === "tahun_ini") {
-                    if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
-                } else if (filter === "tahun_kemarin") {
-                    if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true;
-                }
+                if (filter === "semua") { lolosFilter = true; } 
+                else if (filter === "hari") { if (tanggalNotaString === hariIniString) lolosFilter = true; } 
+                else if (filter === "kemarin") { if (tanggalNotaString === kemarinString) lolosFilter = true; } 
+                else if (filter === "minggu_ini") { if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true; } 
+                else if (filter === "minggu_kemarin") { if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true; } 
+                else if (filter === "tahun_ini") { if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true; } 
+                else if (filter === "tahun_kemarin") { if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true; }
 
                 if (!lolosFilter) return;
 
@@ -868,7 +760,6 @@
                 let teksRincianItem = "";
                 nota.items.forEach(it => { teksRincianItem += `• ${it.nama} (${it.qty} Pcs)<br>`; });
 
-                // Jam tampilan nota menggunakan konversi local agar sesuai waktu transaksi asli di Indonesia
                 const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
 
                 tbody.innerHTML += `
@@ -903,7 +794,6 @@
                 });
             }
         }
-
     </script>
 </body>
 </html>
