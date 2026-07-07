@@ -218,8 +218,9 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset Laporan</button>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="cariLaporan" placeholder="Cari nota, tanggal, barang..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 180px;" oninput="hitungLaporanDashboard()">
+                        
                         <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
                             <option value="hari">Hari Ini</option>
                             <option value="kemarin">Kemarin</option>
@@ -229,6 +230,7 @@
                             <option value="tahun_kemarin">Tahun Kemarin</option>
                             <option value="semua">Semua Waktu</option>
                         </select>
+                        <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset</button>
                     </div>
                 </div>
                 <div class="grid-laporan">
@@ -244,7 +246,10 @@
                 </div>
             </div>
             <div class="card">
-                <h2 style="font-size: 15px; font-weight: bold; margin-bottom:12px;">📦 Inventori & Kontrol Stok</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
+                    <input type="text" id="cariInventori" placeholder="Cari barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 180px;" oninput="renderAdminTable()">
+                </div>
                 <div class="box-laporan box-aset"><span style="font-size: 12px;">💰 TOTAL NILAI ASET:</span><h3 id="totalAsetToko">Rp 0</h3></div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
@@ -269,7 +274,7 @@
         <p style="margin: 2px 0;">--------------------------------</p>
         <div style="display:flex; justify-content:space-between;"><span>Total:</span><span id="strukTotal"></span></div>
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
-        <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
+      <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
     </div>
 
     <script type="module">
@@ -277,11 +282,12 @@
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
-    apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
-    authDomain: "mahakarya-pos.firebaseapp.com",
-    databaseURL: "https://mahakarya-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "mahakarya-pos"
-};
+            apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
+            authDomain: "mahakarya-pos.firebaseapp.com",
+            databaseURL: "https://mahakarya-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mahakarya-pos"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -379,7 +385,7 @@
                 document.getElementById('pinDisplayInput').focus(); 
             }
         }
-     window.bukaOfflineKasirDarurat = function() {
+        window.bukaOfflineKasirDarurat = function() {
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
@@ -415,7 +421,6 @@
                 hitungLaporanDashboard();
             }
         }
-
         window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
 
         window.pencarianProduk = function() {
@@ -598,7 +603,6 @@
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
         }
-
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
@@ -628,7 +632,8 @@
             
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
         }
-window.refundTransaksi = function(idNota) {
+
+        window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota || nota.refunded) return;
@@ -670,7 +675,12 @@ window.refundTransaksi = function(idNota) {
 
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin'); tbody.innerHTML = '';
+            const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
+            
             produkData.forEach(p => {
+                // FITUR BARU: Filter Pencarian Stok
+                if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
+
                 tbody.innerHTML += `<tr><td>${p.nama}</td><td>${formatRupiah(p.hpp)}</td><td>${formatRupiah(p.hargaEcer)}</td><td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td></tr>`;
             });
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
@@ -709,6 +719,8 @@ window.refundTransaksi = function(idNota) {
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const filter = document.getElementById('filterTanggal').value;
+            const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); // FITUR BARU: Ambil input pencarian
+            
             const tbody = document.getElementById('tabelLogTransaksi'); tbody.innerHTML = '';
             
             let kamusKuantitasBarang = {}; 
@@ -726,6 +738,9 @@ window.refundTransaksi = function(idNota) {
             laporanTerjual.forEach(nota => {
                 const tNota = new Date(nota.waktu);
                 const tanggalNotaString = dapatkanTanggalLokalString(tNota);
+                const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
+                const teksTanggalLengkap = tNota.toLocaleDateString("id-ID") + " " + opsiJamLokal; // Contoh: "07/07/2026 10:00"
+
                 let lolosFilter = false;
 
                 const date1 = new Date(hariIniString);
@@ -742,6 +757,15 @@ window.refundTransaksi = function(idNota) {
 
                 if (!lolosFilter) return;
 
+                // FITUR BARU: Cek kecocokan teks pencarian (Nota, Tanggal, atau Nama Barang di dalam nota)
+                if (kataKunciLaporan) {
+                    const cocokNota = nota.idNota.toLowerCase().includes(kataKunciLaporan);
+                    const cocokTanggal = teksTanggalLengkap.toLowerCase().includes(kataKunciLaporan);
+                    const cocokBarang = nota.items.some(it => it.nama.toLowerCase().includes(kataKunciLaporan));
+                    
+                    if (!cocokNota && !cocokTanggal && !cocokBarang) return; // Jika tidak ada yang cocok, sembunyikan
+                }
+
                 if(!nota.refunded) {
                     omset += nota.totalOmset; 
                     modal += nota.totalModal;
@@ -750,8 +774,6 @@ window.refundTransaksi = function(idNota) {
 
                 let teksRincianItem = "";
                 nota.items.forEach(it => { teksRincianItem += `• ${it.nama} (${it.qty} Pcs)<br>`; });
-
-                const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
 
                 tbody.innerHTML += `
                     <tr class="${nota.refunded ? 'text-refund':''}">
@@ -787,4 +809,4 @@ window.refundTransaksi = function(idNota) {
         }
     </script>
 </body>
-</html>     
+</html>
