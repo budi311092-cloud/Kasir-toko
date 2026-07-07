@@ -566,10 +566,9 @@
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             document.getElementById('uangKembalian').innerText = formatRupiah(Math.max(0, bayar - total));
         }
-
-        window.prosesTransaksi = function() {
+                window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
-            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir||i.hargaEcer))*i.qty, 0);
+            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:i.hargaGrosir)*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             if (bayar < total) return alert("Uang kurang!");
 
@@ -579,7 +578,7 @@
             let totalModal = 0;
 
             keranjang.forEach(item => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || item.hargaEcer);
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : item.hargaGrosir;
                 totalModal += (item.hpp * item.qty);
                 itemsLaporan.push({
                     barangId: item.id, nama: item.nama, qty: item.qty, hargaJual: harga, subJual: harga * item.qty, subModal: item.hpp * item.qty
@@ -589,7 +588,18 @@
             });
 
             localStorage.setItem('local_produk', JSON.stringify(produkData));
-            const notaBaru = { idNota: nomorNota, waktu, items: itemsLaporan, totalOmset: total, totalModal, refunded: false };
+            // Perbaikan: Simpan nominal bayar dan kembalian riil ke dalam object nota agar bisa dicetak ulang kapan saja
+            const kembalian = bayar - total;
+            const notaBaru = { 
+                idNota: nomorNota, 
+                waktu, 
+                items: itemsLaporan, 
+                totalOmset: total, 
+                totalModal, 
+                refunded: false,
+                nominalBayar: bayar, // Menyimpan uang yang diterima
+                nominalKembali: kembalian // Menyimpan kembalian asli
+            };
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
 
@@ -606,7 +616,10 @@
             }
 
             if(document.getElementById('allowPrint').checked) {
-                cetakStrukUlangLokal(nomorNota);
+                // Berikan sedikit jeda waktu agar DOM browser siap menerima data cetak
+                setTimeout(() => {
+                    cetakStrukUlangLokal(nomorNota);
+                }, 300);
             }
 
             keranjang = [];
@@ -620,8 +633,17 @@
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
+            // Pastikan area struk terlihat oleh driver printer saat proses pencetakan berlangsung
+            const areaStruk = document.getElementById('areaStruk');
+            areaStruk.classList.remove('hidden');
+
             document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota;
-            document.getElementById('strukWaktu').innerText = nota.waktu.replace('T', ' ').slice(0, 19);
+            
+            // Format waktu agar lebih rapi dibaca di kertas struk (WIB)
+            const tNota = new Date(nota.waktu);
+            const waktuLokalStr = tNota.toLocaleDateString("id-ID") + " " + tNota.toLocaleTimeString("id-ID", {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('strukWaktu').innerText = waktuLokalStr;
+            
             const itemDiv = document.getElementById('strukItem');
             itemDiv.innerHTML = '';
             
@@ -629,10 +651,21 @@
                 itemDiv.innerHTML += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
             });
             
+            // Ambil nominal dinamis dari nota transaksi riil (jika nota lama belum punya, gunakan fallback total omset)
+            const uangBayar = nota.nominalBayar !== undefined ? nota.nominalBayar : nota.totalOmset;
+            const uangKembali = nota.nominalKembali !== undefined ? nota.nominalKembali : 0;
+
             document.getElementById('strukTotal').innerText = formatRupiah(nota.totalOmset);
-            document.getElementById('strukBayar').innerText = formatRupiah(nota.totalOmset);
-            document.getElementById('strukKembali').innerText = "Rp 0";
+            document.getElementById('strukBayar').innerText = formatRupiah(uangBayar);
+            document.getElementById('strukKembali').innerText = formatRupiah(uangKembali);
+            
+            // Trigger perintah cetak sistem
             window.print();
+            
+            // Sembunyikan kembali area struk dari layar aplikasi utama setelah dialog cetak selesai
+            setTimeout(() => {
+                areaStruk.classList.add('hidden');
+            }, 500);
         }
 
         window.refundTransaksi = function(idNota) {
