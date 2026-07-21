@@ -437,15 +437,28 @@
         }
 
         window.tambahKeKeranjang = function(id) {
-            const p = produkData.find(item => item.id === id);
-            const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
-            
-            if(totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
-            
-            // Tambahkan sebagai baris baru di keranjang agar tidak menumpuk dengan tipe harga yang berbeda
-            keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
-            updateKeranjang();
-        }
+    const p = produkData.find(item => item.id === id);
+    
+    // Hitung total kuantitas barang ini di seluruh baris keranjang (Ecer & Grosir)
+    const totalQtyDiKeranjang = keranjang
+        .filter(item => item.id === id)
+        .reduce((sum, item) => sum + item.qty, 0);
+    
+    if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
+    
+    // Cari apakah sudah ada baris keranjang dengan produk yang sama DAN bertipe 'ecer'
+    const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
+    
+    if (itemEcer) {
+        // Jika ada baris eceran, tumpuk/tambahkan Qty-nya
+        itemEcer.qty += 1;
+    } else {
+        // Jika tidak ada (atau baris sebelumnya sudah diubah jadi grosir), buat baris baru
+        keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
+    }
+    
+    updateKeranjang();
+}
 
         window.toggleTipeHargaKeranjang = function(index) {
             const item = keranjang[index];
