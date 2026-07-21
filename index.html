@@ -158,9 +158,8 @@
                 <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
-    </div>
-
-    <div id="areaAdmin" class="admin-layout hidden">
+                </div>
+        <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
@@ -230,7 +229,7 @@
                 </div>
                 <div style="max-height: 45vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>No. Nota & Detail Barang</th><th>Waktu</th><th>Total Belanja</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th>No. Nota & Detail Barang</th><th>Tanggal & Waktu</th><th>Total Belanja</th><th>Aksi</th></tr></thead>
                         <tbody id="tabelLogTransaksi"></tbody>
                     </table>
                 </div>
@@ -330,7 +329,6 @@
                 }
             });
         }
-
         function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
             if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
             const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
@@ -440,9 +438,12 @@
 
         window.tambahKeKeranjang = function(id) {
             const p = produkData.find(item => item.id === id);
-            const diKeranjang = keranjang.find(item => item.id === id);
-            if(diKeranjang && diKeranjang.qty >= p.stok) return alert("Stok habis!");
-            if(diKeranjang) diKeranjang.qty++; else keranjang.push({...p, qty: 1, tipeHarga:'ecer'});
+            const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
+            
+            if(totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
+            
+            // Tambahkan sebagai baris baru di keranjang agar tidak menumpuk dengan tipe harga yang berbeda
+            keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
             updateKeranjang();
         }
 
@@ -499,19 +500,26 @@
             renderTombolUangCepat(total);
             hitungKembalian();
         }
-
         window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
+            const totalQtyLain = keranjang
+                .filter((it, idx) => it.id === item.id && idx !== index)
+                .reduce((sum, it) => sum + it.qty, 0);
+
             const qtyBaru = item.qty + perubahan;
             if (qtyBaru <= 0) { hapusItemKeranjang(index); } 
-            else if (qtyBaru > item.stok) { alert(`⚠️ Stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
+            else if (qtyBaru + totalQtyLain > item.stok) { alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
             else { item.qty = qtyBaru; updateKeranjang(); }
         }
         window.ubahQtyManual = function(index, nilai) {
             const item = keranjang[index];
+            const totalQtyLain = keranjang
+                .filter((it, idx) => it.id === item.id && idx !== index)
+                .reduce((sum, it) => sum + it.qty, 0);
+
             let qtyInput = parseInt(nilai) || 1;
             if (qtyInput <= 0) { hapusItemKeranjang(index); } 
-            else if (qtyInput > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok; updateKeranjang(); } 
+            else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
             else { item.qty = qtyInput; updateKeranjang(); }
         }
 
@@ -610,7 +618,7 @@
             updateKeranjang();
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
-                }
+        }
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
@@ -642,7 +650,6 @@
             
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
         }
-
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
             const nota = laporanTerjual.find(n => n.idNota === idNota);
@@ -773,8 +780,6 @@
             objekKemarin.setDate(sekarang.getDate() - 1);
             const kemarinString = dapatkanTanggalLokalString(objekKemarin);
 
-            // OPTIMASI & PERBAIKAN: Duplikat array lalu urutkan berdasarkan waktu ISO (descending)
-            // Transaksi terbaru (Jam paling malam/akhir) akan selalu berada di posisi paling atas tabel
             let laporanDiurutkan = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
 
             let htmlBuffer = '';
@@ -782,8 +787,12 @@
             laporanDiurutkan.forEach(nota => {
                 const tNota = new Date(nota.waktu);
                 const tanggalNotaString = dapatkanTanggalLokalString(tNota);
+                
+                // Menampilkan Tanggal dan Jam secara Lengkap
+                const opsiTanggalLokal = tNota.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta", day: '2-digit', month: '2-digit', year: 'numeric' });
                 const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
-                const teksTanggalLengkap = tNota.toLocaleDateString("id-ID") + " " + opsiJamLokal; 
+                const teksWaktuTampil = `${opsiTanggalLokal} <br><span style="color:#9ca3af; font-size:11px;">${opsiJamLokal} WIB</span>`;
+                const teksTanggalLengkap = opsiTanggalLokal + " " + opsiJamLokal; 
 
                 let lolosFilter = false;
 
@@ -826,7 +835,7 @@
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
                             <div class="detail-nota-text">${teksRincianItem}</div>
                         </td>
-                        <td>${opsiJamLokal} WIB</td>
+                        <td>${teksWaktuTampil}</td>
                         <td>${formatRupiah(nota.totalOmset)}</td>
                         <td>
                             <div style="display:flex; flex-direction:column; gap:4px;">
@@ -836,8 +845,7 @@
                         </td>
                     </tr>`;
             });
-
-            tbody.innerHTML = htmlBuffer;
+        tbody.innerHTML = htmlBuffer;
 
             document.getElementById('lapOmset').innerText = formatRupiah(omset);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
