@@ -84,8 +84,7 @@
     </style>
 </head>
 <body>
-
-    <header id="mainHeader" class="hidden">
+   <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
             <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.4.5 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
@@ -120,7 +119,13 @@
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span id="infoPending" style="color:#eab308; font-size:12px;"></span></h2>
-                <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
+                
+                <!-- KOLOM PENCARIAN DENGAN TOMBOL HAPUS/BERSIHKAN (FOTO KEDUA) -->
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 30px 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
+                    <button id="btnBersihkanCariKasir" onclick="bersihkanPencarianKasir()" style="position: absolute; right: 6px; background: none; border: none; color: #9ca3af; font-size: 14px; cursor: pointer; display: none; font-weight: bold;">✕</button>
+                </div>
+
             </div>
             <div id="gridProduk" class="grid-produk"></div>
         </div>
@@ -217,8 +222,13 @@
                             <option value="minggu_kemarin">Minggu Kemarin</option>
                             <option value="tahun_ini">Tahun Ini</option>
                             <option value="tahun_kemarin">Tahun Kemarin</option>
+                            <option value="pilih_tanggal">Pilih Tanggal Mau...</option>
                             <option value="semua">Semua Waktu</option>
                         </select>
+
+                        <!-- INPUT TANGGAL MANUAL UNTUK PILIH TANGGAL YANG DI MAU (FOTO PERTAMA) -->
+                        <input type="date" id="filterTanggalSpesifik" onchange="hitungLaporanDashboard()" class="select-custom hidden" style="color-scheme: dark;">
+
                         <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset</button>
                     </div>
                 </div>
@@ -248,7 +258,7 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
     <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA</h2>
@@ -411,10 +421,27 @@
         window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
 
         window.pencarianProduk = function() {
-            const teks = document.getElementById('cariProduk').value.toLowerCase();
+            const elInput = document.getElementById('cariProduk');
+            const elBtnClear = document.getElementById('btnBersihkanCariKasir');
+            const teks = elInput.value.toLowerCase();
+            
+            if (teks.length > 0) {
+                elBtnClear.style.display = 'block';
+            } else {
+                elBtnClear.style.display = 'none';
+            }
+
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
             renderProduk(filtered);
         }
+
+        window.bersihkanPencarianKasir = function() {
+            const elInput = document.getElementById('cariProduk');
+            elInput.value = '';
+            pencarianProduk();
+            elInput.focus();
+        }
+
         window.renderProduk = function(dataGrid = null) {
             const grid = document.getElementById('gridProduk');
             const targetData = dataGrid || produkData;
@@ -687,8 +714,8 @@
 
             hitungLaporanDashboard();
             renderAdminTable();
-        }
-window.refundItemSpesifik = function(idNota, indexItem) {
+                }
+        window.refundItemSpesifik = function(idNota, indexItem) {
     const nota = laporanTerjual.find(n => n.idNota === idNota);
     if (!nota) return;
 
@@ -829,9 +856,17 @@ window.hapusProduk = function(id, nama) {
         }
         window.hitungLaporanDashboard = function() {
     let omset = 0, modal = 0;
-    const filter = document.getElementById('filterTanggal').value;
+    const selectFilter = document.getElementById('filterTanggal');
+    const filter = selectFilter.value;
+    const inputDate = document.getElementById('filterTanggalSpesifik');
     const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
     
+    if (filter === "pilih_tanggal") {
+        inputDate.classList.remove('hidden');
+    } else {
+        inputDate.classList.add('hidden');
+    }
+
     const tbody = document.getElementById('tabelLogTransaksi');
     
     let kamusKuantitasBarang = {}; 
@@ -872,6 +907,10 @@ window.hapusProduk = function(id, nama) {
         else if (filter === "minggu_kemarin") { if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true; } 
         else if (filter === "tahun_ini") { if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true; } 
         else if (filter === "tahun_kemarin") { if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true; }
+        else if (filter === "pilih_tanggal") {
+            const tanggalPilihan = inputDate.value;
+            if (tanggalPilihan && tanggalNotaString === tanggalPilihan) lolosFilter = true;
+        }
 
         if (!lolosFilter) return;
 
