@@ -30,7 +30,6 @@
         .btn-uang-cepat:hover { background: #374151; border-color: #3b82f6; }
         .btn-uang-pas { background: #059669; border-color: #10b981; }
 
-        /* Style Baru untuk Toggle Tipe Harga di Keranjang */
         .toggle-harga-btn { background: #1f2937; border: 1px solid #4b5563; color: #9ca3af; padding: 3px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .toggle-harga-btn.active-grosir { background: #eab308; border-color: #ca8a04; color: #111827; }
         .toggle-harga-btn.active-ecer { background: #3b82f6; border-color: #2563eb; color: white; }
@@ -115,12 +114,11 @@
             </div>
         </div>
     </div>
-    <div id="areaKasir" class="main-container hidden">
+     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span id="infoPending" style="color:#eab308; font-size:12px;"></span></h2>
                 
-                <!-- KOLOM PENCARIAN DENGAN TOMBOL HAPUS/BERSIHKAN (FOTO KEDUA) -->
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 30px 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
                     <button id="btnBersihkanCariKasir" onclick="bersihkanPencarianKasir()" style="position: absolute; right: 6px; background: none; border: none; color: #9ca3af; font-size: 14px; cursor: pointer; display: none; font-weight: bold;">✕</button>
@@ -152,7 +150,7 @@
                 <div id="containerUangCepat" class="grid-uang-cepat"></div>
 
                 <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
-                    <span style="color: #9ca3af;">Kembalian:</span>
+                    <span id="labelKembalian" style="color: #9ca3af;">Kembalian:</span>
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
                 </div>
 
@@ -163,8 +161,8 @@
                 <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
-                </div>
-        <div id="areaAdmin" class="admin-layout hidden">
+    </div>
+    <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
@@ -226,7 +224,6 @@
                             <option value="semua">Semua Waktu</option>
                         </select>
 
-                        <!-- INPUT TANGGAL MANUAL UNTUK PILIH TANGGAL YANG DI MAU (FOTO PERTAMA) -->
                         <input type="date" id="filterTanggalSpesifik" onchange="hitungLaporanDashboard()" class="select-custom hidden" style="color-scheme: dark;">
 
                         <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset</button>
@@ -258,7 +255,7 @@
                 </div>
             </div>
         </div>
-        </div>
+    </div>
     <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA</h2>
@@ -273,7 +270,8 @@
         <p style="margin: 2px 0;">--------------------------------</p>
         <div style="display:flex; justify-content:space-between;"><span>Total:</span><span id="strukTotal"></span></div>
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
-        <div style="display:flex; justify-content:space-between; font-weight: bold;"><span>Kembali:</span><span id="strukKembali"></span></div>
+        <div style="display:flex; justify-content:space-between; font-weight: bold;"><span id="strukLabelSisa">Kembali:</span><span id="strukKembali"></span></div>
+        <div id="rowStrukKurangBayar" style="display:none; justify-content:space-between; font-weight: bold; color: red;"><span>Kurang:</span><span id="strukKurangBayar"></span></div>
     </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -386,7 +384,7 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-        window.bukaMenuUtama = function(role) {
+        5window.bukaMenuUtama = function(role) {
             if (role === "admin" && modeSekarang !== "admin") {
                 const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
                 if (konfirmasiPin !== PIN_ADMIN) {
@@ -464,28 +462,24 @@
         }
 
         window.tambahKeKeranjang = function(id) {
-    const p = produkData.find(item => item.id === id);
-    
-    // Hitung total kuantitas barang ini di seluruh baris keranjang (Ecer & Grosir)
-    const totalQtyDiKeranjang = keranjang
-        .filter(item => item.id === id)
-        .reduce((sum, item) => sum + item.qty, 0);
-    
-    if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
-    
-    // Cari apakah sudah ada baris keranjang dengan produk yang sama DAN bertipe 'ecer'
-    const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
-    
-    if (itemEcer) {
-        // Jika ada baris eceran, tumpuk/tambahkan Qty-nya
-        itemEcer.qty += 1;
-    } else {
-        // Jika tidak ada (atau baris sebelumnya sudah diubah jadi grosir), buat baris baru
-        keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
-    }
-    
-    updateKeranjang();
-}
+            const p = produkData.find(item => item.id === id);
+            
+            const totalQtyDiKeranjang = keranjang
+                .filter(item => item.id === id)
+                .reduce((sum, item) => sum + item.qty, 0);
+            
+            if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
+            
+            const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
+            
+            if (itemEcer) {
+                itemEcer.qty += 1;
+            } else {
+                keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
+            }
+            
+            updateKeranjang();
+        }
 
         window.toggleTipeHargaKeranjang = function(index) {
             const item = keranjang[index];
@@ -598,14 +592,25 @@
         window.hitungKembalian = function() {
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
-            document.getElementById('uangKembalian').innerText = formatRupiah(Math.max(0, bayar - total));
+            const selisih = bayar - total;
+            const elLabel = document.getElementById('labelKembalian');
+            const elUang = document.getElementById('uangKembalian');
+
+            if (selisih < 0) {
+                elLabel.innerText = "Kurang:";
+                elUang.innerText = formatRupiah(Math.abs(selisih));
+                elUang.style.color = "#f87171";
+            } else {
+                elLabel.innerText = "Kembalian:";
+                elUang.innerText = formatRupiah(selisih);
+                elUang.style.color = "#34d399";
+            }
         }
 
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
-            if (bayar < total) return alert("Uang kurang!");
 
             const nomorNota = "MK-" + Date.now().toString().slice(-6);
             const waktu = new Date().toISOString();
@@ -623,7 +628,9 @@
             });
 
             localStorage.setItem('local_produk', JSON.stringify(produkData));
-            const kembalian = bayar - total;
+            const kembalian = bayar >= total ? (bayar - total) : 0;
+            const kurangBayar = bayar < total ? (total - bayar) : 0;
+
             const notaBaru = { 
                 idNota: nomorNota, 
                 waktu, 
@@ -632,7 +639,8 @@
                 totalModal, 
                 refunded: false,
                 nominalBayar: bayar,
-                nominalKembali: kembalian
+                nominalKembali: kembalian,
+                nominalKurang: kurangBayar
             };
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -681,10 +689,24 @@
             
             const uangBayar = nota.nominalBayar !== undefined ? nota.nominalBayar : nota.totalOmset;
             const uangKembali = nota.nominalKembali !== undefined ? nota.nominalKembali : 0;
+            const uangKurang = nota.nominalKurang !== undefined ? nota.nominalKurang : (nota.totalOmset > uangBayar ? nota.totalOmset - uangBayar : 0);
 
             document.getElementById('strukTotal').innerText = formatRupiah(nota.totalOmset);
             document.getElementById('strukBayar').innerText = formatRupiah(uangBayar);
-            document.getElementById('strukKembali').innerText = formatRupiah(uangKembali);
+            
+            const elRowKurang = document.getElementById('rowStrukKurangBayar');
+            const elLabelSisa = document.getElementById('strukLabelSisa');
+
+            if (uangKurang > 0) {
+                elLabelSisa.innerText = "Kembali:";
+                document.getElementById('strukKembali').innerText = formatRupiah(0);
+                elRowKurang.style.display = "flex";
+                document.getElementById('strukKurangBayar').innerText = formatRupiah(uangKurang);
+            } else {
+                elLabelSisa.innerText = "Kembali:";
+                document.getElementById('strukKembali').innerText = formatRupiah(uangKembali);
+                elRowKurang.style.display = "none";
+            }
             
             window.print();
             
@@ -714,42 +736,38 @@
 
             hitungLaporanDashboard();
             renderAdminTable();
-                }
+        }
         window.refundItemSpesifik = function(idNota, indexItem) {
-    const nota = laporanTerjual.find(n => n.idNota === idNota);
-    if (!nota) return;
+            const nota = laporanTerjual.find(n => n.idNota === idNota);
+            if (!nota) return;
 
-    const item = nota.items[indexItem];
-    if (!item || item.refunded) return;
+            const item = nota.items[indexItem];
+            if (!item || item.refunded) return;
 
-    if (!confirm(`Refund barang "${item.nama}" (${item.qty} Pcs) dari nota ${idNota}?`)) return;
+            if (!confirm(`Refund barang "${item.nama}" (${item.qty} Pcs) dari nota ${idNota}?`)) return;
 
-    // Tandai item sebagai refunded
-    item.refunded = true;
+            item.refunded = true;
 
-    // Kurangi nilai total omset & modal pada nota
-    nota.totalOmset -= item.subJual;
-    nota.totalModal -= item.subModal;
+            nota.totalOmset -= item.subJual;
+            nota.totalModal -= item.subModal;
 
-    // Kembalikan stok ke inventori
-    const master = produkData.find(p => p.id === item.barangId);
-    if (master) master.stok += item.qty;
+            const master = produkData.find(p => p.id === item.barangId);
+            if (master) master.stok += item.qty;
 
-    // Cek jika seluruh item sudah di-refund, tandai nota sebagai refunded total
-    if (nota.items.every(i => i.refunded)) {
-        nota.refunded = true;
-    }
+            if (nota.items.every(i => i.refunded)) {
+                nota.refunded = true;
+            }
 
-    localStorage.setItem('local_produk', JSON.stringify(produkData));
-    localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
+            localStorage.setItem('local_produk', JSON.stringify(produkData));
+            localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
 
-    if (isOnline) {
-        set(ref(db, 'pos_laporan/' + idNota), nota);
-        if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
-    }
+            if (isOnline) {
+                set(ref(db, 'pos_laporan/' + idNota), nota);
+                if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
+            }
 
-    hitungLaporanDashboard();
-    renderAdminTable();
+            hitungLaporanDashboard();
+            renderAdminTable();
         }
         
         function kirimAntreanOfflineKeCloud() {
@@ -765,47 +783,46 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
-window.renderAdminTable = function() {
-    const tbody = document.getElementById('tabelAdmin');
-    const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
-    let htmlBuffer = '';
-    
-    produkData.forEach(p => {
-        if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
 
-        htmlBuffer += `<tr>
-            <td>${p.nama}</td>
-            <td>${formatRupiah(p.hpp)}</td>
-            <td>${formatRupiah(p.hargaEcer)}</td>
-            <td>${formatRupiah(p.hargaGrosir || 0)}</td>
-            <td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td>
-            <td style="text-align:center;">
-                <div style="display:flex; gap:4px; justify-content:center;">
-                    <button onclick="pemicuEditBarang(${p.id})" style="background:#2563eb; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">✏️ Edit</button>
-                    <button onclick="hapusProduk(${p.id}, '${p.nama}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🗑️ Hapus</button>
-                </div>
-            </td>
-        </tr>`;
-    });
-    tbody.innerHTML = htmlBuffer;
-    document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
-}
+        window.renderAdminTable = function() {
+            const tbody = document.getElementById('tabelAdmin');
+            const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
+            let htmlBuffer = '';
+            
+            produkData.forEach(p => {
+                if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
 
-window.hapusProduk = function(id, nama) {
-    if (!confirm(`Yakin ingin menghapus item "${nama}" dari inventori?`)) return;
+                htmlBuffer += `<tr>
+                    <td>${p.nama}</td>
+                    <td>${formatRupiah(p.hpp)}</td>
+                    <td>${formatRupiah(p.hargaEcer)}</td>
+                    <td>${formatRupiah(p.hargaGrosir || 0)}</td>
+                    <td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td>
+                    <td style="text-align:center;">
+                        <div style="display:flex; gap:4px; justify-content:center;">
+                            <button onclick="pemicuEditBarang(${p.id})" style="background:#2563eb; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">✏️ Edit</button>
+                            <button onclick="hapusProduk(${p.id}, '${p.nama}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🗑️ Hapus</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = htmlBuffer;
+            document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
+        }
 
-    produkData = produkData.filter(p => p.id !== id);
-    localStorage.setItem('local_produk', JSON.stringify(produkData));
+        window.hapusProduk = function(id, nama) {
+            if (!confirm(`Yakin ingin menghapus item "${nama}" dari inventori?`)) return;
 
-    if (isOnline) {
-        set(ref(db, 'pos_produk/' + id), null);
-    }
+            produkData = produkData.filter(p => p.id !== id);
+            localStorage.setItem('local_produk', JSON.stringify(produkData));
 
-    renderAdminTable();
-    if (modeSekarang === "kasir") renderProduk();
-}
+            if (isOnline) {
+                set(ref(db, 'pos_produk/' + id), null);
+            }
 
-
+            renderAdminTable();
+            if (modeSekarang === "kasir") renderProduk();
+        }
         window.pemicuEditBarang = function(id) {
             const p = produkData.find(item => item.id === id);
             if(!p) return alert("Barang tidak ditemukan!");
@@ -854,131 +871,133 @@ window.hapusProduk = function(id, nama) {
                 hitungLaporanDashboard();
             }
         }
+
         window.hitungLaporanDashboard = function() {
-    let omset = 0, modal = 0;
-    const selectFilter = document.getElementById('filterTanggal');
-    const filter = selectFilter.value;
-    const inputDate = document.getElementById('filterTanggalSpesifik');
-    const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
-    
-    if (filter === "pilih_tanggal") {
-        inputDate.classList.remove('hidden');
-    } else {
-        inputDate.classList.add('hidden');
-    }
-
-    const tbody = document.getElementById('tabelLogTransaksi');
-    
-    let kamusKuantitasBarang = {}; 
-    const sekarang = new Date();
-    
-    const dapatkanTanggalLokalString = (objekTanggal) => {
-        return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
-    };
-
-    const hariIniString = dapatkanTanggalLokalString(sekarang);
-    const objekKemarin = new Date();
-    objekKemarin.setDate(sekarang.getDate() - 1);
-    const kemarinString = dapatkanTanggalLokalString(objekKemarin);
-
-    let laporanDiurutkan = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
-
-    let htmlBuffer = '';
-
-    laporanDiurutkan.forEach(nota => {
-        const tNota = new Date(nota.waktu);
-        const tanggalNotaString = dapatkanTanggalLokalString(tNota);
-        
-        const opsiTanggalLokal = tNota.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta", day: '2-digit', month: '2-digit', year: 'numeric' });
-        const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
-        const teksWaktuTampil = `${opsiTanggalLokal} <br><span style="color:#9ca3af; font-size:11px;">${opsiJamLokal} WIB</span>`;
-        const teksTanggalLengkap = opsiTanggalLokal + " " + opsiJamLokal; 
-
-        let lolosFilter = false;
-
-        const date1 = new Date(hariIniString);
-        const date2 = new Date(tanggalNotaString);
-        const selisihHari = Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
-
-        if (filter === "semua") { lolosFilter = true; } 
-        else if (filter === "hari") { if (tanggalNotaString === hariIniString) lolosFilter = true; } 
-        else if (filter === "kemarin") { if (tanggalNotaString === kemarinString) lolosFilter = true; } 
-        else if (filter === "minggu_ini") { if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true; } 
-        else if (filter === "minggu_kemarin") { if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true; } 
-        else if (filter === "tahun_ini") { if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true; } 
-        else if (filter === "tahun_kemarin") { if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true; }
-        else if (filter === "pilih_tanggal") {
-            const tanggalPilihan = inputDate.value;
-            if (tanggalPilihan && tanggalNotaString === tanggalPilihan) lolosFilter = true;
-        }
-
-        if (!lolosFilter) return;
-
-        if (kataKunciLaporan) {
-            const cocokNota = nota.idNota.toLowerCase().includes(kataKunciLaporan);
-            const cocokTanggal = teksTanggalLengkap.toLowerCase().includes(kataKunciLaporan);
-            const cocokBarang = nota.items.some(it => it.nama.toLowerCase().includes(kataKunciLaporan));
-            if (!cocokNota && !cocokTanggal && !cocokBarang) return; 
-        }
-
-        if(!nota.refunded) {
-            omset += nota.totalOmset; 
-            modal += nota.totalModal;
-        }
-
-        let teksRincianItem = "";
-        nota.items.forEach((it, idx) => { 
-            const tipeLabel = it.tipeHarga === 'grosir' ? ' [G]' : '';
-            const isItemRefunded = it.refunded || nota.refunded;
-
-            if(!isItemRefunded) {
-                kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty;
+            let omset = 0, modal = 0;
+            const selectFilter = document.getElementById('filterTanggal');
+            const filter = selectFilter.value;
+            const inputDate = document.getElementById('filterTanggalSpesifik');
+            const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
+            
+            if (filter === "pilih_tanggal") {
+                inputDate.classList.remove('hidden');
+            } else {
+                inputDate.classList.add('hidden');
             }
 
-            teksRincianItem += `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; ${isItemRefunded ? 'text-decoration:line-through; opacity:0.5;' : ''}">
-                    <span>• ${it.nama}${tipeLabel} (${it.qty} Pcs)</span>
-                    ${!isItemRefunded ? `<button onclick="refundItemSpesifik('${nota.idNota}', ${idx})" style="background:#7f1d1d; color:#f87171; border:none; padding:1px 4px; border-radius:3px; font-size:9px; cursor:pointer; margin-left:6px;">Refund Item</button>` : '<span style="font-size:9px; color:#f87171; margin-left:4px;">(Refund)</span>'}
-                </div>
-            `; 
-        });
+            const tbody = document.getElementById('tabelLogTransaksi');
+            
+            let kamusKuantitasBarang = {}; 
+            const sekarang = new Date();
+            
+            const dapatkanTanggalLokalString = (objekTanggal) => {
+                return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+            };
 
-        const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
+            const hariIniString = dapatkanTanggalLokalString(sekarang);
+            const objekKemarin = new Date();
+            objekKemarin.setDate(sekarang.getDate() - 1);
+            const kemarinString = dapatkanTanggalLokalString(objekKemarin);
 
-        htmlBuffer += `
-            <tr class="${semuadirerefund ? 'text-refund':''}">
-                <td>
-                    <strong style="color:#60a5fa;">${nota.idNota}</strong>
-                    <div class="detail-nota-text" style="width:100%;">${teksRincianItem}</div>
-                </td>
-                <td>${teksWaktuTampil}</td>
-                <td>${formatRupiah(nota.totalOmset)}</td>
-                <td>
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        <button onclick="cetakStrukUlangLokal('${nota.idNota}')" style="background:#1e3a8a; color:#60a5fa; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🖨️ Cetak</button>
-                        ${semuadirerefund ? '<span style="color:#f87171; font-size:11px;">Refund Total</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px;">Refund Semua</button>`}
-                    </div>
-                </td>
-            </tr>`;
-    });
-tbody.innerHTML = htmlBuffer;
+            let laporanDiurutkan = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
 
-    document.getElementById('lapOmset').innerText = formatRupiah(omset);
-    document.getElementById('lapModal').innerText = formatRupiah(modal);
-    document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
+            let htmlBuffer = '';
 
-    const containerRangkuman = document.getElementById('listBarangTerjualFilter');
-    let rangkumanHtml = '';
-    const urutanBarangTerjual = Object.keys(kamusKuantitasBarang);
-    if (urutanBarangTerjual.length === 0) {
-        rangkumanHtml = `<tr><td colspan="2" style="text-align:center; color:#9ca3af;">Tidak ada transaksi</td></tr>`;
-    } else {
-        urutanBarangTerjual.forEach(nama => {
-            rangkumanHtml += `<tr><td>${nama}</td><td style="text-align:right; font-weight:bold; color:#34d399;">${kamusKuantitasBarang[nama]} Pcs</td></tr>`;
-        });
-    }
-    containerRangkuman.innerHTML = rangkumanHtml;
+            laporanDiurutkan.forEach(nota => {
+                const tNota = new Date(nota.waktu);
+                const tanggalNotaString = dapatkanTanggalLokalString(tNota);
+                
+                const opsiTanggalLokal = tNota.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta", day: '2-digit', month: '2-digit', year: 'numeric' });
+                const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
+                const teksWaktuTampil = `${opsiTanggalLokal} <br><span style="color:#9ca3af; font-size:11px;">${opsiJamLokal} WIB</span>`;
+                const teksTanggalLengkap = opsiTanggalLokal + " " + opsiJamLokal; 
+
+                let lolosFilter = false;
+
+                const date1 = new Date(hariIniString);
+                const date2 = new Date(tanggalNotaString);
+                const selisihHari = Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
+
+                if (filter === "semua") { lolosFilter = true; } 
+                else if (filter === "hari") { if (tanggalNotaString === hariIniString) lolosFilter = true; } 
+                else if (filter === "kemarin") { if (tanggalNotaString === kemarinString) lolosFilter = true; } 
+                else if (filter === "minggu_ini") { if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true; } 
+                else if (filter === "minggu_kemarin") { if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true; } 
+                else if (filter === "tahun_ini") { if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true; } 
+                else if (filter === "tahun_kemarin") { if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true; }
+                else if (filter === "pilih_tanggal") {
+                    const tanggalPilihan = inputDate.value;
+                    if (tanggalPilihan && tanggalNotaString === tanggalPilihan) lolosFilter = true;
+                }
+
+                if (!lolosFilter) return;
+
+                if (kataKunciLaporan) {
+                    const cocokNota = nota.idNota.toLowerCase().includes(kataKunciLaporan);
+                    const cocokTanggal = teksTanggalLengkap.toLowerCase().includes(kataKunciLaporan);
+                    const cocokBarang = nota.items.some(it => it.nama.toLowerCase().includes(kataKunciLaporan));
+                    if (!cocokNota && !cocokTanggal && !cocokBarang) return; 
+                }
+
+                if(!nota.refunded) {
+                    omset += nota.totalOmset; 
+                    modal += nota.totalModal;
+                }
+
+                let teksRincianItem = "";
+                nota.items.forEach((it, idx) => { 
+                    const tipeLabel = it.tipeHarga === 'grosir' ? ' [G]' : '';
+                    const isItemRefunded = it.refunded || nota.refunded;
+
+                    if(!isItemRefunded) {
+                        kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty;
+                    }
+
+                    teksRincianItem += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; ${isItemRefunded ? 'text-decoration:line-through; opacity:0.5;' : ''}">
+                            <span>• ${it.nama}${tipeLabel} (${it.qty} Pcs)</span>
+                            ${!isItemRefunded ? `<button onclick="refundItemSpesifik('${nota.idNota}', ${idx})" style="background:#7f1d1d; color:#f87171; border:none; padding:1px 4px; border-radius:3px; font-size:9px; cursor:pointer; margin-left:6px;">Refund Item</button>` : '<span style="font-size:9px; color:#f87171; margin-left:4px;">(Refund)</span>'}
+                        </div>
+                    `; 
+                });
+
+                const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
+
+                htmlBuffer += `
+                    <tr class="${semuadirerefund ? 'text-refund':''}">
+                        <td>
+                            <strong style="color:#60a5fa;">${nota.idNota}</strong>
+                            <div class="detail-nota-text" style="width:100%;">${teksRincianItem}</div>
+                        </td>
+                        <td>${teksWaktuTampil}</td>
+                        <td>${formatRupiah(nota.totalOmset)}</td>
+                        <td>
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                <button onclick="cetakStrukUlangLokal('${nota.idNota}')" style="background:#1e3a8a; color:#60a5fa; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🖨️ Cetak</button>
+                                ${semuadirerefund ? '<span style="color:#f87171; font-size:11px;">Refund Total</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px;">Refund Semua</button>`}
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            tbody.innerHTML = htmlBuffer;
+
+            document.getElementById('lapOmset').innerText = formatRupiah(omset);
+            document.getElementById('lapModal').innerText = formatRupiah(modal);
+            document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
+
+            const containerRangkuman = document.getElementById('listBarangTerjualFilter');
+            let rangkumanHtml = '';
+            const urutanBarangTerjual = Object.keys(kamusKuantitasBarang);
+            if (urutanBarangTerjual.length === 0) {
+                rangkumanHtml = `<tr><td colspan="2" style="text-align:center; color:#9ca3af;">Tidak ada transaksi</td></tr>`;
+            } else {
+                urutanBarangTerjual.forEach(nama => {
+                    rangkumanHtml += `<tr><td>${nama}</td><td style="text-align:right; font-weight:bold; color:#34d399;">${kamusKuantitasBarang[nama]} Pcs</td></tr>`;
+                });
+            }
+            containerRangkuman.innerHTML = rangkumanHtml;
         }
+
         window.simpanProduk = function(event) {
             event.preventDefault(); 
 
@@ -1034,7 +1053,6 @@ tbody.innerHTML = htmlBuffer;
             document.getElementById('btnSimpanAdmin').innerText = "Simpan Barang";
             document.getElementById('btnSimpanAdmin').style.backgroundColor = "#10b981";
         }
-        
     </script>
 </body>
 </html>
