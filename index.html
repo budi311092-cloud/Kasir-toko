@@ -114,7 +114,7 @@
             </div>
         </div>
     </div>
-     <div id="areaKasir" class="main-container hidden">
+    <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span id="infoPending" style="color:#eab308; font-size:12px;"></span></h2>
@@ -384,7 +384,7 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-        5window.bukaMenuUtama = function(role) {
+        window.bukaMenuUtama = function(role) {
             if (role === "admin" && modeSekarang !== "admin") {
                 const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
                 if (konfirmasiPin !== PIN_ADMIN) {
@@ -480,7 +480,6 @@
             
             updateKeranjang();
         }
-
         window.toggleTipeHargaKeranjang = function(index) {
             const item = keranjang[index];
             item.tipeHarga = item.tipeHarga === 'ecer' ? 'grosir' : 'ecer';
@@ -808,8 +807,7 @@
             });
             tbody.innerHTML = htmlBuffer;
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
-        }
-
+    }
         window.hapusProduk = function(id, nama) {
             if (!confirm(`Yakin ingin menghapus item "${nama}" dari inventori?`)) return;
 
@@ -823,6 +821,7 @@
             renderAdminTable();
             if (modeSekarang === "kasir") renderProduk();
         }
+
         window.pemicuEditBarang = function(id) {
             const p = produkData.find(item => item.id === id);
             if(!p) return alert("Barang tidak ditemukan!");
