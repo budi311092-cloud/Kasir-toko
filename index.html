@@ -75,6 +75,11 @@
 
         .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
 
+        /* Badge Tambahan Kurang Bayar */
+        .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-top: 4px; }
+        .badge-kurang { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
+        .badge-lunas { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+
         @media print { 
             body > *:not(#areaStruk) { display: none !important; }
             #areaStruk { display: block !important; position: absolute; left: 0; top: 0; width: 100% !important; max-width: 58mm; padding: 0; margin: 0; color: black !important; background: white !important; } 
@@ -138,6 +143,12 @@
             </div>
 
             <div style="border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px;">
+                <!-- Field Input Nama Pelanggan (Opsional) -->
+                <div>
+                    <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Nama Pelanggan (Opsional)</label>
+                    <input type="text" id="namaPelanggan" placeholder="Masukkan nama pelanggan..." class="input-text" style="font-size: 13px; margin-bottom: 8px;">
+                </div>
+
                 <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-bottom: 15px;">
                     <span>Total Akhir:</span>
                     <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
@@ -162,7 +173,7 @@
             </div>
         </div>
     </div>
-    <div id="areaAdmin" class="admin-layout hidden">
+     <div id="areaAdmin" class="admin-layout hidden">
         <div class="card" style="height: fit-content;">
             <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
@@ -263,6 +274,7 @@
             <p style="font-size: 11px;">WA: 0819-1623-0420</p>
             <p style="margin: 2px 0;">--------------------------------</p>
             <p id="strukIdNota" style="font-weight: bold;"></p>
+            <p id="strukPelanggan" style="font-weight: bold; font-size: 11px; display: none;"></p>
             <p id="strukWaktu"></p>
         </center>
         <p style="margin: 2px 0;">--------------------------------</p>
@@ -302,7 +314,6 @@
         window.onload = function() {
             document.getElementById('pinDisplayInput').focus();
         }
-
         window.addEventListener('online', () => setStatusKoneksi(true));
         window.addEventListener('offline', () => setStatusKoneksi(false));
 
@@ -432,7 +443,6 @@
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
             renderProduk(filtered);
         }
-
         window.bersihkanPencarianKasir = function() {
             const elInput = document.getElementById('cariProduk');
             elInput.value = '';
@@ -563,6 +573,7 @@
 
         window.kosongkanKeranjang = function() {
             keranjang = [];
+            document.getElementById('namaPelanggan').value = '';
             updateKeranjang();
         }
 
@@ -610,6 +621,14 @@
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
+            const namaPelanggan = document.getElementById('namaPelanggan').value.trim();
+
+            // Peringatan jika pembayaran kurang
+            if (bayar < total) {
+                const sisaKurang = total - bayar;
+                const konfirmasi = confirm(`⚠️ PEMBAYARAN KURANG!\n\nUang Diterima: ${formatRupiah(bayar)}\nTotal Belanja: ${formatRupiah(total)}\nKekurangan: ${formatRupiah(sisaKurang)}\n\nApakah Anda tetap ingin memproses transaksi dan mencetak nota?`);
+                if (!konfirmasi) return;
+            }
 
             const nomorNota = "MK-" + Date.now().toString().slice(-6);
             const waktu = new Date().toISOString();
@@ -633,6 +652,7 @@
             const notaBaru = { 
                 idNota: nomorNota, 
                 waktu, 
+                namaPelanggan: namaPelanggan || "",
                 items: itemsLaporan, 
                 totalOmset: total, 
                 totalModal, 
@@ -662,6 +682,7 @@
 
             keranjang = [];
             document.getElementById('uangDiterima').value = '';
+            document.getElementById('namaPelanggan').value = '';
             updateKeranjang();
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
@@ -674,6 +695,16 @@
             areaStruk.style.display = "block"; 
 
             document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota;
+
+            // Tampilkan Nama Pelanggan Jika Ada
+            const elPelanggan = document.getElementById('strukPelanggan');
+            if (nota.namaPelanggan && nota.namaPelanggan.trim() !== "") {
+                elPelanggan.innerText = "Pelanggan: " + nota.namaPelanggan;
+                elPelanggan.style.display = "block";
+            } else {
+                elPelanggan.style.display = "none";
+            }
+
             const tNota = new Date(nota.waktu);
             document.getElementById('strukWaktu').innerText = tNota.toLocaleDateString("id-ID") + " " + tNota.toLocaleTimeString("id-ID", {hour: '2-digit', minute:'2-digit'});
             
@@ -711,6 +742,28 @@
             
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
         }
+
+        // Fitur Melunasi Transaksi Kurang Bayar
+        window.lunasiTransaksi = function(idNota) {
+            const nota = laporanTerjual.find(n => n.idNota === idNota);
+            if (!nota || !nota.nominalKurang) return;
+
+            const konfirmasi = confirm(`Pelunasan untuk Nota ${idNota}\nSisa Kurang: ${formatRupiah(nota.nominalKurang)}\n\nApakah transaksi ini sudah dibayar lunas?`);
+            if (!konfirmasi) return;
+
+            nota.nominalBayar += nota.nominalKurang;
+            nota.nominalKurang = 0;
+
+            localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
+
+            if (isOnline) {
+                set(ref(db, 'pos_laporan/' + idNota), nota);
+            }
+
+            alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
+            hitungLaporanDashboard();
+        }
+
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
             const nota = laporanTerjual.find(n => n.idNota === idNota);
@@ -782,7 +835,6 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
-
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -807,7 +859,7 @@
             });
             tbody.innerHTML = htmlBuffer;
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
-    }
+        }
         window.hapusProduk = function(id, nama) {
             if (!confirm(`Yakin ingin menghapus item "${nama}" dari inventori?`)) return;
 
@@ -870,7 +922,6 @@
                 hitungLaporanDashboard();
             }
         }
-
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const selectFilter = document.getElementById('filterTanggal');
@@ -934,8 +985,9 @@
                 if (kataKunciLaporan) {
                     const cocokNota = nota.idNota.toLowerCase().includes(kataKunciLaporan);
                     const cocokTanggal = teksTanggalLengkap.toLowerCase().includes(kataKunciLaporan);
+                    const cocokPelanggan = (nota.namaPelanggan || '').toLowerCase().includes(kataKunciLaporan);
                     const cocokBarang = nota.items.some(it => it.nama.toLowerCase().includes(kataKunciLaporan));
-                    if (!cocokNota && !cocokTanggal && !cocokBarang) return; 
+                    if (!cocokNota && !cocokTanggal && !cocokBarang && !cocokPelanggan) return; 
                 }
 
                 if(!nota.refunded) {
@@ -961,11 +1013,17 @@
                 });
 
                 const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
+                const isKurangBayar = nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
 
                 htmlBuffer += `
                     <tr class="${semuadirerefund ? 'text-refund':''}">
                         <td>
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
+                            ${nota.namaPelanggan ? `<span style="font-size:11px; color:#eab308; display:block;">👤 ${nota.namaPelanggan}</span>` : ''}
+                            
+                            ${isKurangBayar ? `<span class="badge-status badge-kurang">⚠️ Kurang: ${formatRupiah(nota.nominalKurang)}</span>` : ''}
+                            ${(!isKurangBayar && !semuadirerefund && nota.nominalBayar) ? `<span class="badge-status badge-lunas">✓ LUNAS</span>` : ''}
+
                             <div class="detail-nota-text" style="width:100%;">${teksRincianItem}</div>
                         </td>
                         <td>${teksWaktuTampil}</td>
@@ -973,6 +1031,9 @@
                         <td>
                             <div style="display:flex; flex-direction:column; gap:4px;">
                                 <button onclick="cetakStrukUlangLokal('${nota.idNota}')" style="background:#1e3a8a; color:#60a5fa; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🖨️ Cetak</button>
+                                
+                                ${isKurangBayar ? `<button onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:#a7f3d0; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>` : ''}
+
                                 ${semuadirerefund ? '<span style="color:#f87171; font-size:11px;">Refund Total</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px;">Refund Semua</button>`}
                             </div>
                         </td>
@@ -996,7 +1057,6 @@
             }
             containerRangkuman.innerHTML = rangkumanHtml;
         }
-
         window.simpanProduk = function(event) {
             event.preventDefault(); 
 
