@@ -205,7 +205,59 @@
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
+<!-- TAMBAHAN SISTEM KONTROL EXPIRED & RETUR -->
+<div class="card" style="margin-top: 20px; border-color: #3b82f6;">
+    <h3 style="font-size: 14px; font-weight: bold; color: #60a5fa; margin-bottom: 10px;">⏳ Kontrol Expired & Retur (3 Bulan)</h3>
+    <form id="formExpired" onsubmit="simpanDataExpired(event)">
+        <input type="hidden" id="editExpId">
+        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang / Bahan Kue</label>
+        <input type="text" id="expNama" required class="input-text" placeholder="Contoh: Tepung Segitiga Biru">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Jumlah / Stok Batch</label>
+                <input type="number" id="expJumlah" required class="input-text" placeholder="0">
+            </div>
+            <div>
+                <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Tanggal Expired</label>
+                <input type="date" id="expTanggal" required class="input-text" style="color-scheme: dark;" onchange="hitungOtomatisBatasRetur()">
+            </div>
+        </div>
+        
+        <div>
+            <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Batas Retur (Otomatis -3 Bulan)</label>
+            <input type="date" id="expBatasRetur" readonly class="input-text" style="background: #111827; color: #eab308; cursor: not-allowed;">
+        </div>
 
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <button type="submit" id="btnSimpanExp" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
+            <button type="button" onclick="resetFormExpired()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
+        </div>
+    </form>
+
+    <div style="margin-top: 15px;">
+        <input type="text" id="cariTabelExpired" placeholder="Cari data expired..." class="input-text" style="font-size: 12px; margin-bottom: 8px;" oninput="renderTabelExpired()">
+        <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Barang</th>
+                        <th>Jumlah</th>
+                        <th>Exp Date</th>
+                        <th>Batas Retur</th>
+                        <th>Status</th>
+                        <th style="text-align:center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelExpiredBody">
+                    <tr><td colspan="6" style="text-align:center; color:#9ca3af;">Belum ada data expired</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- AKHIR TAMBAHAN SISTEM KONTROL EXPIRED -->
+            
             <div class="card" style="margin-top: 20px; padding: 15px; border-color: #4b5563;">
                 <h3 style="font-size: 13px; font-weight: bold; color: #eab308; margin-bottom: 10px;">📦 Rincian Barang Terjual (Filter Terpilih)</h3>
                 <div style="max-height: 25vh; overflow-y: auto;">
@@ -424,6 +476,7 @@
                 document.getElementById('btnMode').onclick = () => bukaMenuUtama('kasir');
                 renderAdminTable();
                 hitungLaporanDashboard();
+                renderTabelExpired();
             }
         }
 
@@ -1112,6 +1165,159 @@
             document.getElementById('btnSimpanAdmin').innerText = "Simpan Barang";
             document.getElementById('btnSimpanAdmin').style.backgroundColor = "#10b981";
         }
+        // --- SISTEM KEDALUWARSA & RETUR TERPISAH ---
+let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
+
+// Sinkronisasi data expired ke Firebase (jika online)
+if (isOnline) {
+    onValue(ref(db, 'pos_expired'), (snapshot) => {
+        if (snapshot.exists()) {
+            dataExpired = Object.values(snapshot.val());
+            localStorage.setItem('local_expired', JSON.stringify(dataExpired));
+            if(modeSekarang === "admin") renderTabelExpired();
+        }
+    });
+}
+
+// Hitung otomatis kurangi 3 bulan (90 hari) dari tanggal expired
+window.hitungOtomatisBatasRetur = function() {
+    const valExp = document.getElementById('expTanggal').value;
+    if (!valExp) return;
+    
+    let tglExp = new Date(valExp);
+    // Kurangi 3 bulan (menggunakan setMonth)
+    tglExp.setMonth(tglExp.getMonth() - 3);
+    
+    // Format kembali ke YYYY-MM-DD untuk input date
+    let tahun = tglExp.getFullYear();
+    let bulan = String(tglExp.getMonth() + 1).padStart(2, '0');
+    let hari = String(tglExp.getDate()).padStart(2, '0');
+    
+    document.getElementById('expBatasRetur').value = `${tahun}-${bulan}-${hari}`;
+}
+
+window.simpanDataExpired = function(event) {
+    event.preventDefault();
+    
+    const idEdit = document.getElementById('editExpId').value;
+    const nama = document.getElementById('expNama').value;
+    const jumlah = parseInt(document.getElementById('expJumlah').value) || 0;
+    const tanggalExp = document.getElementById('expTanggal').value;
+    const batasRetur = document.getElementById('expBatasRetur').value;
+    
+    const idItem = idEdit ? parseInt(idEdit) : Date.now();
+    
+    const itemBaru = {
+        id: idItem,
+        nama,
+        jumlah,
+        tanggalExp,
+        batasRetur
+    };
+    
+    if (idEdit) {
+        const idx = dataExpired.findIndex(i => i.id === parseInt(idEdit));
+        if (idx !== -1) dataExpired[idx] = itemBaru;
+    } else {
+        dataExpired.push(itemBaru);
+    }
+    
+    localStorage.setItem('local_expired', JSON.stringify(dataExpired));
+    
+    if (isOnline) {
+        set(ref(db, 'pos_expired/' + idItem), itemBaru).catch(err => console.error(err));
+    }
+    
+    resetFormExpired();
+    renderTabelExpired();
+    alert("✅ Data expired berhasil disimpan!");
+}
+
+window.resetFormExpired = function() {
+    document.getElementById('formExpired').reset();
+    document.getElementById('editExpId').value = '';
+    document.getElementById('btnSimpanExp').innerText = "Simpan Data Expired";
+}
+
+window.renderTabelExpired = function() {
+    const tbody = document.getElementById('tabelExpiredBody');
+    const keyword = document.getElementById('cariTabelExpired').value.toLowerCase();
+    const hariIni = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+    
+    let html = '';
+    let filtered = dataExpired.filter(i => i.nama.toLowerCase().includes(keyword));
+    
+    // Urutkan berdasarkan tanggal expired terdekat
+    filtered.sort((a, b) => new Date(a.tanggalExp) - new Date(b.tanggalExp));
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#9ca3af;">Tidak ada data ditemukan</td></tr>`;
+        return;
+    }
+    
+    filtered.forEach(item => {
+        let statusBadge = '';
+        let rowStyle = '';
+        
+        if (item.tanggalExp <= hariIni) {
+            statusBadge = `<span style="background:#7f1d1d; color:#f87171; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">KEDALUWARSA</span>`;
+            rowStyle = 'opacity: 0.6;';
+        } else if (item.batasRetur <= hariIni) {
+            statusBadge = `<span style="background:#eab308; color:#111827; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">⚠️ JENDELA RETUR</span>`;
+        } else {
+            statusBadge = `<span style="background:#064e3b; color:#34d399; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AMAN</span>`;
+        }
+        
+        html += `
+            <tr style="${rowStyle}">
+                <td><strong>${item.nama}</strong></td>
+                <td>${item.jumlah} Pcs</td>
+                <td>${item.tanggalExp}</td>
+                <td style="color: #eab308;">${item.batasRetur}</td>
+                <td>${statusBadge}</td>
+                <td style="text-align:center;">
+                    <div style="display:flex; gap:4px; justify-content:center;">
+                        <button onclick="editDataExpired(${item.id})" style="background:#2563eb; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:10px;">✏️</button>
+                        <button onclick="hapusDataExpired(${item.id})" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:10px;">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+window.editDataExpired = function(id) {
+    const item = dataExpired.find(i => i.id === id);
+    if (!item) return;
+    
+    document.getElementById('editExpId').value = item.id;
+    document.getElementById('expNama').value = item.nama;
+    document.getElementById('expJumlah').value = item.jumlah;
+    document.getElementById('expTanggal').value = item.tanggalExp;
+    document.getElementById('expBatasRetur').value = item.batasRetur;
+    document.getElementById('btnSimpanExp').innerText = "Perbarui Data Expired";
+    
+    document.getElementById('formExpired').scrollIntoView({ behavior: 'smooth' });
+}
+
+window.hapusDataExpired = function(id) {
+    if (!confirm("Hapus data kontrol expired ini?")) return;
+    
+    dataExpired = dataExpired.filter(i => i.id !== id);
+    localStorage.setItem('local_expired', JSON.stringify(dataExpired));
+    
+    if (isOnline) {
+        set(ref(db, 'pos_expired/' + id), null);
+    }
+    
+    renderTabelExpired();
+}
+
+// Panggil fungsi render tabel expired saat halaman admin dibuka
+// (Tambahkan fungsi ini ke dalam fungsi bukaMenuUtama yang sudah ada di kode Anda jika ingin otomatis termuat)
+        
     </script>
 </body>
 </html>
