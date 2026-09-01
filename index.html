@@ -75,10 +75,14 @@
 
         .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
 
-        /* Badge Tambahan Kurang Bayar */
+        /* Badge Tambahan Kurang Bayar & Expired */
         .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-top: 4px; }
         .badge-kurang { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
         .badge-lunas { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+        
+        .badge-exp-aman { color: #34d399; background: #064e3b; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        .badge-exp-retur { color: #f59e0b; background: #78350f; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .badge-exp-expired { color: #f87171; background: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
 
         @media print { 
             body > *:not(#areaStruk) { display: none !important; }
@@ -143,7 +147,6 @@
             </div>
 
             <div style="border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px;">
-                <!-- Field Input Nama Pelanggan (Opsional) -->
                 <div>
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Nama Pelanggan (Opsional)</label>
                     <input type="text" id="namaPelanggan" placeholder="Masukkan nama pelanggan..." class="input-text" style="font-size: 13px; margin-bottom: 8px;">
@@ -180,6 +183,7 @@
                 <input type="hidden" id="editId">
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
                 <input type="text" id="inputNama" required class="input-text">
+                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
                         <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Modal / COGS (Rp)</label>
@@ -190,6 +194,7 @@
                         <input type="number" id="inputStok" required class="input-text">
                     </div>
                 </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
                         <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Ecer (Rp)</label>
@@ -200,6 +205,13 @@
                         <input type="number" id="inputHargaGrosir" required class="input-text">
                     </div>
                 </div>
+
+                <!-- Input Tanggal Expired Tambahan -->
+                <div>
+                    <label style="font-size: 11px; font-weight: bold; color: #eab308;">Tanggal Kedaluwarsa (Exp Date)</label>
+                    <input type="date" id="inputExpDate" required class="input-text" style="color-scheme: dark;">
+                </div>
+
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
                     <button type="submit" id="btnSimpanAdmin" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
@@ -254,13 +266,13 @@
             </div>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                    <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
+                    <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori, Stok & Kontrol Expired</h2>
                     <input type="text" id="cariInventori" placeholder="Cari barang di stok..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 180px;" oninput="renderAdminTable()">
                 </div>
                 <div class="box-laporan box-aset"><span style="font-size: 12px;">💰 TOTAL NILAI ASET:</span><h3 id="totalAsetToko">Rp 0</h3></div>
                 <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
-                        <thead><tr><th>Nama Barang</th><th>Modal</th><th>Ecer</th><th>Grosir</th><th>Stok</th><th style="text-align:center;">Aksi</th></tr></thead>
+                        <thead><tr><th>Nama Barang</th><th>Modal/Ecer/Grosir</th><th>Stok</th><th>Tgl Exp & Batas Retur</th><th style="text-align:center;">Aksi</th></tr></thead>
                         <tbody id="tabelAdmin"></tbody>
                     </table>
                 </div>
@@ -313,6 +325,7 @@
         const PIN_KASIR = "0000";
         window.onload = function() {
             document.getElementById('pinDisplayInput').focus();
+            cekNotifikasiExpiredOtomatis();
         }
         window.addEventListener('online', () => setStatusKoneksi(true));
         window.addEventListener('offline', () => setStatusKoneksi(false));
@@ -338,6 +351,7 @@
                     localStorage.setItem('local_produk', JSON.stringify(produkData));
                     if(modeSekarang === "kasir") renderProduk();
                     if(modeSekarang === "admin") renderAdminTable();
+                    cekNotifikasiExpiredOtomatis();
                 }
             });
             onValue(ref(db, 'pos_laporan'), (snapshot) => {
@@ -348,6 +362,54 @@
                 }
             });
         }
+
+        // Logika Pengecekan Expired & Kirim Notifikasi Telegram Otomatis (Retur 3 Bulan)
+        function cekNotifikasiExpiredOtomatis() {
+            const sekarang = new Date();
+            let adaBarangRetur = false;
+            let daftarBarangReturPesan = "";
+
+            produkData.forEach(p => {
+                if (!p.expDate) return;
+                const tExp = new Date(p.expDate);
+                // Batas retur adalah 3 bulan sebelum tanggal exp
+                let tBatasRetur = new Date(tExp);
+                tBatasRetur.setMonth(tBatasRetur.getMonth() - 3);
+
+                if (tExp <= sekarang) {
+                    // Sudah Kedaluwarsa
+                } else if (tBatasRetur <= sekarang) {
+                    adaBarangRetur = true;
+                    daftarBarangReturPesan += `• *${p.nama}* (Stok: ${p.stok} Pcs) - Exp: ${p.expDate}\n`;
+                }
+            });
+
+            if (adaBarangRetur) {
+                const kunciNotifKey = "notif_retur_sent_" + new Date().toISOString().slice(0, 10);
+                if (!localStorage.getItem(kunciNotifKey)) {
+                    kirimNotifikasiTelegramRetur(daftarBarangReturPesan);
+                    localStorage.setItem(kunciNotifKey, "true");
+                }
+            }
+        }
+
+        function kirimNotifikasiTelegramRetur(detailBarang) {
+            if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
+            const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+            const pesan = `⚠️ *PERINGATAN RETUR BAHAN KUE (3 BULAN)* ⚠️\n\n` +
+                          `Ada bahan kue yang sudah masuk masa jendela retur ke supplier:\n\n` +
+                          `${detailBarang}\n` +
+                          `• *Waktu Cek Sistem:* ${waktuWib} WIB\n\n` +
+                          `_Segera hubungi sales/supplier untuk proses retur._`;
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
+            }).catch(err => console.error("Gagal mengirim pesan Telegram Retur:", err));
+        }
+
         function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
             if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
             const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
@@ -355,9 +417,8 @@
                           `Ada percobaan akses masuk ilegal ke sistem!\n` +
                           `• *Lokasi Menu:* ${lokasiAkses}\n` +
                           `• *PIN yang Dimasukkan:* \`${pinInput}\` (SALAH)\n` +
-                          `• *Waktu Kejadian:* ${waktuWib} WIB\n` +
-                          `• *Titik Cabang:* Arjawinangun\n\n` +
-                          `_Mohon periksa kasir Anda segera jika aktivitas ini mencurigakan._`;
+                          `• *Waktu Kejadian:* ${waktuWib} WIB\n\n` +
+                          `_Mohon periksa kasir Anda segera._`;
 
             const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
             fetch(url, {
@@ -434,11 +495,8 @@
             const elBtnClear = document.getElementById('btnBersihkanCariKasir');
             const teks = elInput.value.toLowerCase();
             
-            if (teks.length > 0) {
-                elBtnClear.style.display = 'block';
-            } else {
-                elBtnClear.style.display = 'none';
-            }
+            if (teks.length > 0) elBtnClear.style.display = 'block';
+            else elBtnClear.style.display = 'none';
 
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
             renderProduk(filtered);
@@ -470,24 +528,18 @@
             });
             grid.innerHTML = htmlBuffer;
         }
-
         window.tambahKeKeranjang = function(id) {
             const p = produkData.find(item => item.id === id);
-            
-            const totalQtyDiKeranjang = keranjang
-                .filter(item => item.id === id)
-                .reduce((sum, item) => sum + item.qty, 0);
+            const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
             
             if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
             
             const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
-            
             if (itemEcer) {
                 itemEcer.qty += 1;
             } else {
                 keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
             }
-            
             updateKeranjang();
         }
         window.toggleTipeHargaKeranjang = function(index) {
@@ -504,7 +556,6 @@
             keranjang.forEach((item, index) => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
                 total += (harga * item.qty);
-                
                 const isGrosir = item.tipeHarga === 'grosir';
                 
                 htmlBuffer += `
@@ -514,12 +565,9 @@
                             <span style="color: ${isGrosir ? '#eab308' : '#60a5fa'};">${formatRupiah(harga * item.qty)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                            <div style="display: flex; gap: 4px; align-items: center;">
-                                <button type="button" class="toggle-harga-btn ${isGrosir ? 'active-grosir':'active-ecer'}" onclick="toggleTipeHargaKeranjang(${index})">
-                                    ${isGrosir ? '📦 Grosir' : '🛒 Ecer'}
-                                </button>
-                            </div>
-                            
+                            <button type="button" class="toggle-harga-btn ${isGrosir ? 'active-grosir':'active-ecer'}" onclick="toggleTipeHargaKeranjang(${index})">
+                                ${isGrosir ? '📦 Grosir' : '🛒 Ecer'}
+                            </button>
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                                 <div style="display: flex; align-items: center; gap: 2px;">
                                     <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
@@ -545,24 +593,18 @@
         }
         window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
-            const totalQtyLain = keranjang
-                .filter((it, idx) => it.id === item.id && idx !== index)
-                .reduce((sum, it) => sum + it.qty, 0);
-
+            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             const qtyBaru = item.qty + perubahan;
-            if (qtyBaru <= 0) { hapusItemKeranjang(index); } 
-            else if (qtyBaru + totalQtyLain > item.stok) { alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
+            if (qtyBaru <= 0) hapusItemKeranjang(index);
+            else if (qtyBaru + totalQtyLain > item.stok) alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`);
             else { item.qty = qtyBaru; updateKeranjang(); }
         }
         window.ubahQtyManual = function(index, nilai) {
             const item = keranjang[index];
-            const totalQtyLain = keranjang
-                .filter((it, idx) => it.id === item.id && idx !== index)
-                .reduce((sum, it) => sum + it.qty, 0);
-
+            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             let qtyInput = parseInt(nilai) || 1;
-            if (qtyInput <= 0) { hapusItemKeranjang(index); } 
-            else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
+            if (qtyInput <= 0) hapusItemKeranjang(index);
+            else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas!`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
             else { item.qty = qtyInput; updateKeranjang(); }
         }
 
@@ -580,7 +622,6 @@
         function renderTombolUangCepat(total) {
             const container = document.getElementById('containerUangCepat');
             if (total <= 0) { container.innerHTML = ''; return; }
-
             let opsi = [];
             opsi.push({ teks: "Uang Pas", nilai: total, kelas: "btn-uang-pas" });
             let bulatAtas = Math.ceil(total / 10000) * 10000;
@@ -623,11 +664,9 @@
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             const namaPelanggan = document.getElementById('namaPelanggan').value.trim();
 
-            // Peringatan jika pembayaran kurang
             if (bayar < total) {
                 const sisaKurang = total - bayar;
-                const konfirmasi = confirm(`⚠️ PEMBAYARAN KURANG!\n\nUang Diterima: ${formatRupiah(bayar)}\nTotal Belanja: ${formatRupiah(total)}\nKekurangan: ${formatRupiah(sisaKurang)}\n\nApakah Anda tetap ingin memproses transaksi dan mencetak nota?`);
-                if (!konfirmasi) return;
+                if (!confirm(`⚠️ PEMBAYARAN KURANG!\n\nKekurangan: ${formatRupiah(sisaKurang)}\nTetap proses?`)) return;
             }
 
             const nomorNota = "MK-" + Date.now().toString().slice(-6);
@@ -650,16 +689,8 @@
             const kurangBayar = bayar < total ? (total - bayar) : 0;
 
             const notaBaru = { 
-                idNota: nomorNota, 
-                waktu, 
-                namaPelanggan: namaPelanggan || "",
-                items: itemsLaporan, 
-                totalOmset: total, 
-                totalModal, 
-                refunded: false,
-                nominalBayar: bayar,
-                nominalKembali: kembalian,
-                nominalKurang: kurangBayar
+                idNota: nomorNota, waktu, namaPelanggan: namaPelanggan || "", items: itemsLaporan, 
+                totalOmset: total, totalModal, refunded: false, nominalBayar: bayar, nominalKembali: kembalian, nominalKurang: kurangBayar
             };
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -687,16 +718,15 @@
             renderProduk();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
         }
+        
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
             const areaStruk = document.getElementById('areaStruk');
             areaStruk.style.display = "block"; 
-
             document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota;
 
-            // Tampilkan Nama Pelanggan Jika Ada
             const elPelanggan = document.getElementById('strukPelanggan');
             if (nota.namaPelanggan && nota.namaPelanggan.trim() !== "") {
                 elPelanggan.innerText = "Pelanggan: " + nota.namaPelanggan;
@@ -710,7 +740,6 @@
             
             const itemDiv = document.getElementById('strukItem');
             let itemHtml = '';
-            
             nota.items.forEach(it => {
                 const labelTipe = it.tipeHarga === 'grosir' ? '(G)' : '(E)';
                 itemHtml += `<div style="display:flex; justify-content:space-between;"><span>${it.nama} ${labelTipe} (x${it.qty})</span><span>${formatRupiah(it.subJual)}</span></div>`;
@@ -739,26 +768,17 @@
             }
             
             window.print();
-            
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
         }
-
-        // Fitur Melunasi Transaksi Kurang Bayar
         window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
-
-            const konfirmasi = confirm(`Pelunasan untuk Nota ${idNota}\nSisa Kurang: ${formatRupiah(nota.nominalKurang)}\n\nApakah transaksi ini sudah dibayar lunas?`);
-            if (!konfirmasi) return;
+            if (!confirm(`Pelunasan untuk Nota ${idNota}\nSisa Kurang: ${formatRupiah(nota.nominalKurang)}`)) return;
 
             nota.nominalBayar += nota.nominalKurang;
             nota.nominalKurang = 0;
-
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
-
-            if (isOnline) {
-                set(ref(db, 'pos_laporan/' + idNota), nota);
-            }
+            if (isOnline) set(ref(db, 'pos_laporan/' + idNota), nota);
 
             alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
             hitungLaporanDashboard();
@@ -785,30 +805,24 @@
                     if(master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
                 });
             }
-
             hitungLaporanDashboard();
             renderAdminTable();
         }
+
         window.refundItemSpesifik = function(idNota, indexItem) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota) return;
-
             const item = nota.items[indexItem];
             if (!item || item.refunded) return;
 
-            if (!confirm(`Refund barang "${item.nama}" (${item.qty} Pcs) dari nota ${idNota}?`)) return;
-
+            if (!confirm(`Refund barang "${item.nama}" (${item.qty} Pcs)?`)) return;
             item.refunded = true;
-
             nota.totalOmset -= item.subJual;
             nota.totalModal -= item.subModal;
 
             const master = produkData.find(p => p.id === item.barangId);
             if (master) master.stok += item.qty;
-
-            if (nota.items.every(i => i.refunded)) {
-                nota.refunded = true;
-            }
+            if (nota.items.every(i => i.refunded)) nota.refunded = true;
 
             localStorage.setItem('local_produk', JSON.stringify(produkData));
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -817,7 +831,6 @@
                 set(ref(db, 'pos_laporan/' + idNota), nota);
                 if (master) set(ref(db, 'pos_produk/' + item.barangId + '/stok'), master.stok);
             }
-
             hitungLaporanDashboard();
             renderAdminTable();
         }
@@ -835,20 +848,46 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
+
+        // Render Tabel Admin Diperbarui dengan Informasi Expired Date & Jendela Retur 3 Bulan
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
             let htmlBuffer = '';
+            const sekarang = new Date();
             
             produkData.forEach(p => {
                 if (kataKunci && !p.nama.toLowerCase().includes(kataKunci)) return;
 
+                let badgeExpHTML = '<span style="color:#9ca3af; font-size:10px;">Tidak ada data</span>';
+                if (p.expDate) {
+                    const tExp = new Date(p.expDate);
+                    let tBatasRetur = new Date(tExp);
+                    tBatasRetur.setMonth(tBatasRetur.getMonth() - 3); // Kurang 3 bulan aturan retur
+
+                    const formatTgl Indo = (dObj) => dObj.toLocaleDateString("id-ID", {day: '2-digit', month: 'short', year: 'numeric'});
+
+                    if (tExp <= sekarang) {
+                        badgeExpHTML = `<span class="badge-exp-expired">❌ Expired: ${formatTgl(tExp)}</span>`;
+                    } else if (tBatasRetur <= sekarang) {
+                        badgeExpHTML = `<span class="badge-exp-retur">⚠️ Jendela Retur!<br>Exp: ${formatTgl(tExp)}</span>`;
+                    } else {
+                        badgeExpHTML = `<span class="badge-exp-aman">✓ Aman (Retur: ${formatTgl(tBatasRetur)})</span>`;
+                    }
+                }
+
                 htmlBuffer += `<tr>
-                    <td>${p.nama}</td>
-                    <td>${formatRupiah(p.hpp)}</td>
-                    <td>${formatRupiah(p.hargaEcer)}</td>
-                    <td>${formatRupiah(p.hargaGrosir || 0)}</td>
-                    <td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}">${p.stok}</td>
+                    <td><strong>${p.nama}</strong></td>
+                    <td style="font-size: 11px;">
+                        Modal: ${formatRupiah(p.hpp)}<br>
+                        Ecer: ${formatRupiah(p.hargaEcer)}<br>
+                        Grosir: ${formatRupiah(p.hargaGrosir || 0)}
+                    </td>
+                    <td class="${p.stok <= 0 ? 'stok-habis':'stok-aman'}"><strong>${p.stok}</strong></td>
+                    <td>
+                        <div style="font-size:11px;">${p.expDate || '-'}</div>
+                        <div style="margin-top:2px;">${badgeExpHTML}</div>
+                    </td>
                     <td style="text-align:center;">
                         <div style="display:flex; gap:4px; justify-content:center;">
                             <button onclick="pemicuEditBarang(${p.id})" style="background:#2563eb; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">✏️ Edit</button>
@@ -860,15 +899,12 @@
             tbody.innerHTML = htmlBuffer;
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
+
         window.hapusProduk = function(id, nama) {
             if (!confirm(`Yakin ingin menghapus item "${nama}" dari inventori?`)) return;
-
             produkData = produkData.filter(p => p.id !== id);
             localStorage.setItem('local_produk', JSON.stringify(produkData));
-
-            if (isOnline) {
-                set(ref(db, 'pos_produk/' + id), null);
-            }
+            if (isOnline) set(ref(db, 'pos_produk/' + id), null);
 
             renderAdminTable();
             if (modeSekarang === "kasir") renderProduk();
@@ -884,44 +920,34 @@
             document.getElementById('inputStok').value = p.stok;
             document.getElementById('inputHargaEcer').value = p.hargaEcer;
             document.getElementById('inputHargaGrosir').value = p.hargaGrosir || 0;
+            document.getElementById('inputExpDate').value = p.expDate || '';
 
             document.getElementById('judulFormAdmin').innerText = "✏️ Edit Data Barang: " + p.nama;
             document.getElementById('judulFormAdmin').style.color = "#60a5fa";
             document.getElementById('btnSimpanAdmin').innerText = "Perbarui Barang";
             document.getElementById('btnSimpanAdmin').style.backgroundColor = "#2563eb";
-
             document.getElementById('formProduk').scrollIntoView({ behavior: 'smooth' });
         }
 
         window.resetSemuaLaporanTransaksi = function() {
-            const konfirmasi1 = confirm("⚠️ PERINGATAN CRITICAL!\n\nApakah Anda yakin ingin MENGHAPUS SEMUA riwayat transaksi secara permanen? Tindakan ini tidak dapat dibatalkan.");
-            if (!konfirmasi1) return;
-
-            const konfirmasi2 = prompt("🔑 KONFIRMASI KEAMANAN:\nSilakan ketik kata 'HAPUS' untuk membersihkan seluruh data laporan:");
-            if (konfirmasi2 !== "HAPUS") {
-                alert("❌ Pembatalan: Kata kunci salah. Data Anda aman.");
-                return;
-            }
+            if (!confirm("⚠️ PERINGATAN! Yakin ingin menghapus semua riwayat transaksi?")) return;
+            const konfirmasi2 = prompt("Ketik kata 'HAPUS' untuk konfirmasi:");
+            if (konfirmasi2 !== "HAPUS") return alert("Dibatalkan.");
 
             laporanTerjual = [];
             localStorage.setItem('local_laporan', JSON.stringify([]));
             localStorage.removeItem('antrean_offline');
-
             if (isOnline) {
-                set(ref(db, 'pos_laporan'), null)
-                    .then(() => {
-                        alert("✅ Sukses! Seluruh data laporan transaksi di Firebase dan Lokal berhasil dibersihkan.");
-                        hitungLaporanDashboard();
-                    })
-                    .catch((err) => {
-                        alert("⚠️ Laporan lokal terhapus, namun gagal membersihkan Firebase: " + err.message);
-                        hitungLaporanDashboard();
-                    });
+                set(ref(db, 'pos_laporan'), null).then(() => {
+                    alert("✅ Seluruh laporan berhasil dibersihkan.");
+                    hitungLaporanDashboard();
+                });
             } else {
-                alert("✅ Sukses! Data laporan lokal telah dibersihkan. (Data cloud Firebase perlu dibersihkan manual saat online).");
+                alert("✅ Laporan lokal dibersihkan.");
                 hitungLaporanDashboard();
             }
         }
+
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const selectFilter = document.getElementById('filterTanggal');
@@ -929,20 +955,13 @@
             const inputDate = document.getElementById('filterTanggalSpesifik');
             const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
             
-            if (filter === "pilih_tanggal") {
-                inputDate.classList.remove('hidden');
-            } else {
-                inputDate.classList.add('hidden');
-            }
+            if (filter === "pilih_tanggal") inputDate.classList.remove('hidden');
+            else inputDate.classList.add('hidden');
 
             const tbody = document.getElementById('tabelLogTransaksi');
-            
             let kamusKuantitasBarang = {}; 
             const sekarang = new Date();
-            
-            const dapatkanTanggalLokalString = (objekTanggal) => {
-                return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
-            };
+            const dapatkanTanggalLokalString = (objekTanggal) => objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
             const hariIniString = dapatkanTanggalLokalString(sekarang);
             const objekKemarin = new Date();
@@ -950,35 +969,29 @@
             const kemarinString = dapatkanTanggalLokalString(objekKemarin);
 
             let laporanDiurutkan = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
-
             let htmlBuffer = '';
 
             laporanDiurutkan.forEach(nota => {
                 const tNota = new Date(nota.waktu);
                 const tanggalNotaString = dapatkanTanggalLokalString(tNota);
-                
                 const opsiTanggalLokal = tNota.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta", day: '2-digit', month: '2-digit', year: 'numeric' });
                 const opsiJamLokal = tNota.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: '2-digit', minute:'2-digit' }).replace('.', ':');
                 const teksWaktuTampil = `${opsiTanggalLokal} <br><span style="color:#9ca3af; font-size:11px;">${opsiJamLokal} WIB</span>`;
                 const teksTanggalLengkap = opsiTanggalLokal + " " + opsiJamLokal; 
 
                 let lolosFilter = false;
-
                 const date1 = new Date(hariIniString);
                 const date2 = new Date(tanggalNotaString);
                 const selisihHari = Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
 
-                if (filter === "semua") { lolosFilter = true; } 
-                else if (filter === "hari") { if (tanggalNotaString === hariIniString) lolosFilter = true; } 
-                else if (filter === "kemarin") { if (tanggalNotaString === kemarinString) lolosFilter = true; } 
-                else if (filter === "minggu_ini") { if (selisihHari >= 0 && selisihHari <= 7) lolosFilter = true; } 
-                else if (filter === "minggu_kemarin") { if (selisihHari > 7 && selisihHari <= 14) lolosFilter = true; } 
-                else if (filter === "tahun_ini") { if (tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true; } 
-                else if (filter === "tahun_kemarin") { if (tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true; }
-                else if (filter === "pilih_tanggal") {
-                    const tanggalPilihan = inputDate.value;
-                    if (tanggalPilihan && tanggalNotaString === tanggalPilihan) lolosFilter = true;
-                }
+                if (filter === "semua") lolosFilter = true; 
+                else if (filter === "hari" && tanggalNotaString === hariIniString) lolosFilter = true;
+                else if (filter === "kemarin" && tanggalNotaString === kemarinString) lolosFilter = true;
+                else if (filter === "minggu_ini" && selisihHari >= 0 && selisihHari <= 7) lolosFilter = true;
+                else if (filter === "minggu_kemarin" && selisihHari > 7 && selisihHari <= 14) lolosFilter = true;
+                else if (filter === "tahun_ini" && tNota.getFullYear() === sekarang.getFullYear()) lolosFilter = true;
+                else if (filter === "tahun_kemarin" && tNota.getFullYear() === (sekarang.getFullYear() - 1)) lolosFilter = true;
+                else if (filter === "pilih_tanggal" && inputDate.value && tanggalNotaString === inputDate.value) lolosFilter = true;
 
                 if (!lolosFilter) return;
 
@@ -999,10 +1012,7 @@
                 nota.items.forEach((it, idx) => { 
                     const tipeLabel = it.tipeHarga === 'grosir' ? ' [G]' : '';
                     const isItemRefunded = it.refunded || nota.refunded;
-
-                    if(!isItemRefunded) {
-                        kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty;
-                    }
+                    if(!isItemRefunded) kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty;
 
                     teksRincianItem += `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; ${isItemRefunded ? 'text-decoration:line-through; opacity:0.5;' : ''}">
@@ -1020,10 +1030,8 @@
                         <td>
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
                             ${nota.namaPelanggan ? `<span style="font-size:11px; color:#eab308; display:block;">👤 ${nota.namaPelanggan}</span>` : ''}
-                            
                             ${isKurangBayar ? `<span class="badge-status badge-kurang">⚠️ Kurang: ${formatRupiah(nota.nominalKurang)}</span>` : ''}
                             ${(!isKurangBayar && !semuadirerefund && nota.nominalBayar) ? `<span class="badge-status badge-lunas">✓ LUNAS</span>` : ''}
-
                             <div class="detail-nota-text" style="width:100%;">${teksRincianItem}</div>
                         </td>
                         <td>${teksWaktuTampil}</td>
@@ -1031,9 +1039,7 @@
                         <td>
                             <div style="display:flex; flex-direction:column; gap:4px;">
                                 <button onclick="cetakStrukUlangLokal('${nota.idNota}')" style="background:#1e3a8a; color:#60a5fa; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🖨️ Cetak</button>
-                                
                                 ${isKurangBayar ? `<button onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:#a7f3d0; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>` : ''}
-
                                 ${semuadirerefund ? '<span style="color:#f87171; font-size:11px;">Refund Total</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px;">Refund Semua</button>`}
                             </div>
                         </td>
@@ -1057,26 +1063,19 @@
             }
             containerRangkuman.innerHTML = rangkumanHtml;
         }
+
         window.simpanProduk = function(event) {
             event.preventDefault(); 
-
             const idEdit = document.getElementById('editId').value;
             const nama = document.getElementById('inputNama').value;
             const hpp = parseFloat(document.getElementById('inputHpp').value) || 0;
             const stok = parseInt(document.getElementById('inputStok').value) || 0;
             const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
             const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
+            const expDate = document.getElementById('inputExpDate').value;
 
             const idProduk = idEdit ? parseInt(idEdit) : Date.now();
-
-            const produkBaru = {
-                id: idProduk,
-                nama,
-                hpp,
-                stok,
-                hargaEcer,
-                hargaGrosir
-            };
+            const produkBaru = { id: idProduk, nama, hpp, stok, hargaEcer, hargaGrosir, expDate };
 
             if (idEdit) {
                 const index = produkData.findIndex(p => p.id === parseInt(idEdit));
@@ -1089,19 +1088,16 @@
             localStorage.setItem('local_produk', JSON.stringify(produkData));
 
             if (isOnline) {
-                set(ref(db, 'pos_produk/' + idProduk), produkBaru)
-                    .then(() => {
-                        alert("✅ Barang berhasil disimpan ke Cloud!");
-                    })
-                    .catch(err => {
-                        console.error("Gagal simpan ke Firebase:", err);
-                    });
+                set(ref(db, 'pos_produk/' + idProduk), produkBaru).then(() => {
+                    alert("✅ Barang & Tanggal Exp berhasil disimpan ke Cloud!");
+                });
             } else {
-                alert("💾 Barang disimpan lokal (Offline). Akan disinkronkan saat online.");
+                alert("💾 Barang disimpan lokal (Offline).");
             }
 
             resetFormAdmin();
             renderAdminTable();
+            cekNotifikasiExpiredOtomatis();
         }
 
         window.resetFormAdmin = function() {
