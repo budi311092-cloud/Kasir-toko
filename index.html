@@ -101,28 +101,29 @@
     </header>
 
     <div id="areaLoginPin" class="pin-screen-container">
-        <div class="pin-card">
-            <div class="pin-title">MAHAKARYA POS</div>
-            <div class="pin-subtitle">Silakan masukkan PIN Akses Anda</div>
-            
-            <input type="password" id="pinDisplayInput" class="pin-display" placeholder="Masukkan PIN" maxlength="4" inputmode="numeric" oninput="batasiDanCekPin()">
-            
-            <div class="pin-grid">
-                <button class="pin-btn" onclick="tekanPin('1')">1</button>
-                <button class="pin-btn" onclick="tekanPin('2')">2</button>
-                <button class="pin-btn" onclick="tekanPin('3')">3</button>
-                <button class="pin-btn" onclick="tekanPin('4')">4</button>
-                <button class="pin-btn" onclick="tekanPin('5')">5</button>
-                <button class="pin-btn" onclick="tekanPin('6')">6</button>
-                <button class="pin-btn" onclick="tekanPin('7')">7</button>
-                <button class="pin-btn" onclick="tekanPin('8')">8</button>
-                <button class="pin-btn" onclick="tekanPin('9')">9</button>
-                <div></div>
-                <button class="pin-btn" onclick="tekanPin('0')">0</button>
-                <button class="pin-btn masuk" onclick="verifikasiPin()">Masuk</button>
-            </div>
+    <div class="pin-card">
+        <div class="pin-title">MAHAKARYA POS</div>
+        <div class="pin-subtitle">Silakan masukkan PIN Akses Anda</div>
+        
+        <input type="password" id="pinDisplayInput" class="pin-display" placeholder="Masukkan PIN" maxlength="4" inputmode="numeric" oninput="batasiDanCekPin()">
+        
+        <div class="pin-grid">
+            <button class="pin-btn" onclick="tekanPin('1')">1</button>
+            <button class="pin-btn" onclick="tekanPin('2')">2</button>
+            <button class="pin-btn" onclick="tekanPin('3')">3</button>
+            <button class="pin-btn" onclick="tekanPin('4')">4</button>
+            <button class="pin-btn" onclick="tekanPin('5')">5</button>
+            <button class="pin-btn" onclick="tekanPin('6')">6</button>
+            <button class="pin-btn" onclick="tekanPin('7')">7</button>
+            <button class="pin-btn" onclick="tekanPin('8')">8</button>
+            <button class="pin-btn" onclick="tekanPin('9')">9</button>
+            <div></div>
+            <button class="pin-btn" onclick="tekanPin('0')">0</button>
+            <!-- PERBAIKAN UTAMA ADA PADA BARIS DI BAWAH INI -->
+            <button class="pin-btn masuk" onclick="verifikasiPin()">Masuk</button>
         </div>
     </div>
+</div>
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
