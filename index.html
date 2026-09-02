@@ -1255,6 +1255,8 @@ window.renderTabelExpired = function() {
         return;
     }
     
+    let daftarReturTelegram = []; // Menampung barang yang perlu diretur untuk dikirim ke Telegram
+    
     filtered.forEach(item => {
         let statusBadge = '';
         let rowStyle = '';
@@ -1262,8 +1264,10 @@ window.renderTabelExpired = function() {
         if (item.tanggalExp <= hariIni) {
             statusBadge = `<span style="background:#7f1d1d; color:#f87171; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">KEDALUWARSA</span>`;
             rowStyle = 'opacity: 0.6;';
+            daftarReturTelegram.push(`• *${item.nama}* (Stok: ${item.jumlah} Pcs) - ❌ *SUDAH KEDALUWARSA* (Exp: ${item.tanggalExp})`);
         } else if (item.batasRetur <= hariIni) {
             statusBadge = `<span style="background:#eab308; color:#111827; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">⚠️ JENDELA RETUR</span>`;
+            daftarReturTelegram.push(`• *${item.nama}* (Stok: ${item.jumlah} Pcs) - ⚠️ *MASUK JENDELA RETUR* (Batas: ${item.batasRetur})`);
         } else {
             statusBadge = `<span style="background:#064e3b; color:#34d399; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AMAN</span>`;
         }
@@ -1286,6 +1290,31 @@ window.renderTabelExpired = function() {
     });
     
     tbody.innerHTML = html;
+
+    // Trigger kirim notifikasi Telegram otomatis jika ada barang masuk masa retur/expired (Dibatasi 1x per sesi buka admin)
+    if (daftarReturTelegram.length > 0 && !window.sudahKirimNotifTelegram) {
+        window.sudahKirimNotifTelegram = true;
+        kirimNotifikasiReturTelegram(daftarReturTelegram);
+    }
+}
+
+// Fungsi pendukung untuk mengirim pesan Telegram khusus barang retur/expired
+function kirimNotifikasiReturTelegram(arrayBarang) {
+    if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
+    
+    const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+    const pesan = `📦 *PERINGATAN RETUR & EXPIRED BAHAN KUE* 📦\n\n` +
+                  `Sistem mendeteksi ada bahan kue yang sudah masuk batas retur 3 bulan atau kedaluwarsa:\n\n` +
+                  arrayBarang.join("\n") + `\n\n` +
+                  `🕒 *Waktu Cek:* ${waktuWib} WIB\n` +
+                  `_Segera hubungi supplier atau pisahkan barang dari rak toko._`;
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+    fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
+    }).catch(err => console.error("Gagal mengirim notifikasi retur Telegram:", err));
 }
 
 window.editDataExpired = function(id) {
