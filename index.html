@@ -88,7 +88,7 @@
     </style>
 </head>
 <body>
-   <header id="mainHeader" class="hidden">
+    <header id="mainHeader" class="hidden">
         <div style="display: flex; align-items: center;">
             <h1 id="headerTitle" style="font-size: 16px; font-weight: bold; margin-right: 15px;">MAHAKARYA POS v8.4.5 🌐</h1>
             <span id="labelKoneksi" class="status-koneksi online-bg">🟢 ONLINE</span>
@@ -119,7 +119,8 @@
             </div>
         </div>
     </div>
-        <div id="areaKasir" class="main-container hidden">
+    
+    <div id="areaKasir" class="main-container hidden">
         <div class="card">
             <!-- TAMBAHAN: Daftar Kurang Bayar Kasir -->
             <div id="containerKurangBayarKasir" style="display: none; margin-bottom: 15px; padding: 10px; background: #7f1d1d; border-radius: 8px; border: 1px solid #dc2626;">
@@ -138,7 +139,6 @@
                     <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 30px 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
                     <button id="btnBersihkanCariKasir" onclick="bersihkanPencarianKasir()" style="position: absolute; right: 6px; background: none; border: none; color: #9ca3af; font-size: 14px; cursor: pointer; display: none; font-weight: bold;">✕</button>
                 </div>
-
             </div>
             <div id="gridProduk" class="grid-produk"></div>
         </div>
@@ -183,7 +183,8 @@
             </div>
         </div>
     </div>
-          <div id="areaAdmin" class="admin-layout hidden">
+    
+     <div id="areaAdmin" class="admin-layout hidden">
         <!-- TAMBAHAN: Toggle PIN Admin -->
         <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-bottom: -10px;">
             <label class="container-checkbox" style="background: #1f2937; border-color: #374151; padding: 8px 12px;">
@@ -193,7 +194,7 @@
         </div>
         
         <div class="card" style="height: fit-content;">
-           <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
+            <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
                 <input type="hidden" id="editId">
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
@@ -223,7 +224,7 @@
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
-<!-- TAMBAHAN SISTEM KONTROL EXPIRED & RETUR -->
+            <!-- TAMBAHAN SISTEM KONTROL EXPIRED & RETUR -->
 <div class="card" style="margin-top: 20px; border-color: #3b82f6;">
     <h3 style="font-size: 14px; font-weight: bold; color: #60a5fa; margin-bottom: 10px;">⏳ Kontrol Expired & Retur (3 Bulan)</h3>
     <form id="formExpired" onsubmit="simpanDataExpired(event)">
@@ -337,6 +338,7 @@
             </div>
         </div>
     </div>
+    
     <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA</h2>
@@ -375,7 +377,7 @@
         let produkData = JSON.parse(localStorage.getItem('local_produk')) || [];
         let laporanTerjual = JSON.parse(localStorage.getItem('local_laporan')) || [];
         let antreanOffline = JSON.parse(localStorage.getItem('antrean_offline')) || [];
-                let keranjang = [];
+        let keranjang = [];
         let modeSekarang = "login";
         let isOnline = navigator.onLine;
         
@@ -384,6 +386,7 @@
 
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
+        
         window.onload = function() {
             document.getElementById('pinDisplayInput').focus();
             const cbPin = document.getElementById('togglePinAdmin');
@@ -421,7 +424,7 @@
                     if(modeSekarang === "admin") renderAdminTable();
                 }
             });
-                        onValue(ref(db, 'pos_laporan'), (snapshot) => {
+            onValue(ref(db, 'pos_laporan'), (snapshot) => {
                 if (snapshot.exists()) {
                     laporanTerjual = Object.values(snapshot.val());
                     localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -429,9 +432,8 @@
                     if(modeSekarang === "kasir" && typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
                 }
             });
-
-            });
         }
+        
         function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
             if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
             const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
@@ -479,7 +481,8 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-                window.bukaMenuUtama = function(role) {
+        
+        window.bukaMenuUtama = function(role) {
             if (role === "admin" && modeSekarang !== "admin" && wajibPinAdmin) {
                 const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
                 if (konfirmasiPin !== PIN_ADMIN) {
@@ -494,16 +497,15 @@
             document.getElementById('mainHeader').classList.remove('hidden');
             setStatusKoneksi(navigator.onLine);
 
-                        if (role === "kasir") {
+            if (role === "kasir") {
                 document.getElementById('areaKasir').classList.remove('hidden');
                 document.getElementById('areaAdmin').classList.add('hidden');
                 document.getElementById('btnMode').innerText = "🛠️ Admin";
                 document.getElementById('btnMode').onclick = () => bukaMenuUtama('admin');
                 renderProduk();
-                renderKasirKurangBayar();
+                if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
                 perbaruiInfoAntrean();
             } else {
-
                 document.getElementById('areaKasir').classList.add('hidden');
                 document.getElementById('areaAdmin').classList.remove('hidden');
                 document.getElementById('btnMode').innerText = "🛒 Kasir";
@@ -521,15 +523,11 @@
             const elBtnClear = document.getElementById('btnBersihkanCariKasir');
             const teks = elInput.value.toLowerCase();
             
-            if (teks.length > 0) {
-                elBtnClear.style.display = 'block';
-            } else {
-                elBtnClear.style.display = 'none';
-            }
-
+            if (teks.length > 0) { elBtnClear.style.display = 'block'; } else { elBtnClear.style.display = 'none'; }
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
             renderProduk(filtered);
         }
+        
         window.bersihkanPencarianKasir = function() {
             const elInput = document.getElementById('cariProduk');
             elInput.value = '';
@@ -560,23 +558,16 @@
 
         window.tambahKeKeranjang = function(id) {
             const p = produkData.find(item => item.id === id);
-            
-            const totalQtyDiKeranjang = keranjang
-                .filter(item => item.id === id)
-                .reduce((sum, item) => sum + item.qty, 0);
+            const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
             
             if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
             
             const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
-            
-            if (itemEcer) {
-                itemEcer.qty += 1;
-            } else {
-                keranjang.push({...p, qty: 1, tipeHarga: 'ecer'});
-            }
+            if (itemEcer) { itemEcer.qty += 1; } else { keranjang.push({...p, qty: 1, tipeHarga: 'ecer'}); }
             
             updateKeranjang();
         }
+        
         window.toggleTipeHargaKeranjang = function(index) {
             const item = keranjang[index];
             item.tipeHarga = item.tipeHarga === 'ecer' ? 'grosir' : 'ecer';
@@ -585,13 +576,11 @@
 
         window.updateKeranjang = function() {
             const list = document.getElementById('listKeranjang');
-            let total = 0;
-            let htmlBuffer = '';
+            let total = 0; let htmlBuffer = '';
             
             keranjang.forEach((item, index) => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
                 total += (harga * item.qty);
-                
                 const isGrosir = item.tipeHarga === 'grosir';
                 
                 htmlBuffer += `
@@ -630,24 +619,22 @@
             renderTombolUangCepat(total);
             hitungKembalian();
         }
+        
         window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
-            const totalQtyLain = keranjang
-                .filter((it, idx) => it.id === item.id && idx !== index)
-                .reduce((sum, it) => sum + it.qty, 0);
-
+            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             const qtyBaru = item.qty + perubahan;
+            
             if (qtyBaru <= 0) { hapusItemKeranjang(index); } 
             else if (qtyBaru + totalQtyLain > item.stok) { alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
             else { item.qty = qtyBaru; updateKeranjang(); }
         }
+        
         window.ubahQtyManual = function(index, nilai) {
             const item = keranjang[index];
-            const totalQtyLain = keranjang
-                .filter((it, idx) => it.id === item.id && idx !== index)
-                .reduce((sum, it) => sum + it.qty, 0);
-
+            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             let qtyInput = parseInt(nilai) || 1;
+            
             if (qtyInput <= 0) { hapusItemKeranjang(index); } 
             else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
             else { item.qty = qtyInput; updateKeranjang(); }
@@ -681,6 +668,7 @@
             });
             container.innerHTML = htmlBuffer;
         }
+        
         window.pilihUangCepat = function(nilai) {
             document.getElementById('uangDiterima').value = nilai;
             hitungKembalian();
@@ -703,14 +691,12 @@
                 elUang.style.color = "#34d399";
             }
         }
-
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
             const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
             const namaPelanggan = document.getElementById('namaPelanggan').value.trim();
 
-            // Peringatan jika pembayaran kurang
             if (bayar < total) {
                 const sisaKurang = total - bayar;
                 const konfirmasi = confirm(`⚠️ PEMBAYARAN KURANG!\n\nUang Diterima: ${formatRupiah(bayar)}\nTotal Belanja: ${formatRupiah(total)}\nKekurangan: ${formatRupiah(sisaKurang)}\n\nApakah Anda tetap ingin memproses transaksi dan mencetak nota?`);
@@ -719,8 +705,7 @@
 
             const nomorNota = "MK-" + Date.now().toString().slice(-6);
             const waktu = new Date().toISOString();
-            let itemsLaporan = [];
-            let totalModal = 0;
+            let itemsLaporan = []; let totalModal = 0;
 
             keranjang.forEach(item => {
                 const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
@@ -737,16 +722,9 @@
             const kurangBayar = bayar < total ? (total - bayar) : 0;
 
             const notaBaru = { 
-                idNota: nomorNota, 
-                waktu, 
-                namaPelanggan: namaPelanggan || "",
-                items: itemsLaporan, 
-                totalOmset: total, 
-                totalModal, 
-                refunded: false,
-                nominalBayar: bayar,
-                nominalKembali: kembalian,
-                nominalKurang: kurangBayar
+                idNota: nomorNota, waktu, namaPelanggan: namaPelanggan || "",
+                items: itemsLaporan, totalOmset: total, totalModal, refunded: false,
+                nominalBayar: bayar, nominalKembali: kembalian, nominalKurang: kurangBayar
             };
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -763,19 +741,17 @@
                 perbaruiInfoAntrean();
             }
 
-            if(document.getElementById('allowPrint').checked) {
-                setTimeout(() => { cetakStrukUlangLokal(nomorNota); }, 300);
-            }
+            if(document.getElementById('allowPrint').checked) { setTimeout(() => { cetakStrukUlangLokal(nomorNota); }, 300); }
 
             keranjang = [];
             document.getElementById('uangDiterima').value = '';
             document.getElementById('namaPelanggan').value = '';
-                        updateKeranjang();
+            updateKeranjang();
             renderProduk();
-            renderKasirKurangBayar();
+            if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
         }
-
+        
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
@@ -785,7 +761,6 @@
 
             document.getElementById('strukIdNota').innerText = "NOTA: " + nota.idNota;
 
-            // Tampilkan Nama Pelanggan Jika Ada
             const elPelanggan = document.getElementById('strukPelanggan');
             if (nota.namaPelanggan && nota.namaPelanggan.trim() !== "") {
                 elPelanggan.innerText = "Pelanggan: " + nota.namaPelanggan;
@@ -828,12 +803,10 @@
             }
             
             window.print();
-            
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
         }
 
-        // Fitur Melunasi Transaksi Kurang Bayar
-               // TAMBAHAN: Render Kurang Bayar di Menu Kasir
+        // TAMBAHAN: Render Kurang Bayar di Menu Kasir
         window.renderKasirKurangBayar = function() {
             const container = document.getElementById('containerKurangBayarKasir');
             const tbody = document.getElementById('tabelKasirKurangBayar');
@@ -869,8 +842,8 @@
             });
             tbody.innerHTML = html;
         }
-
-                    window.lunasiTransaksi = function(idNota) {
+        // Fitur Melunasi Transaksi Kurang Bayar
+        window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
 
@@ -886,11 +859,10 @@
                 set(ref(db, 'pos_laporan/' + idNota), nota);
             }
 
-                        alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
+            alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
             hitungLaporanDashboard();
-            renderKasirKurangBayar();
+            if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
         }
-
 
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
@@ -917,6 +889,7 @@
             hitungLaporanDashboard();
             renderAdminTable();
         }
+        
         window.refundItemSpesifik = function(idNota, indexItem) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota) return;
@@ -927,16 +900,13 @@
             if (!confirm(`Refund barang "${item.nama}" (${item.qty} Pcs) dari nota ${idNota}?`)) return;
 
             item.refunded = true;
-
             nota.totalOmset -= item.subJual;
             nota.totalModal -= item.subModal;
 
             const master = produkData.find(p => p.id === item.barangId);
             if (master) master.stok += item.qty;
 
-            if (nota.items.every(i => i.refunded)) {
-                nota.refunded = true;
-            }
+            if (nota.items.every(i => i.refunded)) { nota.refunded = true; }
 
             localStorage.setItem('local_produk', JSON.stringify(produkData));
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
@@ -963,6 +933,7 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
+        
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -988,16 +959,14 @@
             tbody.innerHTML = htmlBuffer;
             document.getElementById('totalAsetToko').innerText = formatRupiah(produkData.reduce((acc, p) => acc + (p.hpp * p.stok), 0));
         }
+        
         window.hapusProduk = function(id, nama) {
             if (!confirm(`Yakin ingin menghapus item "${nama}" dari inventori?`)) return;
 
             produkData = produkData.filter(p => p.id !== id);
             localStorage.setItem('local_produk', JSON.stringify(produkData));
 
-            if (isOnline) {
-                set(ref(db, 'pos_produk/' + id), null);
-            }
-
+            if (isOnline) { set(ref(db, 'pos_produk/' + id), null); }
             renderAdminTable();
             if (modeSekarang === "kasir") renderProduk();
         }
@@ -1026,10 +995,7 @@
             if (!konfirmasi1) return;
 
             const konfirmasi2 = prompt("🔑 KONFIRMASI KEAMANAN:\nSilakan ketik kata 'HAPUS' untuk membersihkan seluruh data laporan:");
-            if (konfirmasi2 !== "HAPUS") {
-                alert("❌ Pembatalan: Kata kunci salah. Data Anda aman.");
-                return;
-            }
+            if (konfirmasi2 !== "HAPUS") { alert("❌ Pembatalan: Kata kunci salah. Data Anda aman."); return; }
 
             laporanTerjual = [];
             localStorage.setItem('local_laporan', JSON.stringify([]));
@@ -1037,19 +1003,14 @@
 
             if (isOnline) {
                 set(ref(db, 'pos_laporan'), null)
-                    .then(() => {
-                        alert("✅ Sukses! Seluruh data laporan transaksi di Firebase dan Lokal berhasil dibersihkan.");
-                        hitungLaporanDashboard();
-                    })
-                    .catch((err) => {
-                        alert("⚠️ Laporan lokal terhapus, namun gagal membersihkan Firebase: " + err.message);
-                        hitungLaporanDashboard();
-                    });
+                    .then(() => { alert("✅ Sukses! Seluruh data laporan transaksi di Firebase dan Lokal berhasil dibersihkan."); hitungLaporanDashboard(); })
+                    .catch((err) => { alert("⚠️ Laporan lokal terhapus, namun gagal membersihkan Firebase: " + err.message); hitungLaporanDashboard(); });
             } else {
                 alert("✅ Sukses! Data laporan lokal telah dibersihkan. (Data cloud Firebase perlu dibersihkan manual saat online).");
                 hitungLaporanDashboard();
             }
         }
+        
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const selectFilter = document.getElementById('filterTanggal');
@@ -1057,20 +1018,13 @@
             const inputDate = document.getElementById('filterTanggalSpesifik');
             const kataKunciLaporan = document.getElementById('cariLaporan').value.toLowerCase(); 
             
-            if (filter === "pilih_tanggal") {
-                inputDate.classList.remove('hidden');
-            } else {
-                inputDate.classList.add('hidden');
-            }
+            if (filter === "pilih_tanggal") { inputDate.classList.remove('hidden'); } else { inputDate.classList.add('hidden'); }
 
             const tbody = document.getElementById('tabelLogTransaksi');
-            
             let kamusKuantitasBarang = {}; 
             const sekarang = new Date();
             
-            const dapatkanTanggalLokalString = (objekTanggal) => {
-                return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
-            };
+            const dapatkanTanggalLokalString = (objekTanggal) => { return objekTanggal.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }); };
 
             const hariIniString = dapatkanTanggalLokalString(sekarang);
             const objekKemarin = new Date();
@@ -1078,7 +1032,6 @@
             const kemarinString = dapatkanTanggalLokalString(objekKemarin);
 
             let laporanDiurutkan = [...laporanTerjual].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
-
             let htmlBuffer = '';
 
             laporanDiurutkan.forEach(nota => {
@@ -1091,7 +1044,6 @@
                 const teksTanggalLengkap = opsiTanggalLokal + " " + opsiJamLokal; 
 
                 let lolosFilter = false;
-
                 const date1 = new Date(hariIniString);
                 const date2 = new Date(tanggalNotaString);
                 const selisihHari = Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
@@ -1118,19 +1070,14 @@
                     if (!cocokNota && !cocokTanggal && !cocokBarang && !cocokPelanggan) return; 
                 }
 
-                if(!nota.refunded) {
-                    omset += nota.totalOmset; 
-                    modal += nota.totalModal;
-                }
+                if(!nota.refunded) { omset += nota.totalOmset; modal += nota.totalModal; }
 
                 let teksRincianItem = "";
                 nota.items.forEach((it, idx) => { 
                     const tipeLabel = it.tipeHarga === 'grosir' ? ' [G]' : '';
                     const isItemRefunded = it.refunded || nota.refunded;
 
-                    if(!isItemRefunded) {
-                        kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty;
-                    }
+                    if(!isItemRefunded) { kamusKuantitasBarang[it.nama] = (kamusKuantitasBarang[it.nama] || 0) + it.qty; }
 
                     teksRincianItem += `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; ${isItemRefunded ? 'text-decoration:line-through; opacity:0.5;' : ''}">
@@ -1139,8 +1086,7 @@
                         </div>
                     `; 
                 });
-
-                const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
+        const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
                 const isKurangBayar = nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
 
                 htmlBuffer += `
@@ -1185,48 +1131,32 @@
             }
             containerRangkuman.innerHTML = rangkumanHtml;
         }
+        
         window.simpanProduk = function(event) {
             event.preventDefault(); 
-
             const idEdit = document.getElementById('editId').value;
             const nama = document.getElementById('inputNama').value;
             const hpp = parseFloat(document.getElementById('inputHpp').value) || 0;
             const stok = parseInt(document.getElementById('inputStok').value) || 0;
             const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
             const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
-
             const idProduk = idEdit ? parseInt(idEdit) : Date.now();
 
-            const produkBaru = {
-                id: idProduk,
-                nama,
-                hpp,
-                stok,
-                hargaEcer,
-                hargaGrosir
-            };
+            const produkBaru = { id: idProduk, nama, hpp, stok, hargaEcer, hargaGrosir };
 
             if (idEdit) {
                 const index = produkData.findIndex(p => p.id === parseInt(idEdit));
                 if (index !== -1) produkData[index] = produkBaru;
-            } else {
-                produkData.push(produkBaru);
-            }
+            } else { produkData.push(produkBaru); }
             
             produkData.sort((a, b) => a.nama.localeCompare(b.nama));
             localStorage.setItem('local_produk', JSON.stringify(produkData));
 
             if (isOnline) {
                 set(ref(db, 'pos_produk/' + idProduk), produkBaru)
-                    .then(() => {
-                        alert("✅ Barang berhasil disimpan ke Cloud!");
-                    })
-                    .catch(err => {
-                        console.error("Gagal simpan ke Firebase:", err);
-                    });
-            } else {
-                alert("💾 Barang disimpan lokal (Offline). Akan disinkronkan saat online.");
-            }
+                    .then(() => { alert("✅ Barang berhasil disimpan ke Cloud!"); })
+                    .catch(err => { console.error("Gagal simpan ke Firebase:", err); });
+            } else { alert("💾 Barang disimpan lokal (Offline). Akan disinkronkan saat online."); }
 
             resetFormAdmin();
             renderAdminTable();
@@ -1240,188 +1170,156 @@
             document.getElementById('btnSimpanAdmin').innerText = "Simpan Barang";
             document.getElementById('btnSimpanAdmin').style.backgroundColor = "#10b981";
         }
+
         // --- SISTEM KEDALUWARSA & RETUR TERPISAH ---
-let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
+        let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
 
-// Sinkronisasi data expired ke Firebase (jika online)
-if (isOnline) {
-    onValue(ref(db, 'pos_expired'), (snapshot) => {
-        if (snapshot.exists()) {
-            dataExpired = Object.values(snapshot.val());
+        if (isOnline) {
+            onValue(ref(db, 'pos_expired'), (snapshot) => {
+                if (snapshot.exists()) {
+                    dataExpired = Object.values(snapshot.val());
+                    localStorage.setItem('local_expired', JSON.stringify(dataExpired));
+                    if(modeSekarang === "admin") renderTabelExpired();
+                }
+            });
+        }
+        window.hitungOtomatisBatasRetur = function() {
+            const valExp = document.getElementById('expTanggal').value;
+            if (!valExp) return;
+            
+            let tglExp = new Date(valExp);
+            tglExp.setMonth(tglExp.getMonth() - 3);
+            
+            let tahun = tglExp.getFullYear();
+            let bulan = String(tglExp.getMonth() + 1).padStart(2, '0');
+            let hari = String(tglExp.getDate()).padStart(2, '0');
+            
+            document.getElementById('expBatasRetur').value = `${tahun}-${bulan}-${hari}`;
+        }
+
+        window.simpanDataExpired = function(event) {
+            event.preventDefault();
+            
+            const idEdit = document.getElementById('editExpId').value;
+            const nama = document.getElementById('expNama').value;
+            const jumlah = parseInt(document.getElementById('expJumlah').value) || 0;
+            const tanggalExp = document.getElementById('expTanggal').value;
+            const batasRetur = document.getElementById('expBatasRetur').value;
+            const idItem = idEdit ? parseInt(idEdit) : Date.now();
+            
+            const itemBaru = { id: idItem, nama, jumlah, tanggalExp, batasRetur };
+            
+            if (idEdit) {
+                const idx = dataExpired.findIndex(i => i.id === parseInt(idEdit));
+                if (idx !== -1) dataExpired[idx] = itemBaru;
+            } else { dataExpired.push(itemBaru); }
+            
             localStorage.setItem('local_expired', JSON.stringify(dataExpired));
-            if(modeSekarang === "admin") renderTabelExpired();
+            
+            if (isOnline) { set(ref(db, 'pos_expired/' + idItem), itemBaru).catch(err => console.error(err)); }
+            
+            resetFormExpired();
+            renderTabelExpired();
+            alert("✅ Data expired berhasil disimpan!");
         }
-    });
-}
 
-// Hitung otomatis kurangi 3 bulan (90 hari) dari tanggal expired
-window.hitungOtomatisBatasRetur = function() {
-    const valExp = document.getElementById('expTanggal').value;
-    if (!valExp) return;
-    
-    let tglExp = new Date(valExp);
-    // Kurangi 3 bulan (menggunakan setMonth)
-    tglExp.setMonth(tglExp.getMonth() - 3);
-    
-    // Format kembali ke YYYY-MM-DD untuk input date
-    let tahun = tglExp.getFullYear();
-    let bulan = String(tglExp.getMonth() + 1).padStart(2, '0');
-    let hari = String(tglExp.getDate()).padStart(2, '0');
-    
-    document.getElementById('expBatasRetur').value = `${tahun}-${bulan}-${hari}`;
-}
-
-window.simpanDataExpired = function(event) {
-    event.preventDefault();
-    
-    const idEdit = document.getElementById('editExpId').value;
-    const nama = document.getElementById('expNama').value;
-    const jumlah = parseInt(document.getElementById('expJumlah').value) || 0;
-    const tanggalExp = document.getElementById('expTanggal').value;
-    const batasRetur = document.getElementById('expBatasRetur').value;
-    
-    const idItem = idEdit ? parseInt(idEdit) : Date.now();
-    
-    const itemBaru = {
-        id: idItem,
-        nama,
-        jumlah,
-        tanggalExp,
-        batasRetur
-    };
-    
-    if (idEdit) {
-        const idx = dataExpired.findIndex(i => i.id === parseInt(idEdit));
-        if (idx !== -1) dataExpired[idx] = itemBaru;
-    } else {
-        dataExpired.push(itemBaru);
-    }
-    
-    localStorage.setItem('local_expired', JSON.stringify(dataExpired));
-    
-    if (isOnline) {
-        set(ref(db, 'pos_expired/' + idItem), itemBaru).catch(err => console.error(err));
-    }
-    
-    resetFormExpired();
-    renderTabelExpired();
-    alert("✅ Data expired berhasil disimpan!");
-}
-
-window.resetFormExpired = function() {
-    document.getElementById('formExpired').reset();
-    document.getElementById('editExpId').value = '';
-    document.getElementById('btnSimpanExp').innerText = "Simpan Data Expired";
-}
-
-window.renderTabelExpired = function() {
-    const tbody = document.getElementById('tabelExpiredBody');
-    const keyword = document.getElementById('cariTabelExpired').value.toLowerCase();
-    const hariIni = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
-    
-    let html = '';
-    let filtered = dataExpired.filter(i => i.nama.toLowerCase().includes(keyword));
-    
-    // Urutkan berdasarkan tanggal expired terdekat
-    filtered.sort((a, b) => new Date(a.tanggalExp) - new Date(b.tanggalExp));
-    
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#9ca3af;">Tidak ada data ditemukan</td></tr>`;
-        return;
-    }
-    
-    let daftarReturTelegram = []; // Menampung barang yang perlu diretur untuk dikirim ke Telegram
-    
-    filtered.forEach(item => {
-        let statusBadge = '';
-        let rowStyle = '';
-        
-        if (item.tanggalExp <= hariIni) {
-            statusBadge = `<span style="background:#7f1d1d; color:#f87171; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">KEDALUWARSA</span>`;
-            rowStyle = 'opacity: 0.6;';
-            daftarReturTelegram.push(`• *${item.nama}* (Stok: ${item.jumlah} Pcs) - ❌ *SUDAH KEDALUWARSA* (Exp: ${item.tanggalExp})`);
-        } else if (item.batasRetur <= hariIni) {
-            statusBadge = `<span style="background:#eab308; color:#111827; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">⚠️ JENDELA RETUR</span>`;
-            daftarReturTelegram.push(`• *${item.nama}* (Stok: ${item.jumlah} Pcs) - ⚠️ *MASUK JENDELA RETUR* (Batas: ${item.batasRetur})`);
-        } else {
-            statusBadge = `<span style="background:#064e3b; color:#34d399; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AMAN</span>`;
+        window.resetFormExpired = function() {
+            document.getElementById('formExpired').reset();
+            document.getElementById('editExpId').value = '';
+            document.getElementById('btnSimpanExp').innerText = "Simpan Data Expired";
         }
-        
-        html += `
-            <tr style="${rowStyle}">
-                <td><strong>${item.nama}</strong></td>
-                <td>${item.jumlah} Pcs</td>
-                <td>${item.tanggalExp}</td>
-                <td style="color: #eab308;">${item.batasRetur}</td>
-                <td>${statusBadge}</td>
-                <td style="text-align:center;">
-                    <div style="display:flex; gap:4px; justify-content:center;">
-                        <button onclick="editDataExpired(${item.id})" style="background:#2563eb; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:10px;">✏️</button>
-                        <button onclick="hapusDataExpired(${item.id})" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:10px;">🗑️</button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
-    
-    tbody.innerHTML = html;
 
-    // Trigger kirim notifikasi Telegram otomatis jika ada barang masuk masa retur/expired (Dibatasi 1x per sesi buka admin)
-    if (daftarReturTelegram.length > 0 && !window.sudahKirimNotifTelegram) {
-        window.sudahKirimNotifTelegram = true;
-        kirimNotifikasiReturTelegram(daftarReturTelegram);
-    }
-}
+        window.renderTabelExpired = function() {
+            const tbody = document.getElementById('tabelExpiredBody');
+            const keyword = document.getElementById('cariTabelExpired').value.toLowerCase();
+            const hariIni = new Date().toISOString().split('T')[0]; 
+            
+            let html = '';
+            let filtered = dataExpired.filter(i => i.nama.toLowerCase().includes(keyword));
+            filtered.sort((a, b) => new Date(a.tanggalExp) - new Date(b.tanggalExp));
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#9ca3af;">Tidak ada data ditemukan</td></tr>`;
+                return;
+            }
+            
+            let daftarReturTelegram = []; 
+            
+            filtered.forEach(item => {
+                let statusBadge = '';
+                let rowStyle = '';
+                
+                if (item.tanggalExp <= hariIni) {
+                    statusBadge = `<span style="background:#7f1d1d; color:#f87171; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">KEDALUWARSA</span>`;
+                    rowStyle = 'opacity: 0.6;';
+                    daftarReturTelegram.push(`• *${item.nama}* (Stok: ${item.jumlah} Pcs) - ❌ *SUDAH KEDALUWARSA* (Exp: ${item.tanggalExp})`);
+                } else if (item.batasRetur <= hariIni) {
+                    statusBadge = `<span style="background:#eab308; color:#111827; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">⚠️ JENDELA RETUR</span>`;
+                    daftarReturTelegram.push(`• *${item.nama}* (Stok: ${item.jumlah} Pcs) - ⚠️ *MASUK JENDELA RETUR* (Batas: ${item.batasRetur})`);
+                } else {
+                    statusBadge = `<span style="background:#064e3b; color:#34d399; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AMAN</span>`;
+                }
+                
+                html += `
+                    <tr style="${rowStyle}">
+                        <td><strong>${item.nama}</strong></td>
+                        <td>${item.jumlah} Pcs</td>
+                        <td>${item.tanggalExp}</td>
+                        <td style="color: #eab308;">${item.batasRetur}</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align:center;">
+                            <div style="display:flex; gap:4px; justify-content:center;">
+                                <button onclick="editDataExpired(${item.id})" style="background:#2563eb; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:10px;">✏️</button>
+                                <button onclick="hapusDataExpired(${item.id})" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:10px;">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
 
-// Fungsi pendukung untuk mengirim pesan Telegram khusus barang retur/expired
-function kirimNotifikasiReturTelegram(arrayBarang) {
-    if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
-    
-    const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
-    const pesan = `📦 *PERINGATAN RETUR & EXPIRED BAHAN KUE* 📦\n\n` +
-                  `Sistem mendeteksi ada bahan kue yang sudah masuk batas retur 3 bulan atau kedaluwarsa:\n\n` +
-                  arrayBarang.join("\n") + `\n\n` +
-                  `🕒 *Waktu Cek:* ${waktuWib} WIB\n` +
-                  `_Segera hubungi supplier atau pisahkan barang dari rak toko._`;
+            if (daftarReturTelegram.length > 0 && !window.sudahKirimNotifTelegram) {
+                window.sudahKirimNotifTelegram = true;
+                kirimNotifikasiReturTelegram(daftarReturTelegram);
+            }
+        }
 
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-    fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
-    }).catch(err => console.error("Gagal mengirim notifikasi retur Telegram:", err));
-}
+        function kirimNotifikasiReturTelegram(arrayBarang) {
+            if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
+            const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+            const pesan = `📦 *PERINGATAN RETUR & EXPIRED BAHAN KUE* 📦\n\n` +
+                          `Sistem mendeteksi ada bahan kue yang sudah masuk batas retur 3 bulan atau kedaluwarsa:\n\n` +
+                          arrayBarang.join("\n") + `\n\n` +
+                          `🕒 *Waktu Cek:* ${waktuWib} WIB\n` +
+                          `_Segera hubungi supplier atau pisahkan barang dari rak toko._`;
 
-window.editDataExpired = function(id) {
-    const item = dataExpired.find(i => i.id === id);
-    if (!item) return;
-    
-    document.getElementById('editExpId').value = item.id;
-    document.getElementById('expNama').value = item.nama;
-    document.getElementById('expJumlah').value = item.jumlah;
-    document.getElementById('expTanggal').value = item.tanggalExp;
-    document.getElementById('expBatasRetur').value = item.batasRetur;
-    document.getElementById('btnSimpanExp').innerText = "Perbarui Data Expired";
-    
-    document.getElementById('formExpired').scrollIntoView({ behavior: 'smooth' });
-}
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
+            }).catch(err => console.error("Gagal mengirim notifikasi retur Telegram:", err));
+        }
+        window.editDataExpired = function(id) {
+            const item = dataExpired.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('editExpId').value = item.id;
+            document.getElementById('expNama').value = item.nama;
+            document.getElementById('expJumlah').value = item.jumlah;
+            document.getElementById('expTanggal').value = item.tanggalExp;
+            document.getElementById('expBatasRetur').value = item.batasRetur;
+            document.getElementById('btnSimpanExp').innerText = "Perbarui Data Expired";
+            document.getElementById('formExpired').scrollIntoView({ behavior: 'smooth' });
+        }
 
-window.hapusDataExpired = function(id) {
-    if (!confirm("Hapus data kontrol expired ini?")) return;
-    
-    dataExpired = dataExpired.filter(i => i.id !== id);
-    localStorage.setItem('local_expired', JSON.stringify(dataExpired));
-    
-    if (isOnline) {
-        set(ref(db, 'pos_expired/' + id), null);
-    }
-    
-    renderTabelExpired();
-}
-
-// Panggil fungsi render tabel expired saat halaman admin dibuka
-// (Tambahkan fungsi ini ke dalam fungsi bukaMenuUtama yang sudah ada di kode Anda jika ingin otomatis termuat)
-        
+        window.hapusDataExpired = function(id) {
+            if (!confirm("Hapus data kontrol expired ini?")) return;
+            dataExpired = dataExpired.filter(i => i.id !== id);
+            localStorage.setItem('local_expired', JSON.stringify(dataExpired));
+            if (isOnline) { set(ref(db, 'pos_expired/' + id), null); }
+            renderTabelExpired();
+        }
     </script>
 </body>
 </html>
