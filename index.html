@@ -119,8 +119,18 @@
             </div>
         </div>
     </div>
-    <div id="areaKasir" class="main-container hidden">
+        <div id="areaKasir" class="main-container hidden">
         <div class="card">
+            <!-- TAMBAHAN: Daftar Kurang Bayar Kasir -->
+            <div id="containerKurangBayarKasir" style="display: none; margin-bottom: 15px; padding: 10px; background: #7f1d1d; border-radius: 8px; border: 1px solid #dc2626;">
+                <h3 style="font-size: 14px; font-weight: bold; color: #fca5a5; margin-bottom: 10px;">⚠️ Daftar Transaksi Belum Lunas</h3>
+                <div style="max-height: 20vh; overflow-y: auto;">
+                    <table style="background: transparent;">
+                        <tbody id="tabelKasirKurangBayar"></tbody>
+                    </table>
+                </div>
+            </div>
+            
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span id="infoPending" style="color:#eab308; font-size:12px;"></span></h2>
                 
@@ -173,9 +183,17 @@
             </div>
         </div>
     </div>
-     <div id="areaAdmin" class="admin-layout hidden">
+          <div id="areaAdmin" class="admin-layout hidden">
+        <!-- TAMBAHAN: Toggle PIN Admin -->
+        <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-bottom: -10px;">
+            <label class="container-checkbox" style="background: #1f2937; border-color: #374151; padding: 8px 12px;">
+                <input type="checkbox" id="togglePinAdmin" onchange="ubahPengaturanPinAdmin()">
+                <span style="color: #eab308; font-weight: bold; font-size: 12px;">🔒 Wajibkan PIN Masuk Admin</span>
+            </label>
+        </div>
+        
         <div class="card" style="height: fit-content;">
-            <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
+           <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
             <form id="formProduk" onsubmit="simpanProduk(event)">
                 <input type="hidden" id="editId">
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
@@ -357,15 +375,26 @@
         let produkData = JSON.parse(localStorage.getItem('local_produk')) || [];
         let laporanTerjual = JSON.parse(localStorage.getItem('local_laporan')) || [];
         let antreanOffline = JSON.parse(localStorage.getItem('antrean_offline')) || [];
-        let keranjang = [];
+                let keranjang = [];
         let modeSekarang = "login";
         let isOnline = navigator.onLine;
+        
+        // TAMBAHAN: State Wajib PIN Admin (Tersimpan di Lokal)
+        let wajibPinAdmin = localStorage.getItem('wajibPinAdmin') === 'false' ? false : true;
 
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
         window.onload = function() {
             document.getElementById('pinDisplayInput').focus();
+            const cbPin = document.getElementById('togglePinAdmin');
+            if(cbPin) cbPin.checked = wajibPinAdmin;
         }
+
+        window.ubahPengaturanPinAdmin = function() {
+            wajibPinAdmin = document.getElementById('togglePinAdmin').checked;
+            localStorage.setItem('wajibPinAdmin', wajibPinAdmin);
+        }
+
         window.addEventListener('online', () => setStatusKoneksi(true));
         window.addEventListener('offline', () => setStatusKoneksi(false));
 
@@ -392,12 +421,15 @@
                     if(modeSekarang === "admin") renderAdminTable();
                 }
             });
-            onValue(ref(db, 'pos_laporan'), (snapshot) => {
+                        onValue(ref(db, 'pos_laporan'), (snapshot) => {
                 if (snapshot.exists()) {
                     laporanTerjual = Object.values(snapshot.val());
                     localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
                     if(modeSekarang === "admin") hitungLaporanDashboard();
+                    if(modeSekarang === "kasir" && typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
                 }
+            });
+
             });
         }
         function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
@@ -447,8 +479,8 @@
             alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
             bukaMenuUtama("kasir");
         }
-        window.bukaMenuUtama = function(role) {
-            if (role === "admin" && modeSekarang !== "admin") {
+                window.bukaMenuUtama = function(role) {
+            if (role === "admin" && modeSekarang !== "admin" && wajibPinAdmin) {
                 const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
                 if (konfirmasiPin !== PIN_ADMIN) {
                     alert("❌ Akses ditolak! PIN Admin salah.");
@@ -462,14 +494,16 @@
             document.getElementById('mainHeader').classList.remove('hidden');
             setStatusKoneksi(navigator.onLine);
 
-            if (role === "kasir") {
+                        if (role === "kasir") {
                 document.getElementById('areaKasir').classList.remove('hidden');
                 document.getElementById('areaAdmin').classList.add('hidden');
                 document.getElementById('btnMode').innerText = "🛠️ Admin";
                 document.getElementById('btnMode').onclick = () => bukaMenuUtama('admin');
                 renderProduk();
+                renderKasirKurangBayar();
                 perbaruiInfoAntrean();
             } else {
+
                 document.getElementById('areaKasir').classList.add('hidden');
                 document.getElementById('areaAdmin').classList.remove('hidden');
                 document.getElementById('btnMode').innerText = "🛒 Kasir";
@@ -736,10 +770,12 @@
             keranjang = [];
             document.getElementById('uangDiterima').value = '';
             document.getElementById('namaPelanggan').value = '';
-            updateKeranjang();
+                        updateKeranjang();
             renderProduk();
+            renderKasirKurangBayar();
             if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
         }
+
         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
@@ -797,7 +833,44 @@
         }
 
         // Fitur Melunasi Transaksi Kurang Bayar
-        window.lunasiTransaksi = function(idNota) {
+               // TAMBAHAN: Render Kurang Bayar di Menu Kasir
+        window.renderKasirKurangBayar = function() {
+            const container = document.getElementById('containerKurangBayarKasir');
+            const tbody = document.getElementById('tabelKasirKurangBayar');
+            if(!container || !tbody) return;
+
+            const kurangBayarList = laporanTerjual.filter(nota => {
+                const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
+                return nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
+            });
+
+            if (kurangBayarList.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            let html = '';
+            kurangBayarList.sort((a, b) => new Date(b.waktu) - new Date(a.waktu)).forEach(nota => {
+                html += `
+                    <tr style="border-bottom: 1px solid #991b1b;">
+                        <td style="padding: 6px;">
+                            <strong style="color:white;">${nota.idNota}</strong>
+                            ${nota.namaPelanggan ? `<br><span style="font-size:10px; color:#fca5a5;">👤 ${nota.namaPelanggan}</span>` : ''}
+                        </td>
+                        <td style="padding: 6px; color: #fca5a5; font-weight: bold;">
+                            Kurang: ${formatRupiah(nota.nominalKurang)}
+                        </td>
+                        <td style="padding: 6px; text-align: right;">
+                            <button onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+                    window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
 
@@ -813,9 +886,11 @@
                 set(ref(db, 'pos_laporan/' + idNota), nota);
             }
 
-            alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
+                        alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
             hitungLaporanDashboard();
+            renderKasirKurangBayar();
         }
+
 
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
