@@ -242,7 +242,7 @@
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
-            <!-- TAMBAHAN SISTEM KONTROL EXPIRED & RETUR -->
+                        <!-- TAMBAHAN SISTEM KONTROL EXPIRED & RETUR -->
 <div class="card" style="margin-top: 20px; border-color: #3b82f6;">
     <h3 style="font-size: 14px; font-weight: bold; color: #60a5fa; margin-bottom: 10px;">⏳ Kontrol Expired & Retur (3 Bulan)</h3>
     <form id="formExpired" onsubmit="simpanDataExpired(event)">
@@ -470,7 +470,20 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
         }
-
+        // Fitur Minimize/Maximize Menu Admin
+        window.toggleSection = function(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            
+            if (content.style.display === "none") {
+                content.style.display = "block";
+                icon.innerHTML = "Tutup 🔼";
+            } else {
+                content.style.display = "none";
+                icon.innerHTML = "Lihat 🔽";
+            }
+                    }
+        
         window.tekanPin = function(a) { 
             const input = document.getElementById('pinDisplayInput');
             if(input.value.length < 4) { input.value += a; batasiDanCekPin(); } 
