@@ -842,27 +842,60 @@
             });
             tbody.innerHTML = html;
         }
-        // Fitur Melunasi Transaksi Kurang Bayar
+                // Fitur Melunasi Transaksi Kurang Bayar (Diperbarui dengan input nominal)
         window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
 
-            const konfirmasi = confirm(`Pelunasan untuk Nota ${idNota}\nSisa Kurang: ${formatRupiah(nota.nominalKurang)}\n\nApakah transaksi ini sudah dibayar lunas?`);
-            if (!konfirmasi) return;
+            // Meminta input nominal dari kasir. Default value diset otomatis ke sisa kurang bayar.
+            const inputNominal = prompt(
+                `Pelunasan untuk Nota ${idNota}\nSisa Kurang: ${formatRupiah(nota.nominalKurang)}\n\nMasukkan nominal uang yang dibayarkan pelanggan (biarkan default untuk langsung melunasi semua):`, 
+                nota.nominalKurang
+            );
 
-            nota.nominalBayar += nota.nominalKurang;
-            nota.nominalKurang = 0;
+            // Jika kasir menekan "Batal" (Cancel) atau mengosongkan input
+            if (inputNominal === null || inputNominal.trim() === "") return;
 
+            const dibayarSekarang = parseFloat(inputNominal);
+
+            // Validasi input angka
+            if (isNaN(dibayarSekarang) || dibayarSekarang <= 0) {
+                alert("❌ Nominal pembayaran tidak valid!");
+                return;
+            }
+
+            // Pengecekan apakah bayar pas/lebih (Lunas) atau masih kurang (Cicil)
+            if (dibayarSekarang >= nota.nominalKurang) {
+                const kembalian = dibayarSekarang - nota.nominalKurang;
+                
+                nota.nominalBayar += nota.nominalKurang; // Catat penambahan uang lunas
+                nota.nominalKurang = 0; // Kekurangan lunas
+                
+                if (kembalian > 0) {
+                    alert(`✅ Transaksi ${idNota} berhasil DILUNASI!\nUang Kembali Pelanggan: ${formatRupiah(kembalian)}`);
+                } else {
+                    alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
+                }
+            } else {
+                nota.nominalBayar += dibayarSekarang;
+                nota.nominalKurang -= dibayarSekarang; // Kurangi sisa piutang
+                
+                alert(`⚠️ Pembayaran diterima sebesar ${formatRupiah(dibayarSekarang)}.\nSisa kurang bayar saat ini: ${formatRupiah(nota.nominalKurang)}`);
+            }
+
+            // Menyimpan pembaruan ke Penyimpanan Lokal
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
 
+            // Menyimpan pembaruan ke Cloud (Firebase) jika online
             if (isOnline) {
                 set(ref(db, 'pos_laporan/' + idNota), nota);
             }
 
-            alert(`✅ Transaksi ${idNota} berhasil DILUNASI!`);
+            // Refresh tampilan data
             hitungLaporanDashboard();
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
         }
+
 
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
