@@ -842,34 +842,35 @@
             });
             tbody.innerHTML = html;
         }
-                // Fitur Melunasi Transaksi Kurang Bayar (Diperbarui dengan input nominal)
+                        // Fitur Melunasi Transaksi Kurang Bayar (Diperbarui dengan pemisah ribuan)
         window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
 
-            // Meminta input nominal dari kasir. Default value diset otomatis ke sisa kurang bayar.
+            // Memformat sisa kurang bayar dengan titik pemisah ribuan untuk nilai default
+            const defaultNominal = nota.nominalKurang.toLocaleString('id-ID');
+
             const inputNominal = prompt(
                 `Pelunasan untuk Nota ${idNota}\nSisa Kurang: ${formatRupiah(nota.nominalKurang)}\n\nMasukkan nominal uang yang dibayarkan pelanggan (biarkan default untuk langsung melunasi semua):`, 
-                nota.nominalKurang
+                defaultNominal
             );
 
-            // Jika kasir menekan "Batal" (Cancel) atau mengosongkan input
             if (inputNominal === null || inputNominal.trim() === "") return;
 
-            const dibayarSekarang = parseFloat(inputNominal);
+            // Membersihkan titik atau koma dari input manual pengguna agar bisa dihitung sebagai angka
+            const cleanInput = inputNominal.replace(/\./g, '').replace(/,/g, '');
+            const dibayarSekarang = parseFloat(cleanInput);
 
-            // Validasi input angka
             if (isNaN(dibayarSekarang) || dibayarSekarang <= 0) {
                 alert("❌ Nominal pembayaran tidak valid!");
                 return;
             }
 
-            // Pengecekan apakah bayar pas/lebih (Lunas) atau masih kurang (Cicil)
             if (dibayarSekarang >= nota.nominalKurang) {
                 const kembalian = dibayarSekarang - nota.nominalKurang;
                 
-                nota.nominalBayar += nota.nominalKurang; // Catat penambahan uang lunas
-                nota.nominalKurang = 0; // Kekurangan lunas
+                nota.nominalBayar += nota.nominalKurang;
+                nota.nominalKurang = 0;
                 
                 if (kembalian > 0) {
                     alert(`✅ Transaksi ${idNota} berhasil DILUNASI!\nUang Kembali Pelanggan: ${formatRupiah(kembalian)}`);
@@ -878,23 +879,21 @@
                 }
             } else {
                 nota.nominalBayar += dibayarSekarang;
-                nota.nominalKurang -= dibayarSekarang; // Kurangi sisa piutang
+                nota.nominalKurang -= dibayarSekarang;
                 
                 alert(`⚠️ Pembayaran diterima sebesar ${formatRupiah(dibayarSekarang)}.\nSisa kurang bayar saat ini: ${formatRupiah(nota.nominalKurang)}`);
             }
 
-            // Menyimpan pembaruan ke Penyimpanan Lokal
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
 
-            // Menyimpan pembaruan ke Cloud (Firebase) jika online
             if (isOnline) {
                 set(ref(db, 'pos_laporan/' + idNota), nota);
             }
 
-            // Refresh tampilan data
             hitungLaporanDashboard();
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
         }
+
 
 
         window.refundTransaksi = function(idNota) {
