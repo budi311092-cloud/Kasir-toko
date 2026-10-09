@@ -967,8 +967,9 @@
                 html += `</div>`;
                 
                 html += `<div style="text-align:right;">
-                            <button onclick="lunasiTransaksi('${nota.idNota}'); tutupModalDetailGabungan();" style="background:#059669; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi Nota Ini</button>
+                            <button type="button" onclick="prosesKePelunasan('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💵 Lunasi Nota Ini</button>
                          </div>`;
+
                 html += `</div>`;
                 grandTotal += nota.nominalKurang;
             });
@@ -985,7 +986,27 @@
         window.tutupModalDetailGabungan = function() {
             document.getElementById('modalDetailGabungan').classList.add('hidden');
         }
-
+        // Fungsi baru khusus untuk menjembatani pop-up detail ke pop-up pelunasan
+        window.prosesKePelunasan = function(idNota) {
+            // 1. Tutup pop-up rincian gabungan terlebih dahulu
+            tutupModalDetailGabungan();
+            
+            // 2. Beri jeda 100 milidetik agar animasi penutupan selesai, menghindari bentrok DOM
+            setTimeout(() => {
+                // Buka pop-up pelunasan bawaan
+                lunasiTransaksi(idNota);
+                
+                // 3. Pastikan input terpilih (ter-highlight) sehingga siap ditimpa saat kasir mengetik
+                setTimeout(() => {
+                    const inputElem = document.getElementById('inputNominalPelunasan');
+                    if (inputElem) {
+                        inputElem.focus();
+                        inputElem.select(); // Memblok teks nominal bawaan agar otomatis hilang saat angka baru diketik
+                    }
+                }, 150);
+            }, 100);
+        }
+        
         // Fitur: Format angka ribuan secara real-time saat diketik
         window.formatInputRibuan = function(inputElem) {
             // Hapus semua karakter yang bukan angka
