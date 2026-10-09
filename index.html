@@ -140,6 +140,19 @@
             <button onclick="tutupModalDetailGabungan()" style="width: 100%; background: #4b5563; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: auto;">Tutup Rincian</button>
         </div>
     </div>
+
+    <!-- MODAL PILIHAN BANK NONTUNAI -->
+    <div id="modalNontunai" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 10001; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
+        <div class="pin-card" style="max-width: 350px; padding: 25px; border-color: #4b5563;">
+            <h3 style="color: white; font-size: 16px; margin-bottom: 10px; font-weight: bold;">💳 Pilih Bank Nontunai</h3>
+            <p style="color: #9ca3af; font-size: 12px; margin-bottom: 20px;">Silakan pilih mesin EDC / Transfer Bank yang digunakan:</p>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <button type="button" onclick="prosesTransaksiNontunai('BCA')" style="background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">🏦 Bank BCA</button>
+                <button type="button" onclick="prosesTransaksiNontunai('Mandiri')" style="background: #064e3b; color: #34d399; border: 1px solid #059669; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">🏦 Bank Mandiri</button>
+            </div>
+            <button type="button" onclick="tutupModalNontunai()" style="width: 100%; background: #4b5563; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Batal</button>
+        </div>
+    </div>
     
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
@@ -180,39 +193,33 @@
                     <span>Total Akhir:</span>
                     <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
                 </div>
-                <div>
-                    <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
-                    <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
+
+                <!-- PILIHAN METODE PEMBAYARAN -->
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Metode Pembayaran</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
+                        <button type="button" id="btnMetodeTunai" onclick="pilihMetodePembayaran('tunai')" style="background: #2563eb; color: white; border: 1px solid #3b82f6; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">💵 Tunai</button>
+                        <button type="button" id="btnMetodeNontunai" onclick="pilihMetodePembayaran('nontunai')" style="background: #374151; color: #9ca3af; border: 1px solid #4b5563; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">💳 Nontunai</button>
+                    </div>
                 </div>
-                <div id="containerUangCepat" class="grid-uang-cepat"></div>
-                <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
-                    <span id="labelKembalian" style="color: #9ca3af;">Kembalian:</span>
-                    <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
+
+                <div id="wrapperUangTunai">
+                    <div>
+                        <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
+                        <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
+                    </div>
+                    <div id="containerUangCepat" class="grid-uang-cepat"></div>
+                    <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
+                        <span id="labelKembalian" style="color: #9ca3af;">Kembalian:</span>
+                        <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
+                    </div>
                 </div>
+
                 <label class="container-checkbox">
                     <input type="checkbox" id="allowPrint" checked>
                     <span>🖨️ Cetak Struk Fisik (Thermal)</span>
                 </label>
-                <div style="margin-bottom: 12px;">
-    <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Metode Pembayaran</label>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
-        <button type="button" id="btnMetodeTunai" onclick="pilihMetodePembayaran('tunai')" style="background: #2563eb; color: white; border: 1px solid #3b82f6; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">💵 Tunai</button>
-        <button type="button" id="btnMetodeNontunai" onclick="pilihMetodePembayaran('nontunai')" style="background: #374151; color: #9ca3af; border: 1px solid #4b5563; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">💳 Nontunai</button>
-    </div>
-</div>
-
-<div id="wrapperUangTunai">
-    <div>
-        <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
-        <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
-    </div>
-    <div id="containerUangCepat" class="grid-uang-cepat"></div>
-    <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
-        <span id="labelKembalian" style="color: #9ca3af;">Kembalian:</span>
-        <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
-    </div>
-</div>       
-        <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
+                <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
     </div>
@@ -263,8 +270,8 @@
                         <button type="submit" id="btnSimpanExp" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
                         <button type="button" onclick="resetFormExpired()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                     </div>
-                </form>
-                <div style="margin-top: 15px;">
+                   </form>
+                   div style="margin-top: 15px;">
                     <input type="text" id="cariTabelExpired" placeholder="Cari data expired..." class="input-text" style="font-size: 12px; margin-bottom: 8px;" oninput="renderTabelExpired()">
                     <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                         <table>
@@ -326,7 +333,6 @@
             </div>
         </div>
     </div>
-    
     <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA</h2>
@@ -344,9 +350,341 @@
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
         <div style="display:flex; justify-content:space-between; font-weight: bold;"><span id="strukLabelSisa">Kembali:</span><span id="strukKembali"></span></div>
         <div id="rowStrukKurangBayar" style="display:none; justify-content:space-between; font-weight: bold; color: red;"><span>Kurang:</span><span id="strukKurangBayar"></span></div>
-                    </div>
-            <script type="module">
-                        let metodePembayaranAktif = "tunai";
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+                
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
+            authDomain: "mahakarya-pos.firebaseapp.com",
+            databaseURL: "https://mahakarya-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mahakarya-pos"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk";
+        const TELEGRAM_CHAT_ID = "8563167649";
+
+        let produkData = JSON.parse(localStorage.getItem('local_produk')) || [];
+        let laporanTerjual = JSON.parse(localStorage.getItem('local_laporan')) || [];
+        let antreanOffline = JSON.parse(localStorage.getItem('antrean_offline')) || [];
+        let keranjang = [];
+        let modeSekarang = "login";
+        let isOnline = navigator.onLine;
+        let metodePembayaranAktif = "tunai";
+        
+        let wajibPinAdmin = localStorage.getItem('wajibPinAdmin') === 'false' ? false : true;
+        const PIN_ADMIN = "2304"; 
+        const PIN_KASIR = "0000";
+        
+        window.onload = function() {
+            document.getElementById('pinDisplayInput').focus();
+            const cbPin = document.getElementById('togglePinAdmin');
+            if(cbPin) cbPin.checked = wajibPinAdmin;
+        }
+
+        window.ubahPengaturanPinAdmin = function() {
+            wajibPinAdmin = document.getElementById('togglePinAdmin').checked;
+            localStorage.setItem('wajibPinAdmin', wajibPinAdmin);
+        }
+
+        window.addEventListener('online', () => setStatusKoneksi(true));
+        window.addEventListener('offline', () => setStatusKoneksi(false));
+
+        function setStatusKoneksi(status) {
+            isOnline = status;
+            const label = document.getElementById('labelKoneksi');
+            if(status) {
+                label.innerText = "🟢 ONLINE";
+                label.className = "status-koneksi online-bg";
+                kirimAntreanOfflineKeCloud();
+            } else {
+                label.innerText = "🔴 OFFLINE";
+                label.className = "status-koneksi offline-bg";
+            }
+        }
+
+        if (isOnline) {
+            onValue(ref(db, 'pos_produk'), (snapshot) => {
+                if (snapshot.exists()) {
+                    produkData = Object.values(snapshot.val());
+                    produkData.sort((a, b) => a.nama.localeCompare(b.nama));
+                    localStorage.setItem('local_produk', JSON.stringify(produkData));
+                    if(modeSekarang === "kasir") renderProduk();
+                    if(modeSekarang === "admin") renderAdminTable();
+                }
+            });
+            onValue(ref(db, 'pos_laporan'), (snapshot) => {
+                if (snapshot.exists()) {
+                    laporanTerjual = Object.values(snapshot.val());
+                    localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
+                    if(modeSekarang === "admin") hitungLaporanDashboard();
+                    if(modeSekarang === "kasir" && typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
+                }
+            });
+        }
+  function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
+            if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
+            const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+            const pesan = `⚠️ *PERINGATAN KEAMANAN POS* ⚠️\n\n` +
+                          `Ada percobaan akses masuk ilegal ke sistem!\n` +
+                          `• *Lokasi Menu:* ${lokasiAkses}\n` +
+                          `• *PIN yang Dimasukkan:* \`${pinInput}\` (SALAH)\n` +
+                          `• *Waktu Kejadian:* ${waktuWib} WIB\n` +
+                          `• *Titik Cabang:* Arjawinangun\n\n` +
+                          `_Mohon periksa kasir Anda segera jika aktivitas ini mencurigakan._`;
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
+            }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
+        }
+
+        window.toggleSection = function(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            if (content.style.display === "none") {
+                content.style.display = "block";
+                icon.innerHTML = "Tutup 🔼";
+            } else {
+                content.style.display = "none";
+                icon.innerHTML = "Lihat 🔽";
+            }
+        }
+        
+        window.tekanPin = function(a) { 
+            const input = document.getElementById('pinDisplayInput');
+            if(input.value.length < 4) { input.value += a; batasiDanCekPin(); } 
+        }
+        
+        window.hapusPin = function() { document.getElementById('pinDisplayInput').value = ""; }
+
+        window.batasiDanCekPin = function() {
+            const input = document.getElementById('pinDisplayInput');
+            input.value = input.value.replace(/[^0-9]/g, ''); 
+            if(input.value.length === 4) { verifikasiPin(); }
+        }
+
+        window.verifikasiPin = function() {
+            const pinSelesai = document.getElementById('pinDisplayInput').value;
+            if (pinSelesai === PIN_KASIR) bukaMenuUtama("kasir");
+            else if (pinSelesai === PIN_ADMIN) bukaMenuUtama("admin");
+            else { 
+                alert("❌ PIN Salah!"); 
+                kirimNotifikasiTelegram(pinSelesai, "Halaman Login Utama");
+                hapusPin(); 
+                document.getElementById('pinDisplayInput').focus(); 
+            }
+        }
+
+        window.bukaOfflineKasirDarurat = function() {
+            alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
+            bukaMenuUtama("kasir");
+        }
+        
+        window.bukaMenuUtama = function(role) {
+            if (role === "admin" && modeSekarang !== "admin" && wajibPinAdmin) {
+                const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
+                if (konfirmasiPin !== PIN_ADMIN) {
+                    alert("❌ Akses ditolak! PIN Admin salah.");
+                    kirimNotifikasiTelegram(konfirmasiPin || "[Kosong/Batal]", "Tombol Switch Navigasi Header Admin");
+                    return;
+                }
+            }
+
+            modeSekarang = role;
+            document.getElementById('areaLoginPin').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            setStatusKoneksi(navigator.onLine);
+
+            if (role === "kasir") {
+                document.getElementById('areaKasir').classList.remove('hidden');
+                document.getElementById('areaAdmin').classList.add('hidden');
+                document.getElementById('btnMode').innerText = "🛠️ Admin";
+                document.getElementById('btnMode').onclick = () => bukaMenuUtama('admin');
+                renderProduk();
+                if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
+                perbaruiInfoAntrean();
+            } else {
+                document.getElementById('areaKasir').classList.add('hidden');
+                document.getElementById('areaAdmin').classList.remove('hidden');
+                document.getElementById('btnMode').innerText = "🛒 Kasir";
+                document.getElementById('btnMode').onclick = () => bukaMenuUtama('kasir');
+                renderAdminTable();
+                hitungLaporanDashboard();
+                renderTabelExpired();
+            }
+        }
+
+        window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
+
+        window.pencarianProduk = function() {
+            const elInput = document.getElementById('cariProduk');
+            const elBtnClear = document.getElementById('btnBersihkanCariKasir');
+            const teks = elInput.value.toLowerCase();
+            if (teks.length > 0) { elBtnClear.style.display = 'block'; } else { elBtnClear.style.display = 'none'; }
+            const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
+            renderProduk(filtered);
+        }
+        
+        window.bersihkanPencarianKasir = function() {
+            const elInput = document.getElementById('cariProduk');
+            elInput.value = '';
+            pencarianProduk();
+            elInput.focus();
+        }
+        window.renderProduk = function(dataGrid = null) {
+            const grid = document.getElementById('gridProduk');
+            const targetData = dataGrid || produkData;
+            let htmlBuffer = '';
+            targetData.forEach(p => {
+                const habis = p.stok <= 0;
+                htmlBuffer += `
+                    <div onclick="${habis?'':'tambahKeKeranjang('+p.id+')'}" class="item-produk" style="${habis?'opacity:0.5;':''}">
+                        <span class="badge-stok ${habis?'stok-habis':'stok-aman'}">${p.stok} Pcs</span>
+                        <div><h3 style="font-size:12px; font-weight:bold; max-width:80%;">${p.nama}</h3></div>
+                        <div style="font-size:11px; margin-top:8px; display:flex; flex-direction:column; gap:2px;">
+                            <span style="color:#60a5fa;">🛒 Ecer: ${formatRupiah(p.hargaEcer)}</span>
+                            <span style="color:#eab308;">📦 Grosir: ${formatRupiah(p.hargaGrosir || 0)}</span>
+                        </div>
+                    </div>`;
+            });
+            grid.innerHTML = htmlBuffer;
+        }
+
+        window.tambahKeKeranjang = function(id) {
+            const p = produkData.find(item => item.id === id);
+            const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
+            if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
+            
+            const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
+            if (itemEcer) { itemEcer.qty += 1; } else { keranjang.push({...p, qty: 1, tipeHarga: 'ecer'}); }
+            updateKeranjang();
+        }
+        
+        window.toggleTipeHargaKeranjang = function(index) {
+            const item = keranjang[index];
+            item.tipeHarga = item.tipeHarga === 'ecer' ? 'grosir' : 'ecer';
+            updateKeranjang();
+        }
+
+        window.updateKeranjang = function() {
+            const list = document.getElementById('listKeranjang');
+            let total = 0; let htmlBuffer = '';
+            
+            keranjang.forEach((item, index) => {
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
+                total += (harga * item.qty);
+                const isGrosir = item.tipeHarga === 'grosir';
+                
+                htmlBuffer += `
+                    <div class="item-keranjang" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
+                            <span>${item.nama}</span>
+                            <span style="color: ${isGrosir ? '#eab308' : '#60a5fa'};">${formatRupiah(harga * item.qty)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <button type="button" class="toggle-harga-btn ${isGrosir ? 'active-grosir':'active-ecer'}" onclick="toggleTipeHargaKeranjang(${index})">
+                                    ${isGrosir ? '📦 Grosir' : '🛒 Ecer'}
+                                </button>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                <div style="display: flex; align-items: center; gap: 2px;">
+                                    <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
+                                        onchange="ubahQtyManual(${index}, this.value)" 
+                                        style="width: 45px; padding: 4px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 11px; text-align: center; font-weight: bold;">
+                                    <span style="font-size: 10px; color: #9ca3af;">/${item.stok}</span>
+                                </div>
+                                <div style="display: flex; gap: 2px;">
+                                    <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:11px;">-</button>
+                                    <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:11px;">+</button>
+                                    <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 11px;">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            
+            list.innerHTML = htmlBuffer;
+            document.getElementById('totalAkhir').innerText = formatRupiah(total);
+            renderTombolUangCepat(total);
+            hitungKembalian();
+        }
+     window.sesuaikanQty = function(index, perubahan) {
+            const item = keranjang[index];
+            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
+            const qtyBaru = item.qty + perubahan;
+            if (qtyBaru <= 0) { hapusItemKeranjang(index); } 
+            else if (qtyBaru + totalQtyLain > item.stok) { alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
+            else { item.qty = qtyBaru; updateKeranjang(); }
+        }
+        
+        window.ubahQtyManual = function(index, nilai) {
+            const item = keranjang[index];
+            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
+            let qtyInput = parseInt(nilai) || 1;
+            if (qtyInput <= 0) { hapusItemKeranjang(index); } 
+            else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
+            else { item.qty = qtyInput; updateKeranjang(); }
+        }
+
+        window.hapusItemKeranjang = function(index) {
+            keranjang.splice(index, 1);
+            updateKeranjang();
+        }
+
+        window.kosongkanKeranjang = function() {
+            keranjang = [];
+            document.getElementById('namaPelanggan').value = '';
+            updateKeranjang();
+        }
+
+        function renderTombolUangCepat(total) {
+            const container = document.getElementById('containerUangCepat');
+            if (total <= 0) { container.innerHTML = ''; return; }
+
+            let opsi = [];
+            opsi.push({ teks: "Uang Pas", nilai: total, kelas: "btn-uang-pas" });
+            let bulatAtas = Math.ceil(total / 10000) * 10000;
+            if (bulatAtas !== total) opsi.push({ teks: formatRupiah(bulatAtas), nilai: bulatAtas, kelas: "" });
+            if (total <= 50000) opsi.push({ teks: "Rp 50.000", nilai: 50000, kelas: "" });
+            if (total <= 100000) opsi.push({ teks: "Rp 100.000", nilai: 100000, kelas: "" });
+
+            let htmlBuffer = '';
+            opsi.forEach(o => { htmlBuffer += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`; });
+            container.innerHTML = htmlBuffer;
+        }
+        
+        window.pilihUangCepat = function(nilai) {
+            document.getElementById('uangDiterima').value = nilai;
+            hitungKembalian();
+        }
+
+        window.hitungKembalian = function() {
+            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
+            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
+            const selisih = bayar - total;
+            const elLabel = document.getElementById('labelKembalian');
+            const elUang = document.getElementById('uangKembalian');
+
+            if (selisih < 0) {
+                elLabel.innerText = "Kurang:";
+                elUang.innerText = formatRupiah(Math.abs(selisih));
+                elUang.style.color = "#f87171";
+            } else {
+                elLabel.innerText = "Kembalian:";
+                elUang.innerText = formatRupiah(selisih);
+                elUang.style.color = "#34d399";
+            }
+        }
 
         window.pilihMetodePembayaran = function(metode) {
             metodePembayaranAktif = metode;
@@ -377,7 +715,6 @@
             }
         };
 
-        // Modifikasi fungsi utama saat tombol proses transaksi ditekan
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             
@@ -386,7 +723,6 @@
                 return;
             }
 
-            // Lanjut proses tunai biasa...
             eksekusiSimpanTransaksi("Tunai", "-");
         };
 
@@ -467,402 +803,7 @@
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             if(!document.getElementById('allowPrint').checked) alert(`Transaksi Sukses! (${jenisBayar} ${detailBank !== '-' ? '- ' + detailBank : ''}) ID: ${nomorNota}`);
         }
-                
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-            import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-                
-                const firebaseConfig = {
-            apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
-            authDomain: "mahakarya-pos.firebaseapp.com",
-            databaseURL: "https://mahakarya-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "mahakarya-pos"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        const TELEGRAM_TOKEN = "8605420305:AAFvVkxrqCRp-xsWakwD49uTSuOSLtvggTk";
-        const TELEGRAM_CHAT_ID = "8563167649";
-
-        let produkData = JSON.parse(localStorage.getItem('local_produk')) || [];
-        let laporanTerjual = JSON.parse(localStorage.getItem('local_laporan')) || [];
-        let antreanOffline = JSON.parse(localStorage.getItem('antrean_offline')) || [];
-        let keranjang = [];
-        let modeSekarang = "login";
-        let isOnline = navigator.onLine;
-        
-        let wajibPinAdmin = localStorage.getItem('wajibPinAdmin') === 'false' ? false : true;
-        const PIN_ADMIN = "2304"; 
-        const PIN_KASIR = "0000";
-        
-        window.onload = function() {
-            document.getElementById('pinDisplayInput').focus();
-            const cbPin = document.getElementById('togglePinAdmin');
-            if(cbPin) cbPin.checked = wajibPinAdmin;
-        }
-
-        window.ubahPengaturanPinAdmin = function() {
-            wajibPinAdmin = document.getElementById('togglePinAdmin').checked;
-            localStorage.setItem('wajibPinAdmin', wajibPinAdmin);
-        }
-
-        window.addEventListener('online', () => setStatusKoneksi(true));
-        window.addEventListener('offline', () => setStatusKoneksi(false));
-
-        function setStatusKoneksi(status) {
-            isOnline = status;
-            const label = document.getElementById('labelKoneksi');
-            if(status) {
-                label.innerText = "🟢 ONLINE";
-                label.className = "status-koneksi online-bg";
-                kirimAntreanOfflineKeCloud();
-            } else {
-                label.innerText = "🔴 OFFLINE";
-                label.className = "status-koneksi offline-bg";
-            }
-        }
-
-        if (isOnline) {
-            onValue(ref(db, 'pos_produk'), (snapshot) => {
-                if (snapshot.exists()) {
-                    produkData = Object.values(snapshot.val());
-                    produkData.sort((a, b) => a.nama.localeCompare(b.nama));
-                    localStorage.setItem('local_produk', JSON.stringify(produkData));
-                    if(modeSekarang === "kasir") renderProduk();
-                    if(modeSekarang === "admin") renderAdminTable();
-                }
-            });
-            onValue(ref(db, 'pos_laporan'), (snapshot) => {
-                if (snapshot.exists()) {
-                    laporanTerjual = Object.values(snapshot.val());
-                    localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
-                    if(modeSekarang === "admin") hitungLaporanDashboard();
-                    if(modeSekarang === "kasir" && typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
-                }
-            });
-        }
-        
-        function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
-            if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
-            const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
-            const pesan = `⚠️ *PERINGATAN KEAMANAN POS* ⚠️\n\n` +
-                          `Ada percobaan akses masuk ilegal ke sistem!\n` +
-                          `• *Lokasi Menu:* ${lokasiAkses}\n` +
-                          `• *PIN yang Dimasukkan:* \`${pinInput}\` (SALAH)\n` +
-                          `• *Waktu Kejadian:* ${waktuWib} WIB\n` +
-                          `• *Titik Cabang:* Arjawinangun\n\n` +
-                          `_Mohon periksa kasir Anda segera jika aktivitas ini mencurigakan._`;
-
-            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-            fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
-            }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
-        }
-
-        window.toggleSection = function(contentId, iconId) {
-            const content = document.getElementById(contentId);
-            const icon = document.getElementById(iconId);
-            if (content.style.display === "none") {
-                content.style.display = "block";
-                icon.innerHTML = "Tutup 🔼";
-            } else {
-                content.style.display = "none";
-                icon.innerHTML = "Lihat 🔽";
-            }
-        }
-        
-        window.tekanPin = function(a) { 
-            const input = document.getElementById('pinDisplayInput');
-            if(input.value.length < 4) { input.value += a; batasiDanCekPin(); } 
-        }
-        
-        window.hapusPin = function() { document.getElementById('pinDisplayInput').value = ""; }
-
-        window.batasiDanCekPin = function() {
-            const input = document.getElementById('pinDisplayInput');
-            input.value = input.value.replace(/[^0-9]/g, ''); 
-            if(input.value.length === 4) { verifikasiPin(); }
-        }
-
-        window.verifikasiPin = function() {
-            const pinSelesai = document.getElementById('pinDisplayInput').value;
-            if (pinSelesai === PIN_KASIR) bukaMenuUtama("kasir");
-            else if (pinSelesai === PIN_ADMIN) bukaMenuUtama("admin");
-            else { 
-                alert("❌ PIN Salah!"); 
-                kirimNotifikasiTelegram(pinSelesai, "Halaman Login Utama");
-                hapusPin(); 
-                document.getElementById('pinDisplayInput').focus(); 
-            }
-        }
-        window.bukaOfflineKasirDarurat = function() {
-            alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
-            bukaMenuUtama("kasir");
-        }
-        
-        window.bukaMenuUtama = function(role) {
-            if (role === "admin" && modeSekarang !== "admin" && wajibPinAdmin) {
-                const konfirmasiPin = prompt("🔑 Proteksi Keamanan: Silakan masukkan PIN Akses Admin Anda:");
-                if (konfirmasiPin !== PIN_ADMIN) {
-                    alert("❌ Akses ditolak! PIN Admin salah.");
-                    kirimNotifikasiTelegram(konfirmasiPin || "[Kosong/Batal]", "Tombol Switch Navigasi Header Admin");
-                    return;
-                }
-            }
-
-            modeSekarang = role;
-            document.getElementById('areaLoginPin').classList.add('hidden');
-            document.getElementById('mainHeader').classList.remove('hidden');
-            setStatusKoneksi(navigator.onLine);
-
-            if (role === "kasir") {
-                document.getElementById('areaKasir').classList.remove('hidden');
-                document.getElementById('areaAdmin').classList.add('hidden');
-                document.getElementById('btnMode').innerText = "🛠️ Admin";
-                document.getElementById('btnMode').onclick = () => bukaMenuUtama('admin');
-                renderProduk();
-                if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
-                perbaruiInfoAntrean();
-            } else {
-                document.getElementById('areaKasir').classList.add('hidden');
-                document.getElementById('areaAdmin').classList.remove('hidden');
-                document.getElementById('btnMode').innerText = "🛒 Kasir";
-                document.getElementById('btnMode').onclick = () => bukaMenuUtama('kasir');
-                renderAdminTable();
-                hitungLaporanDashboard();
-                renderTabelExpired();
-            }
-        }
-
-        window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
-
-        window.pencarianProduk = function() {
-            const elInput = document.getElementById('cariProduk');
-            const elBtnClear = document.getElementById('btnBersihkanCariKasir');
-            const teks = elInput.value.toLowerCase();
-            if (teks.length > 0) { elBtnClear.style.display = 'block'; } else { elBtnClear.style.display = 'none'; }
-            const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
-            renderProduk(filtered);
-        }
-        
-        window.bersihkanPencarianKasir = function() {
-            const elInput = document.getElementById('cariProduk');
-            elInput.value = '';
-            pencarianProduk();
-            elInput.focus();
-        }
-
-        window.renderProduk = function(dataGrid = null) {
-            const grid = document.getElementById('gridProduk');
-            const targetData = dataGrid || produkData;
-            let htmlBuffer = '';
-            targetData.forEach(p => {
-                const habis = p.stok <= 0;
-                htmlBuffer += `
-                    <div onclick="${habis?'':'tambahKeKeranjang('+p.id+')'}" class="item-produk" style="${habis?'opacity:0.5;':''}">
-                        <span class="badge-stok ${habis?'stok-habis':'stok-aman'}">${p.stok} Pcs</span>
-                        <div><h3 style="font-size:12px; font-weight:bold; max-width:80%;">${p.nama}</h3></div>
-                        <div style="font-size:11px; margin-top:8px; display:flex; flex-direction:column; gap:2px;">
-                            <span style="color:#60a5fa;">🛒 Ecer: ${formatRupiah(p.hargaEcer)}</span>
-                            <span style="color:#eab308;">📦 Grosir: ${formatRupiah(p.hargaGrosir || 0)}</span>
-                        </div>
-                    </div>`;
-            });
-            grid.innerHTML = htmlBuffer;
-        }
-
-        window.tambahKeKeranjang = function(id) {
-            const p = produkData.find(item => item.id === id);
-            const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
-            if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
-            
-            const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
-            if (itemEcer) { itemEcer.qty += 1; } else { keranjang.push({...p, qty: 1, tipeHarga: 'ecer'}); }
-            updateKeranjang();
-        }
-        
-        window.toggleTipeHargaKeranjang = function(index) {
-            const item = keranjang[index];
-            item.tipeHarga = item.tipeHarga === 'ecer' ? 'grosir' : 'ecer';
-            updateKeranjang();
-        }
-
-        window.updateKeranjang = function() {
-            const list = document.getElementById('listKeranjang');
-            let total = 0; let htmlBuffer = '';
-            
-            keranjang.forEach((item, index) => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
-                total += (harga * item.qty);
-                const isGrosir = item.tipeHarga === 'grosir';
-                
-                htmlBuffer += `
-                    <div class="item-keranjang" style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
-                            <span>${item.nama}</span>
-                            <span style="color: ${isGrosir ? '#eab308' : '#60a5fa'};">${formatRupiah(harga * item.qty)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                            <div style="display: flex; gap: 4px; align-items: center;">
-                                <button type="button" class="toggle-harga-btn ${isGrosir ? 'active-grosir':'active-ecer'}" onclick="toggleTipeHargaKeranjang(${index})">
-                                    ${isGrosir ? '📦 Grosir' : '🛒 Ecer'}
-                                </button>
-                            </div>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                                <div style="display: flex; align-items: center; gap: 2px;">
-                                    <input type="number" min="1" max="${item.stok}" value="${item.qty}" 
-                                        onchange="ubahQtyManual(${index}, this.value)" 
-                                        style="width: 45px; padding: 4px; border: 1px solid #4b5563; background: #111827; color: white; border-radius: 4px; font-size: 11px; text-align: center; font-weight: bold;">
-                                    <span style="font-size: 10px; color: #9ca3af;">/${item.stok}</span>
-                                </div>
-                                <div style="display: flex; gap: 2px;">
-                                    <button type="button" onclick="sesuaikanQty(${index}, -1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:11px;">-</button>
-                                    <button type="button" onclick="sesuaikanQty(${index}, 1)" style="background: #4b5563; color: white; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:11px;">+</button>
-                                    <button type="button" onclick="hapusItemKeranjang(${index})" style="background: #7f1d1d; color: #f87171; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 11px;">🗑️</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-            
-            list.innerHTML = htmlBuffer;
-            document.getElementById('totalAkhir').innerText = formatRupiah(total);
-            renderTombolUangCepat(total);
-            hitungKembalian();
-        }
-        
-        window.sesuaikanQty = function(index, perubahan) {
-            const item = keranjang[index];
-            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
-            const qtyBaru = item.qty + perubahan;
-            if (qtyBaru <= 0) { hapusItemKeranjang(index); } 
-            else if (qtyBaru + totalQtyLain > item.stok) { alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
-            else { item.qty = qtyBaru; updateKeranjang(); }
-        }
-        
-        window.ubahQtyManual = function(index, nilai) {
-            const item = keranjang[index];
-            const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
-            let qtyInput = parseInt(nilai) || 1;
-            if (qtyInput <= 0) { hapusItemKeranjang(index); } 
-            else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
-            else { item.qty = qtyInput; updateKeranjang(); }
-        }
-
-        window.hapusItemKeranjang = function(index) {
-            keranjang.splice(index, 1);
-            updateKeranjang();
-        }
-
-        window.kosongkanKeranjang = function() {
-            keranjang = [];
-            document.getElementById('namaPelanggan').value = '';
-            updateKeranjang();
-        }
-
-        function renderTombolUangCepat(total) {
-            const container = document.getElementById('containerUangCepat');
-            if (total <= 0) { container.innerHTML = ''; return; }
-
-            let opsi = [];
-            opsi.push({ teks: "Uang Pas", nilai: total, kelas: "btn-uang-pas" });
-            let bulatAtas = Math.ceil(total / 10000) * 10000;
-            if (bulatAtas !== total) opsi.push({ teks: formatRupiah(bulatAtas), nilai: bulatAtas, kelas: "" });
-            if (total <= 50000) opsi.push({ teks: "Rp 50.000", nilai: 50000, kelas: "" });
-            if (total <= 100000) opsi.push({ teks: "Rp 100.000", nilai: 100000, kelas: "" });
-
-            let htmlBuffer = '';
-            opsi.forEach(o => { htmlBuffer += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`; });
-            container.innerHTML = htmlBuffer;
-        }
-        
-        window.pilihUangCepat = function(nilai) {
-            document.getElementById('uangDiterima').value = nilai;
-            hitungKembalian();
-        }
-
-        window.hitungKembalian = function() {
-            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
-            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
-            const selisih = bayar - total;
-            const elLabel = document.getElementById('labelKembalian');
-            const elUang = document.getElementById('uangKembalian');
-
-            if (selisih < 0) {
-                elLabel.innerText = "Kurang:";
-                elUang.innerText = formatRupiah(Math.abs(selisih));
-                elUang.style.color = "#f87171";
-            } else {
-                elLabel.innerText = "Kembalian:";
-                elUang.innerText = formatRupiah(selisih);
-                elUang.style.color = "#34d399";
-            }
-        }
-
-        window.prosesTransaksi = function() {
-            if(keranjang.length === 0) return alert("Keranjang kosong!");
-            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
-            const bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
-            const namaPelanggan = document.getElementById('namaPelanggan').value.trim();
-
-            if (bayar < total) {
-                const sisaKurang = total - bayar;
-                const konfirmasi = confirm(`⚠️ PEMBAYARAN KURANG!\n\nUang Diterima: ${formatRupiah(bayar)}\nTotal Belanja: ${formatRupiah(total)}\nKekurangan: ${formatRupiah(sisaKurang)}\n\nApakah Anda tetap ingin memproses transaksi dan mencetak nota?`);
-                if (!konfirmasi) return;
-            }
-
-            const nomorNota = "MK-" + Date.now().toString().slice(-6);
-            const waktu = new Date().toISOString();
-            let itemsLaporan = []; let totalModal = 0;
-
-            keranjang.forEach(item => {
-                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
-                totalModal += (item.hpp * item.qty);
-                itemsLaporan.push({
-                    barangId: item.id, nama: item.nama, qty: item.qty, hargaJual: harga, subJual: harga * item.qty, subModal: item.hpp * item.qty, tipeHarga: item.tipeHarga
-                });
-                const master = produkData.find(p => p.id === item.id);
-                if(master) master.stok -= item.qty;
-            });
-
-            localStorage.setItem('local_produk', JSON.stringify(produkData));
-            const kembalian = bayar >= total ? (bayar - total) : 0;
-            const kurangBayar = bayar < total ? (total - bayar) : 0;
-
-            const notaBaru = { 
-                idNota: nomorNota, waktu, namaPelanggan: namaPelanggan || "",
-                items: itemsLaporan, totalOmset: total, totalModal, refunded: false,
-                nominalBayar: bayar, nominalKembali: kembalian, nominalKurang: kurangBayar
-            };
-            laporanTerjual.push(notaBaru);
-            localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
-     if (isOnline) {
-                set(ref(db, 'pos_laporan/' + nomorNota), notaBaru);
-                keranjang.forEach(item => {
-                    const master = produkData.find(p => p.id === item.id);
-                    if(master) set(ref(db, 'pos_produk/' + item.id + '/stok'), master.stok);
-                });
-            } else {
-                antreanOffline.push(notaBaru);
-                localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
-                perbaruiInfoAntrean();
-            }
-
-            if(document.getElementById('allowPrint').checked) { setTimeout(() => { cetakStrukUlangLokal(nomorNota); }, 300); }
-
-            keranjang = [];
-            document.getElementById('uangDiterima').value = '';
-            document.getElementById('namaPelanggan').value = '';
-            updateKeranjang();
-            renderProduk();
-            if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
-            if(!document.getElementById('allowPrint').checked) alert("Transaksi Sukses! (ID: " + nomorNota + ")");
-        }
-        
-        window.cetakStrukUlangLokal = function(idNota) {
+         window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
@@ -894,7 +835,7 @@
             const uangKurang = nota.nominalKurang !== undefined ? nota.nominalKurang : (nota.totalOmset > uangBayar ? nota.totalOmset - uangBayar : 0);
 
             document.getElementById('strukTotal').innerText = formatRupiah(nota.totalOmset);
-            document.getElementById('strukBayar').innerText = formatRupiah(uangBayar);
+            document.getElementById('strukBayar').innerText = formatRupiah(uangBayar) + (nota.metodePembayaran ? ` (${nota.metodePembayaran}${nota.bankNontunai && nota.bankNontunai !== '-' ? ' ' + nota.bankNontunai : ''})` : '');
             
             const elRowKurang = document.getElementById('rowStrukKurangBayar');
             const elLabelSisa = document.getElementById('strukLabelSisa');
@@ -912,8 +853,8 @@
             
             window.print();
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
-                }
-            // --- SISTEM PELUNASAN GABUNGAN ---
+        }
+
         window.renderKasirKurangBayar = function() {
             const container = document.getElementById('containerKurangBayarKasir');
             const tbody = document.getElementById('tabelKasirKurangBayar');
@@ -997,7 +938,6 @@
 
             tbody.innerHTML = html;
         }
-
         window.bukaDetailGroup = function(namaAsli) {
             const notas = laporanTerjual.filter(n => {
                 const semuadirerefund = n.items.every(i => i.refunded) || n.refunded;
@@ -1069,6 +1009,7 @@
             if (value) { inputElem.value = parseInt(value, 10).toLocaleString('id-ID'); } 
             else { inputElem.value = ''; }
         }
+
         window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
@@ -1183,23 +1124,17 @@
             renderAdminTable();
         }
         
-                function kirimAntreanOfflineKeCloud() {
+        function kirimAntreanOfflineKeCloud() {
             if (antreanOffline.length === 0) return;
-            
-            // Salin dulu antrean saat ini
             let antreanSementara = [...antreanOffline];
-            
             antreanSementara.forEach(nota => {
                 set(ref(db, 'pos_laporan/' + nota.idNota), nota)
                     .then(() => {
-                        // Hapus dari antrean lokal HANYA jika berhasil terkirim ke Firebase
                         antreanOffline = antreanOffline.filter(n => n.idNota !== nota.idNota);
                         localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
                         perbaruiInfoAntrean();
                     })
-                    .catch(err => {
-                        console.error("Gagal sinkronisasi nota " + nota.idNota, err);
-                    });
+                    .catch(err => console.error("Gagal sinkronisasi nota " + nota.idNota, err));
             });
         }
 
@@ -1362,8 +1297,7 @@
                 });
                 const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
                 const isKurangBayar = nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
-
-                htmlBuffer += `
+        htmlBuffer += `
                     <tr class="${semuadirerefund ? 'text-refund':''}">
                         <td>
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
@@ -1371,6 +1305,7 @@
                             
                             ${isKurangBayar ? `<span class="badge-status badge-kurang">⚠️ Kurang: ${formatRupiah(nota.nominalKurang)}</span>` : ''}
                             ${(!isKurangBayar && !semuadirerefund && nota.nominalBayar) ? `<span class="badge-status badge-lunas">✓ LUNAS</span>` : ''}
+                            ${nota.metodePembayaran ? `<span style="font-size:10px; color:#9ca3af; display:block;">💳 ${nota.metodePembayaran}${nota.bankNontunai && nota.bankNontunai !== '-' ? '('+nota.bankNontunai+')' : ''}</span>` : ''}
 
                             <div class="detail-nota-text" style="width:100%;">${teksRincianItem}</div>
                         </td>
@@ -1406,7 +1341,6 @@
             containerRangkuman.innerHTML = rangkumanHtml;
         }
         
-        // --- SISTEM KEDALUWARSA & RETUR TERPISAH ---
         let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
 
         if (isOnline) {
@@ -1421,20 +1355,16 @@
         window.hitungOtomatisBatasRetur = function() {
             const valExp = document.getElementById('expTanggal').value;
             if (!valExp) return;
-            
             let tglExp = new Date(valExp);
             tglExp.setMonth(tglExp.getMonth() - 3);
-            
             let tahun = tglExp.getFullYear();
             let bulan = String(tglExp.getMonth() + 1).padStart(2, '0');
             let hari = String(tglExp.getDate()).padStart(2, '0');
-            
             document.getElementById('expBatasRetur').value = `${tahun}-${bulan}-${hari}`;
         }
 
         window.simpanDataExpired = function(event) {
             event.preventDefault();
-            
             const idEdit = document.getElementById('editExpId').value;
             const nama = document.getElementById('expNama').value;
             const jumlah = parseInt(document.getElementById('expJumlah').value) || 0;
@@ -1443,16 +1373,13 @@
             const idItem = idEdit ? parseInt(idEdit) : Date.now();
             
             const itemBaru = { id: idItem, nama, jumlah, tanggalExp, batasRetur };
-            
             if (idEdit) {
                 const idx = dataExpired.findIndex(i => i.id === parseInt(idEdit));
                 if (idx !== -1) dataExpired[idx] = itemBaru;
             } else { dataExpired.push(itemBaru); }
             
             localStorage.setItem('local_expired', JSON.stringify(dataExpired));
-            
             if (isOnline) { set(ref(db, 'pos_expired/' + idItem), itemBaru).catch(err => console.error(err)); }
-            
             resetFormExpired();
             renderTabelExpired();
             alert("✅ Data expired berhasil disimpan!");
@@ -1462,7 +1389,8 @@
             document.getElementById('formExpired').reset();
             document.getElementById('editExpId').value = '';
             document.getElementById('btnSimpanExp').innerText = "Simpan Data Expired";
-                }
+        }
+
         window.renderTabelExpired = function() {
             const tbody = document.getElementById('tabelExpiredBody');
             const keyword = document.getElementById('cariTabelExpired').value.toLowerCase();
@@ -1556,25 +1484,14 @@
             renderTabelExpired();
         }
     </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker Berhasil Terdaftar!', reg))
-        .catch(err => console.log('Service Worker Gagal:', err));
-    });
-  }
-</script>
-<div id="modalNontunai" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 10001; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
-    <div class="pin-card" style="max-width: 350px; padding: 25px; border-color: #4b5563;">
-        <h3 style="color: white; font-size: 16px; margin-bottom: 10px; font-weight: bold;">💳 Pilih Bank Nontunai</h3>
-        <p style="color: #9ca3af; font-size: 12px; margin-bottom: 20px;">Silakan pilih mesin EDC / Transfer Bank yang digunakan:</p>
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-            <button type="button" onclick="prosesTransaksiNontunai('BCA')" style="background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">🏦 Bank BCA</button>
-            <button type="button" onclick="prosesTransaksiNontunai('Mandiri')" style="background: #064e3b; color: #34d399; border: 1px solid #059669; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">🏦 Bank Mandiri</button>
-        </div>
-        <button type="button" onclick="tutupModalNontunai()" style="width: 100%; background: #4b5563; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Batal</button>
-    </div>
-</div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker Berhasil Terdaftar!', reg))
+            .catch(err => console.log('Service Worker Gagal:', err));
+        });
+      }
+    </script>
 </body>
 </html>
