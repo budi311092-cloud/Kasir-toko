@@ -1042,12 +1042,24 @@
             renderAdminTable();
         }
         
-        function kirimAntreanOfflineKeCloud() {
+                function kirimAntreanOfflineKeCloud() {
             if (antreanOffline.length === 0) return;
-            antreanOffline.forEach(nota => { set(ref(db, 'pos_laporan/' + nota.idNota), nota); });
-            antreanOffline = [];
-            localStorage.removeItem('antrean_offline');
-            perbaruiInfoAntrean();
+            
+            // Salin dulu antrean saat ini
+            let antreanSementara = [...antreanOffline];
+            
+            antreanSementara.forEach(nota => {
+                set(ref(db, 'pos_laporan/' + nota.idNota), nota)
+                    .then(() => {
+                        // Hapus dari antrean lokal HANYA jika berhasil terkirim ke Firebase
+                        antreanOffline = antreanOffline.filter(n => n.idNota !== nota.idNota);
+                        localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
+                        perbaruiInfoAntrean();
+                    })
+                    .catch(err => {
+                        console.error("Gagal sinkronisasi nota " + nota.idNota, err);
+                    });
+            });
         }
 
         function perbaruiInfoAntrean() {
