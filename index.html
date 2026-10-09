@@ -1480,7 +1480,64 @@
             document.getElementById('btnSimpanExp').innerText = "Perbarui Data Expired";
             document.getElementById('formExpired').scrollIntoView({ behavior: 'smooth' });
         }
+window.simpanProduk = function(event) {
+    if (event) event.preventDefault(); // Mencegah reload/refresh halaman!
 
+    const idEdit = document.getElementById('editId').value;
+    const nama = document.getElementById('inputNama').value.trim();
+    const hpp = parseFloat(document.getElementById('inputHpp').value) || 0;
+    const stok = parseInt(document.getElementById('inputStok').value) || 0;
+    const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
+    const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
+
+    if (!nama) {
+        alert("Nama barang tidak boleh kosong!");
+        return;
+    }
+
+    if (idEdit) {
+        // --- MODE PERBARUI BARANG (EDIT) ---
+        const idNum = parseInt(idEdit);
+        const item = produkData.find(p => p.id === idNum);
+        if (item) {
+            item.nama = nama;
+            item.hpp = hpp;
+            item.stok = stok;
+            item.hargaEcer = hargaEcer;
+            item.hargaGrosir = hargaGrosir;
+
+            if (isOnline) {
+                set(ref(db, 'pos_produk/' + idNum), item);
+            }
+            alert("✅ Data barang berhasil diperbarui!");
+        }
+    } else {
+        // --- MODE TAMBAH BARANG BARU ---
+        const idBaru = Date.now();
+        const itemBaru = { id: idBaru, nama, hpp, stok, hargaEcer, hargaGrosir };
+        produkData.push(itemBaru);
+
+        if (isOnline) {
+            set(ref(db, 'pos_produk/' + idBaru), itemBaru);
+        }
+        alert("✅ Barang baru berhasil ditambahkan!");
+    }
+
+    localStorage.setItem('local_produk', JSON.stringify(produkData));
+    resetFormAdmin();
+    renderAdminTable();
+    if (modeSekarang === "kasir") renderProduk();
+};
+
+window.resetFormAdmin = function() {
+    document.getElementById('formProduk').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('judulFormAdmin').innerText = "➕ Manajemen Data Barang";
+    document.getElementById('judulFormAdmin').style.color = "#10b981";
+    document.getElementById('btnSimpanAdmin').innerText = "Simpan Barang";
+    document.getElementById('btnSimpanAdmin').style.backgroundColor = "#10b981";
+};
+        
         window.hapusDataExpired = function(id) {
             if (!confirm("Hapus data kontrol expired ini?")) return;
             dataExpired = dataExpired.filter(i => i.id !== id);
