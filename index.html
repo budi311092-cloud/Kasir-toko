@@ -75,7 +75,6 @@
 
         .detail-nota-text { font-size: 11px; color: #9ca3af; margin-top: 4px; line-height: 1.4; background: #111827; padding: 6px; border-radius: 6px; display: inline-block; width: 100%; }
 
-        /* Badge Tambahan Kurang Bayar */
         .badge-status { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; margin-top: 4px; }
         .badge-kurang { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
         .badge-lunas { background: #064e3b; color: #34d399; border: 1px solid #059669; }
@@ -100,9 +99,7 @@
         <div class="pin-card">
             <div class="pin-title">MAHAKARYA POS</div>
             <div class="pin-subtitle">Silakan masukkan PIN Akses Anda</div>
-            
             <input type="password" id="pinDisplayInput" class="pin-display" placeholder="Masukkan PIN" maxlength="4" inputmode="numeric" oninput="batasiDanCekPin()">
-            
             <div class="pin-grid">
                 <button class="pin-btn" onclick="tekanPin('1')">1</button>
                 <button class="pin-btn" onclick="tekanPin('2')">2</button>
@@ -119,25 +116,22 @@
             </div>
         </div>
     </div>
-        <!-- TAMBAHAN: Modal Kustom Pelunasan -->
+    
     <div id="modalPelunasan" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 9999; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
         <div class="pin-card" style="max-width: 350px; padding: 25px; border-color: #4b5563;">
             <h3 style="color: white; font-size: 16px; margin-bottom: 15px; font-weight: bold;">💵 Pelunasan Transaksi</h3>
             <p id="teksInfoPelunasan" style="color: #d1d5db; font-size: 13px; margin-bottom: 20px; text-align: left; line-height: 1.5; background: #111827; padding: 10px; border-radius: 8px; border: 1px solid #374151;"></p>
-            
             <div style="text-align: left; margin-bottom: 20px;">
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nominal Pembayaran (Rp)</label>
-                <!-- Input ini yang akan memformat titik otomatis saat diketik -->
                 <input type="text" id="inputNominalPelunasan" class="input-text" style="font-size: 22px; font-weight: bold; text-align: right; color: #34d399;" oninput="formatInputRibuan(this)">
             </div>
-            
             <div style="display: flex; gap: 10px;">
                 <button onclick="tutupModalPelunasan()" style="flex: 1; background: #4b5563; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">Batal</button>
                 <button onclick="prosesPelunasan()" style="flex: 1; background: #059669; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">Oke</button>
             </div>
         </div>
     </div>
-        <!-- TAMBAHAN: Modal Detail Gabungan -->
+
     <div id="modalDetailGabungan" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 10000; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
         <div class="pin-card" style="max-width: 380px; padding: 25px; border-color: #4b5563; max-height: 85vh; display: flex; flex-direction: column;">
             <h3 style="color: white; font-size: 16px; margin-bottom: 15px; font-weight: bold;">📑 Rincian Tagihan Gabungan</h3>
@@ -148,7 +142,6 @@
     
     <div id="areaKasir" class="main-container hidden">
         <div class="card">
-            <!-- TAMBAHAN: Daftar Kurang Bayar Kasir -->
             <div id="containerKurangBayarKasir" style="display: none; margin-bottom: 15px; padding: 10px; background: #7f1d1d; border-radius: 8px; border: 1px solid #dc2626;">
                 <h3 style="font-size: 14px; font-weight: bold; color: #fca5a5; margin-bottom: 10px;">⚠️ Daftar Transaksi Belum Lunas</h3>
                 <div style="max-height: 20vh; overflow-y: auto;">
@@ -160,7 +153,6 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 16px; font-weight: bold;">Menu Penjualan (Kasir) <span id="infoPending" style="color:#eab308; font-size:12px;"></span></h2>
-                
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="cariProduk" placeholder="Cari produk kasir..." style="padding: 6px 30px 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 13px; width: 200px;" oninput="pencarianProduk()">
                     <button id="btnBersihkanCariKasir" onclick="bersihkanPencarianKasir()" style="position: absolute; right: 6px; background: none; border: none; color: #9ca3af; font-size: 14px; cursor: pointer; display: none; font-weight: bold;">✕</button>
@@ -179,12 +171,10 @@
             </div>
 
             <div style="border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px;">
-                <!-- Field Input Nama Pelanggan (Opsional) -->
                 <div>
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Nama Pelanggan (Opsional)</label>
                     <input type="text" id="namaPelanggan" placeholder="Masukkan nama pelanggan..." class="input-text" style="font-size: 13px; margin-bottom: 8px;">
                 </div>
-
                 <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-bottom: 15px;">
                     <span>Total Akhir:</span>
                     <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
@@ -193,14 +183,11 @@
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
                     <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
                 </div>
-                
                 <div id="containerUangCepat" class="grid-uang-cepat"></div>
-
                 <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
                     <span id="labelKembalian" style="color: #9ca3af;">Kembalian:</span>
                     <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
                 </div>
-
                 <label class="container-checkbox">
                     <input type="checkbox" id="allowPrint" checked>
                     <span>🖨️ Cetak Struk Fisik (Thermal)</span>
@@ -211,7 +198,6 @@
     </div>
     
      <div id="areaAdmin" class="admin-layout hidden">
-        <!-- TAMBAHAN: Toggle PIN Admin -->
         <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-bottom: -10px;">
             <label class="container-checkbox" style="background: #1f2937; border-color: #374151; padding: 8px 12px;">
                 <input type="checkbox" id="togglePinAdmin" onchange="ubahPengaturanPinAdmin()">
@@ -226,82 +212,48 @@
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
                 <input type="text" id="inputNama" required class="input-text">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Modal / COGS (Rp)</label>
-                        <input type="number" id="inputHpp" required class="input-text">
-                    </div>
-                    <div>
-                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Jumlah Stok</label>
-                        <input type="number" id="inputStok" required class="input-text">
-                    </div>
+                    <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Modal / COGS (Rp)</label><input type="number" id="inputHpp" required class="input-text"></div>
+                    <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Jumlah Stok</label><input type="number" id="inputStok" required class="input-text"></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Ecer (Rp)</label>
-                        <input type="number" id="inputHargaEcer" required class="input-text">
-                    </div>
-                    <div>
-                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Grosir (Rp)</label>
-                        <input type="number" id="inputHargaGrosir" required class="input-text">
-                    </div>
+                    <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Ecer (Rp)</label><input type="number" id="inputHargaEcer" required class="input-text"></div>
+                    <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Grosir (Rp)</label><input type="number" id="inputHargaGrosir" required class="input-text"></div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
                     <button type="submit" id="btnSimpanAdmin" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
-                        <!-- TAMBAHAN SISTEM KONTROL EXPIRED & RETUR -->
-<div class="card" style="margin-top: 20px; border-color: #3b82f6;">
-    <h3 style="font-size: 14px; font-weight: bold; color: #60a5fa; margin-bottom: 10px;">⏳ Kontrol Expired & Retur (3 Bulan)</h3>
-    <form id="formExpired" onsubmit="simpanDataExpired(event)">
-        <input type="hidden" id="editExpId">
-        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang / Bahan Kue</label>
-        <input type="text" id="expNama" required class="input-text" placeholder="Contoh: Tepung Segitiga Biru">
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-                <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Jumlah / Stok Batch</label>
-                <input type="number" id="expJumlah" required class="input-text" placeholder="0">
+            
+            <div class="card" style="margin-top: 20px; border-color: #3b82f6;">
+                <h3 style="font-size: 14px; font-weight: bold; color: #60a5fa; margin-bottom: 10px;">⏳ Kontrol Expired & Retur (3 Bulan)</h3>
+                <form id="formExpired" onsubmit="simpanDataExpired(event)">
+                    <input type="hidden" id="editExpId">
+                    <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang / Bahan Kue</label>
+                    <input type="text" id="expNama" required class="input-text" placeholder="Contoh: Tepung Segitiga Biru">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Jumlah / Stok Batch</label><input type="number" id="expJumlah" required class="input-text" placeholder="0"></div>
+                        <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Tanggal Expired</label><input type="date" id="expTanggal" required class="input-text" style="color-scheme: dark;" onchange="hitungOtomatisBatasRetur()"></div>
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Batas Retur (Otomatis -3 Bulan)</label>
+                        <input type="date" id="expBatasRetur" readonly class="input-text" style="background: #111827; color: #eab308; cursor: not-allowed;">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <button type="submit" id="btnSimpanExp" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
+                        <button type="button" onclick="resetFormExpired()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
+                    </div>
+                </form>
+                <div style="margin-top: 15px;">
+                    <input type="text" id="cariTabelExpired" placeholder="Cari data expired..." class="input-text" style="font-size: 12px; margin-bottom: 8px;" oninput="renderTabelExpired()">
+                    <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
+                        <table>
+                            <thead><tr><th>Barang</th><th>Jumlah</th><th>Exp Date</th><th>Batas Retur</th><th>Status</th><th style="text-align:center;">Aksi</th></tr></thead>
+                            <tbody id="tabelExpiredBody"><tr><td colspan="6" style="text-align:center; color:#9ca3af;">Belum ada data expired</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Tanggal Expired</label>
-                <input type="date" id="expTanggal" required class="input-text" style="color-scheme: dark;" onchange="hitungOtomatisBatasRetur()">
-            </div>
-        </div>
-        
-        <div>
-            <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Batas Retur (Otomatis -3 Bulan)</label>
-            <input type="date" id="expBatasRetur" readonly class="input-text" style="background: #111827; color: #eab308; cursor: not-allowed;">
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 5px;">
-            <button type="submit" id="btnSimpanExp" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
-            <button type="button" onclick="resetFormExpired()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
-        </div>
-    </form>
-
-    <div style="margin-top: 15px;">
-        <input type="text" id="cariTabelExpired" placeholder="Cari data expired..." class="input-text" style="font-size: 12px; margin-bottom: 8px;" oninput="renderTabelExpired()">
-        <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Barang</th>
-                        <th>Jumlah</th>
-                        <th>Exp Date</th>
-                        <th>Batas Retur</th>
-                        <th>Status</th>
-                        <th style="text-align:center;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelExpiredBody">
-                    <tr><td colspan="6" style="text-align:center; color:#9ca3af;">Belum ada data expired</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-<!-- AKHIR TAMBAHAN SISTEM KONTROL EXPIRED -->
             
             <div class="card" style="margin-top: 20px; padding: 15px; border-color: #4b5563;">
                 <h3 style="font-size: 13px; font-weight: bold; color: #eab308; margin-bottom: 10px;">📦 Rincian Barang Terjual (Filter Terpilih)</h3>
@@ -320,20 +272,10 @@
                     <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                         <input type="text" id="cariLaporan" placeholder="Cari nota, tanggal, barang..." style="padding: 6px 12px; border: 1px solid #4b5563; background:#374151; color:white; border-radius: 6px; font-size: 12px; width: 180px;" oninput="hitungLaporanDashboard()">
-                        
                         <select id="filterTanggal" onchange="hitungLaporanDashboard()" class="select-custom">
-                            <option value="hari">Hari Ini</option>
-                            <option value="kemarin">Kemarin</option>
-                            <option value="minggu_ini">Minggu Ini</option>
-                            <option value="minggu_kemarin">Minggu Kemarin</option>
-                            <option value="tahun_ini">Tahun Ini</option>
-                            <option value="tahun_kemarin">Tahun Kemarin</option>
-                            <option value="pilih_tanggal">Pilih Tanggal Mau...</option>
-                            <option value="semua">Semua Waktu</option>
+                            <option value="hari">Hari Ini</option><option value="kemarin">Kemarin</option><option value="minggu_ini">Minggu Ini</option><option value="minggu_kemarin">Minggu Kemarin</option><option value="tahun_ini">Tahun Ini</option><option value="tahun_kemarin">Tahun Kemarin</option><option value="pilih_tanggal">Pilih Tanggal Mau...</option><option value="semua">Semua Waktu</option>
                         </select>
-
                         <input type="date" id="filterTanggalSpesifik" onchange="hitungLaporanDashboard()" class="select-custom hidden" style="color-scheme: dark;">
-
                         <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset</button>
                     </div>
                 </div>
@@ -382,8 +324,8 @@
         <div style="display:flex; justify-content:space-between;"><span>Bayar:</span><span id="strukBayar"></span></div>
         <div style="display:flex; justify-content:space-between; font-weight: bold;"><span id="strukLabelSisa">Kembali:</span><span id="strukKembali"></span></div>
         <div id="rowStrukKurangBayar" style="display:none; justify-content:space-between; font-weight: bold; color: red;"><span>Kurang:</span><span id="strukKurangBayar"></span></div>
-    </div>
-    <script type="module">
+                    </div>
+            <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -407,9 +349,7 @@
         let modeSekarang = "login";
         let isOnline = navigator.onLine;
         
-        // TAMBAHAN: State Wajib PIN Admin (Tersimpan di Lokal)
         let wajibPinAdmin = localStorage.getItem('wajibPinAdmin') === 'false' ? false : true;
-
         const PIN_ADMIN = "2304"; 
         const PIN_KASIR = "0000";
         
@@ -478,11 +418,10 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
         }
-        // Fitur Minimize/Maximize Menu Admin
+
         window.toggleSection = function(contentId, iconId) {
             const content = document.getElementById(contentId);
             const icon = document.getElementById(iconId);
-            
             if (content.style.display === "none") {
                 content.style.display = "block";
                 icon.innerHTML = "Tutup 🔼";
@@ -490,7 +429,7 @@
                 content.style.display = "none";
                 icon.innerHTML = "Lihat 🔽";
             }
-                    }
+        }
         
         window.tekanPin = function(a) { 
             const input = document.getElementById('pinDisplayInput');
@@ -561,7 +500,6 @@
             const elInput = document.getElementById('cariProduk');
             const elBtnClear = document.getElementById('btnBersihkanCariKasir');
             const teks = elInput.value.toLowerCase();
-            
             if (teks.length > 0) { elBtnClear.style.display = 'block'; } else { elBtnClear.style.display = 'none'; }
             const filtered = produkData.filter(p => p.nama.toLowerCase().includes(teks));
             renderProduk(filtered);
@@ -578,7 +516,6 @@
             const grid = document.getElementById('gridProduk');
             const targetData = dataGrid || produkData;
             let htmlBuffer = '';
-            
             targetData.forEach(p => {
                 const habis = p.stok <= 0;
                 htmlBuffer += `
@@ -589,8 +526,7 @@
                             <span style="color:#60a5fa;">🛒 Ecer: ${formatRupiah(p.hargaEcer)}</span>
                             <span style="color:#eab308;">📦 Grosir: ${formatRupiah(p.hargaGrosir || 0)}</span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
             grid.innerHTML = htmlBuffer;
         }
@@ -598,12 +534,10 @@
         window.tambahKeKeranjang = function(id) {
             const p = produkData.find(item => item.id === id);
             const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
-            
             if (totalQtyDiKeranjang >= p.stok) return alert("Stok habis!");
             
             const itemEcer = keranjang.find(item => item.id === id && item.tipeHarga === 'ecer');
             if (itemEcer) { itemEcer.qty += 1; } else { keranjang.push({...p, qty: 1, tipeHarga: 'ecer'}); }
-            
             updateKeranjang();
         }
         
@@ -649,8 +583,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
             
             list.innerHTML = htmlBuffer;
@@ -663,7 +596,6 @@
             const item = keranjang[index];
             const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             const qtyBaru = item.qty + perubahan;
-            
             if (qtyBaru <= 0) { hapusItemKeranjang(index); } 
             else if (qtyBaru + totalQtyLain > item.stok) { alert(`⚠️ Total stok maksimal ${item.nama} adalah ${item.stok} Pcs.`); } 
             else { item.qty = qtyBaru; updateKeranjang(); }
@@ -673,7 +605,6 @@
             const item = keranjang[index];
             const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             let qtyInput = parseInt(nilai) || 1;
-            
             if (qtyInput <= 0) { hapusItemKeranjang(index); } 
             else if (qtyInput + totalQtyLain > item.stok) { alert(`⚠️ Stok melebihi batas! Maksimal ${item.nama} adalah ${item.stok} Pcs.`); item.qty = item.stok - totalQtyLain; updateKeranjang(); } 
             else { item.qty = qtyInput; updateKeranjang(); }
@@ -702,9 +633,7 @@
             if (total <= 100000) opsi.push({ teks: "Rp 100.000", nilai: 100000, kelas: "" });
 
             let htmlBuffer = '';
-            opsi.forEach(o => {
-                htmlBuffer += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`;
-            });
+            opsi.forEach(o => { htmlBuffer += `<button type="button" class="btn-uang-cepat ${o.kelas}" onclick="pilihUangCepat(${o.nilai})">${o.teks}</button>`; });
             container.innerHTML = htmlBuffer;
         }
         
@@ -730,6 +659,7 @@
                 elUang.style.color = "#34d399";
             }
         }
+
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
@@ -767,8 +697,7 @@
             };
             laporanTerjual.push(notaBaru);
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
-
-            if (isOnline) {
+     if (isOnline) {
                 set(ref(db, 'pos_laporan/' + nomorNota), notaBaru);
                 keranjang.forEach(item => {
                     const master = produkData.find(p => p.id === item.id);
@@ -804,9 +733,7 @@
             if (nota.namaPelanggan && nota.namaPelanggan.trim() !== "") {
                 elPelanggan.innerText = "Pelanggan: " + nota.namaPelanggan;
                 elPelanggan.style.display = "block";
-            } else {
-                elPelanggan.style.display = "none";
-            }
+            } else { elPelanggan.style.display = "none"; }
 
             const tNota = new Date(nota.waktu);
             document.getElementById('strukWaktu').innerText = tNota.toLocaleDateString("id-ID") + " " + tNota.toLocaleTimeString("id-ID", {hour: '2-digit', minute:'2-digit'});
@@ -843,78 +770,8 @@
             
             window.print();
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
-        }
-
-        // TAMBAHAN: Render Kurang Bayar di Menu Kasir
-        // TAMBAHAN: Render Kurang Bayar di Menu Kasir (Diupdate dengan Grouping Tagihan)
-        window.renderKasirKurangBayar = function() {
-            const container = document.getElementById('containerKurangBayarKasir');
-            const tbody = document.getElementById('tabelKasirKurangBayar');
-            if(!container || !tbody) return;
-
-            const kurangBayarList = laporanTerjual.filter(nota => {
-                const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
-                return nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
-            });
-
-            if (kurangBayarList.length === 0) {
-                container.style.display = 'none';
-                return;
-            }
-
-            container.style.display = 'block';
-            
-            // Logika Grouping Tagihan berdasarkan nama
-            const groupedKurangBayar = {};
-            const individualKurangBayar = [];
-
-            kurangBayarList.sort((a, b) => new Date(b.waktu) - new Date(a.waktu)).forEach(nota => {
-                if (nota.namaPelanggan && nota.namaPelanggan.trim() !== "") {
-                    const nama = nota.namaPelanggan.trim().toLowerCase();
-                    if (!groupedKurangBayar[nama]) {
-                        groupedKurangBayar[nama] = {
-                            namaAsli: nota.namaPelanggan.trim(),
-                            totalKurang: 0,
-                            notas: []
-                        };
-                    }
-                    groupedKurangBayar[nama].totalKurang += nota.nominalKurang;
-                    groupedKurangBayar[nama].notas.push(nota);
-                } else {
-                    individualKurangBayar.push(nota);
                 }
-            });
-
-            let html = '';
-
-            const buildIndividualHtml = (nota) => {
-                return `
-                    <tr style="border-bottom: 1px solid #991b1b;">
-                        <td style="padding: 6px;">
-                            <strong style="color:white;">${nota.idNota}</strong>
-                            ${nota.namaPelanggan ? `<br><span style="font-size:10px; color:#fca5a5;">👤 ${nota.namaPelanggan}</span>` : ''}
-                        </td>
-                        <td style="padding: 6px; color: #fca5a5; font-weight: bold;">
-                            Kurang: ${formatRupiah(nota.nominalKurang)}
-                        </td>
-                        <td style="padding: 6px; text-align: right;">
-                            <button onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>
-                        </td>
-                    </tr>
-                `;
-            };
-
-            // Render tagihan yang di-grouping (Gabungan)
-            Object.values(groupedKurangBayar).forEach(group => {
-                if (group.notas.length > 1) {
-                    html += `
-                        <tr style="border-bottom: 1px solid #991b1b; cursor: pointer; background: rgba(255,255,255,0.05);" onclick="bukaDetailGroup('${group.namaAsli}')">
-                            <td style="padding: 6px;">
-                                <strong style="color:#60a5fa;">Gabungan (${group.notas.length} Nota)</strong>
-                                <br><span style="font-size:10px; color:#fca5a5;">👤 ${group.namaAsli}</span>
-                            </td>
-                            <td style="padding: 6px; color: #fca5a5; font-weight: bold;">
-        // --- COPY MULAI DARI SINI ---
+            // --- SISTEM PELUNASAN GABUNGAN ---
         window.renderKasirKurangBayar = function() {
             const container = document.getElementById('containerKurangBayarKasir');
             const tbody = document.getElementById('tabelKasirKurangBayar');
@@ -965,7 +822,7 @@
                             Kurang: ${formatRupiah(nota.nominalKurang)}
                         </td>
                         <td style="padding: 6px; text-align: right;">
-                            <button onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>
+                            <button type="button" onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>
                         </td>
                     </tr>
                 `;
@@ -974,7 +831,7 @@
             Object.values(groupedKurangBayar).forEach(group => {
                 if (group.notas.length > 1) {
                     html += `
-                        <tr style="border-bottom: 1px solid #991b1b; cursor: pointer; background: rgba(255,255,255,0.05);" onclick="bukaDetailGroup('${group.namaAsli}')">
+                        <tr style="border-bottom: 1px solid #991b1b; cursor: pointer; background: rgba(255,255,255,0.05);" onclick="window.bukaDetailGroup('${group.namaAsli}')">
                             <td style="padding: 6px;">
                                 <strong style="color:#60a5fa;">Gabungan (${group.notas.length} Nota)</strong>
                                 <br><span style="font-size:10px; color:#fca5a5;">👤 ${group.namaAsli}</span>
@@ -983,7 +840,7 @@
                                 Total: ${formatRupiah(group.totalKurang)}
                             </td>
                             <td style="padding: 6px; text-align: right;">
-                                <button onclick="event.stopPropagation(); bukaDetailGroup('${group.namaAsli}')" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Rincian</button>
+                                <button type="button" onclick="event.stopPropagation(); window.bukaDetailGroup('${group.namaAsli}')" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Rincian</button>
                             </td>
                         </tr>
                     `;
@@ -1063,87 +920,41 @@
             }, 100);
         };
 
-        // Fungsi baru khusus untuk menjembatani pop-up detail ke pop-up pelunasan
-                window.prosesKePelunasan = function(idNota) {
-            // 1. Eksekusi langsung tanpa jeda (synchronous) menggunakan awalan window.
-            window.lunasiTransaksi(idNota);
-            window.tutupModalDetailGabungan();
-            
-            // 2. Jeda singkat hanya untuk menyorot/memblok angka pada keyboard HP
-            setTimeout(() => {
-                const inputElem = document.getElementById('inputNominalPelunasan');
-                if (inputElem) {
-                    inputElem.focus();
-                    // Menggunakan setSelectionRange karena lebih stabil untuk browser Android/Mobile
-                    inputElem.setSelectionRange(0, inputElem.value.length);
-                }
-            }, 100);
-        };
+        let idNotaPelunasanAktif = null;
 
-            // 2. Beri jeda 100 milidetik agar animasi penutupan selesai, menghindari bentrok DOM
-            setTimeout(() => {
-                // Buka pop-up pelunasan bawaan
-                lunasiTransaksi(idNota);
-                
-                // 3. Pastikan input terpilih (ter-highlight) sehingga siap ditimpa saat kasir mengetik
-                setTimeout(() => {
-                    const inputElem = document.getElementById('inputNominalPelunasan');
-                    if (inputElem) {
-                        inputElem.focus();
-                        inputElem.select(); // Memblok teks nominal bawaan agar otomatis hilang saat angka baru diketik
-                    }
-                }, 150);
-            }, 100);
-        }
-        
-        // Fitur: Format angka ribuan secara real-time saat diketik
         window.formatInputRibuan = function(inputElem) {
-            // Hapus semua karakter yang bukan angka
             let value = inputElem.value.replace(/[^0-9]/g, '');
-            if (value) {
-                // Tambahkan format titik ribuan
-                inputElem.value = parseInt(value, 10).toLocaleString('id-ID');
-            } else {
-                inputElem.value = '';
-            }
+            if (value) { inputElem.value = parseInt(value, 10).toLocaleString('id-ID'); } 
+            else { inputElem.value = ''; }
         }
-
-        // Fitur: Membuka Pop-up (Modal) Pelunasan
         window.lunasiTransaksi = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota || !nota.nominalKurang) return;
 
             idNotaPelunasanAktif = idNota;
             
-            // Isi teks informasi ke dalam Pop-up
             const infoHtml = `Nota: <strong>${idNota}</strong><br>Sisa Kurang: <strong style="color:#f87171;">${formatRupiah(nota.nominalKurang)}</strong>`;
             document.getElementById('teksInfoPelunasan').innerHTML = infoHtml;
             
-            // Isi nilai default (sudah ada pemecah ribuan)
             const inputElem = document.getElementById('inputNominalPelunasan');
             inputElem.value = nota.nominalKurang.toLocaleString('id-ID');
             
-            // Tampilkan Pop-up
             document.getElementById('modalPelunasan').classList.remove('hidden');
             
-            // Fokuskan kursor otomatis ke dalam input box
             setTimeout(() => inputElem.focus(), 100);
         }
 
-        // Fitur: Menutup Pop-up
         window.tutupModalPelunasan = function() {
             document.getElementById('modalPelunasan').classList.add('hidden');
             idNotaPelunasanAktif = null;
         }
 
-        // Fitur: Eksekusi pelunasan saat klik tombol "Oke"
         window.prosesPelunasan = function() {
             if (!idNotaPelunasanAktif) return;
             
             const nota = laporanTerjual.find(n => n.idNota === idNotaPelunasanAktif);
             if (!nota) return tutupModalPelunasan();
 
-            // Ambil nilai dari input pop-up dan bersihkan titik pembaginya sebelum dihitung
             const inputVal = document.getElementById('inputNominalPelunasan').value;
             const cleanVal = inputVal.replace(/\./g, ''); 
             const dibayarSekarang = parseFloat(cleanVal);
@@ -1153,31 +964,22 @@
                 return;
             }
 
-            // Hitung logika pelunasan / cicilan
             if (dibayarSekarang >= nota.nominalKurang) {
                 const kembalian = dibayarSekarang - nota.nominalKurang;
-                
                 nota.nominalBayar += nota.nominalKurang;
                 nota.nominalKurang = 0;
                 
-                if (kembalian > 0) {
-                    alert(`✅ Transaksi ${nota.idNota} berhasil DILUNASI!\nUang Kembali Pelanggan: ${formatRupiah(kembalian)}`);
-                } else {
-                    alert(`✅ Transaksi ${nota.idNota} berhasil DILUNASI!`);
-                }
+                if (kembalian > 0) { alert(`✅ Transaksi ${nota.idNota} berhasil DILUNASI!\nUang Kembali Pelanggan: ${formatRupiah(kembalian)}`); } 
+                else { alert(`✅ Transaksi ${nota.idNota} berhasil DILUNASI!`); }
             } else {
                 nota.nominalBayar += dibayarSekarang;
                 nota.nominalKurang -= dibayarSekarang;
                 alert(`⚠️ Pembayaran diterima sebesar ${formatRupiah(dibayarSekarang)}.\nSisa kurang bayar saat ini: ${formatRupiah(nota.nominalKurang)}`);
             }
 
-            // Simpan perubahan ke penyimpanan perangkat & cloud
             localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
-            if (isOnline) {
-                set(ref(db, 'pos_laporan/' + nota.idNota), nota);
-            }
+            if (isOnline) { set(ref(db, 'pos_laporan/' + nota.idNota), nota); }
 
-            // Refresh tampilan & tutup pop-up
             hitungLaporanDashboard();
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             tutupModalPelunasan();
@@ -1252,7 +1054,6 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
-        
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -1401,11 +1202,11 @@
                     teksRincianItem += `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; ${isItemRefunded ? 'text-decoration:line-through; opacity:0.5;' : ''}">
                             <span>• ${it.nama}${tipeLabel} (${it.qty} Pcs)</span>
-                            ${!isItemRefunded ? `<button onclick="refundItemSpesifik('${nota.idNota}', ${idx})" style="background:#7f1d1d; color:#f87171; border:none; padding:1px 4px; border-radius:3px; font-size:9px; cursor:pointer; margin-left:6px;">Refund Item</button>` : '<span style="font-size:9px; color:#f87171; margin-left:4px;">(Refund)</span>'}
+                            ${!isItemRefunded ? `<button onclick="refundItemSpesifik('${nota.idNota}',${idx})" style="background:#7f1d1d; color:#f87171; border:none; padding:1px 4px; border-radius:3px; font-size:9px; cursor:pointer; margin-left:6px;">Refund Item</button>` : '<span style="font-size:9px; color:#f87171; margin-left:4px;">(Refund)</span>'}
                         </div>
                     `; 
                 });
-        const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
+                const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
                 const isKurangBayar = nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
 
                 htmlBuffer += `
@@ -1425,7 +1226,7 @@
                             <div style="display:flex; flex-direction:column; gap:4px;">
                                 <button onclick="cetakStrukUlangLokal('${nota.idNota}')" style="background:#1e3a8a; color:#60a5fa; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">🖨️ Cetak</button>
                                 
-                                ${isKurangBayar ? `<button onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:#a7f3d0; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>` : ''}
+                                ${isKurangBayar ? `<button type="button" onclick="lunasiTransaksi('${nota.idNota}')" style="background:#059669; color:#a7f3d0; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">💵 Lunasi</button>` : ''}
 
                                 ${semuadirerefund ? '<span style="color:#f87171; font-size:11px;">Refund Total</span>' : `<button onclick="refundTransaksi('${nota.idNota}')" style="background:#7f1d1d; color:#f87171; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; font-size:11px;">Refund Semua</button>`}
                             </div>
@@ -1451,45 +1252,6 @@
             containerRangkuman.innerHTML = rangkumanHtml;
         }
         
-        window.simpanProduk = function(event) {
-            event.preventDefault(); 
-            const idEdit = document.getElementById('editId').value;
-            const nama = document.getElementById('inputNama').value;
-            const hpp = parseFloat(document.getElementById('inputHpp').value) || 0;
-            const stok = parseInt(document.getElementById('inputStok').value) || 0;
-            const hargaEcer = parseFloat(document.getElementById('inputHargaEcer').value) || 0;
-            const hargaGrosir = parseFloat(document.getElementById('inputHargaGrosir').value) || 0;
-            const idProduk = idEdit ? parseInt(idEdit) : Date.now();
-
-            const produkBaru = { id: idProduk, nama, hpp, stok, hargaEcer, hargaGrosir };
-
-            if (idEdit) {
-                const index = produkData.findIndex(p => p.id === parseInt(idEdit));
-                if (index !== -1) produkData[index] = produkBaru;
-            } else { produkData.push(produkBaru); }
-            
-            produkData.sort((a, b) => a.nama.localeCompare(b.nama));
-            localStorage.setItem('local_produk', JSON.stringify(produkData));
-
-            if (isOnline) {
-                set(ref(db, 'pos_produk/' + idProduk), produkBaru)
-                    .then(() => { alert("✅ Barang berhasil disimpan ke Cloud!"); })
-                    .catch(err => { console.error("Gagal simpan ke Firebase:", err); });
-            } else { alert("💾 Barang disimpan lokal (Offline). Akan disinkronkan saat online."); }
-
-            resetFormAdmin();
-            renderAdminTable();
-        }
-
-        window.resetFormAdmin = function() {
-            document.getElementById('formProduk').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('judulFormAdmin').innerText = "➕ Manajemen Data Barang";
-            document.getElementById('judulFormAdmin').style.color = "#10b981";
-            document.getElementById('btnSimpanAdmin').innerText = "Simpan Barang";
-            document.getElementById('btnSimpanAdmin').style.backgroundColor = "#10b981";
-        }
-
         // --- SISTEM KEDALUWARSA & RETUR TERPISAH ---
         let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
 
@@ -1546,8 +1308,7 @@
             document.getElementById('formExpired').reset();
             document.getElementById('editExpId').value = '';
             document.getElementById('btnSimpanExp').innerText = "Simpan Data Expired";
-        }
-
+                }
         window.renderTabelExpired = function() {
             const tbody = document.getElementById('tabelExpiredBody');
             const keyword = document.getElementById('cariTabelExpired').value.toLowerCase();
@@ -1620,6 +1381,7 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim notifikasi retur Telegram:", err));
         }
+        
         window.editDataExpired = function(id) {
             const item = dataExpired.find(i => i.id === id);
             if (!item) return;
