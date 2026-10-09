@@ -946,30 +946,12 @@
             let grandTotal = 0;
 
             notas.forEach(nota => {
-                html += `<div style="background:#111827; padding:12px; border-radius:8px; border:1px solid #374151; margin-bottom:12px;">`;
-                html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #374151; padding-bottom:8px; margin-bottom:8px;">
-                            <div>
-                                <strong style="color:#eab308; font-size:13px;">${nota.idNota}</strong>
-                                <div style="font-size:10px; color:#9ca3af;">${new Date(nota.waktu).toLocaleDateString('id-ID')}</div>
-                            </div>
-                            <span style="color:#f87171; font-weight:bold;">Sisa: ${formatRupiah(nota.nominalKurang)}</span>
-                         </div>`;
+                                // ... (kode sebelumnya di dalam foreach) ...
                 
-                html += `<div style="margin-bottom:10px;">`;
-                nota.items.forEach(item => {
-                    if (!item.refunded) {
-                        html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:11px; color:#d1d5db;">
-                                    <span>- ${item.nama} (x${item.qty})</span>
-                                    <span>${formatRupiah(item.subJual)}</span>
-                                 </div>`;
-                    }
-                });
-                html += `</div>`;
                 html += `<div style="text-align:right;">
-            <button type="button" onclick="window.prosesKePelunasan('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💵 Lunasi Nota Ini</button>
-         </div>`;
-
-html += `</div>`;
+                            <button type="button" onclick="window.prosesKePelunasan('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💵 Lunasi Nota Ini</button>
+                         </div>`;
+                html += `</div>`;
                 
                 grandTotal += nota.nominalKurang;
             });
