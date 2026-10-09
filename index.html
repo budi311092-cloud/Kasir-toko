@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="manifest" href="./manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAHAKARYA POS v8.4.5 (Hybrid Offline-Online)</title>
@@ -1402,5 +1403,14 @@
             renderTabelExpired();
         }
     </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker Berhasil Terdaftar!', reg))
+        .catch(err => console.log('Service Worker Gagal:', err));
+    });
+  }
+</script>
 </body>
 </html>
