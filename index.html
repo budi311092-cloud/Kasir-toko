@@ -193,7 +193,26 @@
                     <input type="checkbox" id="allowPrint" checked>
                     <span>🖨️ Cetak Struk Fisik (Thermal)</span>
                 </label>
-                <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
+                <div style="margin-bottom: 12px;">
+    <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Metode Pembayaran</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
+        <button type="button" id="btnMetodeTunai" onclick="pilihMetodePembayaran('tunai')" style="background: #2563eb; color: white; border: 1px solid #3b82f6; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">💵 Tunai</button>
+        <button type="button" id="btnMetodeNontunai" onclick="pilihMetodePembayaran('nontunai')" style="background: #374151; color: #9ca3af; border: 1px solid #4b5563; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">💳 Nontunai</button>
+    </div>
+</div>
+
+<div id="wrapperUangTunai">
+    <div>
+        <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Uang Diterima (Rp)</label>
+        <input type="number" id="uangDiterima" placeholder="0" class="input-text" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;" oninput="hitungKembalian()">
+    </div>
+    <div id="containerUangCepat" class="grid-uang-cepat"></div>
+    <div style="display: flex; justify-content: space-between; background: #374151; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;">
+        <span id="labelKembalian" style="color: #9ca3af;">Kembalian:</span>
+        <span id="uangKembalian" style="font-weight: bold; color: #34d399;">Rp 0</span>
+    </div>
+</div>       
+        <button onclick="prosesTransaksi()" class="btn-proses">Proses Transaksi</button>
             </div>
         </div>
     </div>
@@ -327,8 +346,130 @@
         <div id="rowStrukKurangBayar" style="display:none; justify-content:space-between; font-weight: bold; color: red;"><span>Kurang:</span><span id="strukKurangBayar"></span></div>
                     </div>
             <script type="module">
-                import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+                        let metodePembayaranAktif = "tunai";
+
+        window.pilihMetodePembayaran = function(metode) {
+            metodePembayaranAktif = metode;
+            const btnTunai = document.getElementById('btnMetodeTunai');
+            const btnNontunai = document.getElementById('btnMetodeNontunai');
+            const wrapperTunai = document.getElementById('wrapperUangTunai');
+
+            if (metode === 'tunai') {
+                btnTunai.style.background = "#2563eb";
+                btnTunai.style.color = "white";
+                btnTunai.style.borderColor = "#3b82f6";
+                
+                btnNontunai.style.background = "#374151";
+                btnNontunai.style.color = "#9ca3af";
+                btnNontunai.style.borderColor = "#4b5563";
+                
+                wrapperTunai.classList.remove('hidden');
+            } else {
+                btnNontunai.style.background = "#2563eb";
+                btnNontunai.style.color = "white";
+                btnNontunai.style.borderColor = "#3b82f6";
+                
+                btnTunai.style.background = "#374151";
+                btnTunai.style.color = "#9ca3af";
+                btnTunai.style.borderColor = "#4b5563";
+                
+                wrapperTunai.classList.add('hidden');
+            }
+        };
+
+        // Modifikasi fungsi utama saat tombol proses transaksi ditekan
+        window.prosesTransaksi = function() {
+            if(keranjang.length === 0) return alert("Keranjang kosong!");
+            
+            if (metodePembayaranAktif === 'nontunai') {
+                document.getElementById('modalNontunai').classList.remove('hidden');
+                return;
+            }
+
+            // Lanjut proses tunai biasa...
+            eksekusiSimpanTransaksi("Tunai", "-");
+        };
+
+        window.tutupModalNontunai = function() {
+            document.getElementById('modalNontunai').classList.add('hidden');
+        };
+
+        window.prosesTransaksiNontunai = function(namaBank) {
+            tutupModalNontunai();
+            eksekusiSimpanTransaksi("Nontunai", namaBank);
+        };
+
+        function eksekusiSimpanTransaksi(jenisBayar, detailBank) {
+            const total = keranjang.reduce((acc, i) => acc + (i.tipeHarga==='ecer'?i.hargaEcer:(i.hargaGrosir || 0))*i.qty, 0);
+            const namaPelanggan = document.getElementById('namaPelanggan').value.trim();
+            
+            let bayar = total;
+            if (jenisBayar === "Tunai") {
+                bayar = parseFloat(document.getElementById('uangDiterima').value) || 0;
+                if (bayar < total) {
+                    const sisaKurang = total - bayar;
+                    const konfirmasi = confirm(`⚠️ PEMBAYARAN KURANG!\n\nUang Diterima: ${formatRupiah(bayar)}\nTotal Belanja: ${formatRupiah(total)}\nKekurangan: ${formatRupiah(sisaKurang)}\n\nApakah Anda tetap ingin memproses transaksi?`);
+                    if (!konfirmasi) return;
+                }
+            }
+
+            const nomorNota = "MK-" + Date.now().toString().slice(-6);
+            const waktu = new Date().toISOString();
+            let itemsLaporan = []; let totalModal = 0;
+
+            keranjang.forEach(item => {
+                const harga = item.tipeHarga === 'ecer' ? item.hargaEcer : (item.hargaGrosir || 0);
+                totalModal += (item.hpp * item.qty);
+                itemsLaporan.push({
+                    barangId: item.id, nama: item.nama, qty: item.qty, hargaJual: harga, subJual: harga * item.qty, subModal: item.hpp * item.qty, tipeHarga: item.tipeHarga
+                });
+                const master = produkData.find(p => p.id === item.id);
+                if(master) master.stok -= item.qty;
+            });
+
+            localStorage.setItem('local_produk', JSON.stringify(produkData));
+            const kembalian = jenisBayar === "Tunai" && bayar >= total ? (bayar - total) : 0;
+            const kurangBayar = jenisBayar === "Tunai" && bayar < total ? (total - bayar) : 0;
+
+            const notaBaru = { 
+                idNota: nomorNota, waktu, namaPelanggan: namaPelanggan || "",
+                items: itemsLaporan, totalOmset: total, totalModal, refunded: false,
+                nominalBayar: jenisBayar === "Tunai" ? bayar : total, 
+                nominalKembali: kembalian, 
+                nominalKurang: kurangBayar,
+                metodePembayaran: jenisBayar,
+                bankNontunai: detailBank
+            };
+
+            laporanTerjual.push(notaBaru);
+            localStorage.setItem('local_laporan', JSON.stringify(laporanTerjual));
+
+            if (isOnline) {
+                set(ref(db, 'pos_laporan/' + nomorNota), notaBaru);
+                keranjang.forEach(item => {
+                    const master = produkData.find(p => p.id === item.id);
+                    if(master) set(ref(db, 'pos_produk/' + item.id + '/stok'), master.stok);
+                });
+            } else {
+                antreanOffline.push(notaBaru);
+                localStorage.setItem('antrean_offline', JSON.stringify(antreanOffline));
+                perbaruiInfoAntrean();
+            }
+
+            if(document.getElementById('allowPrint').checked) { setTimeout(() => { cetakStrukUlangLokal(nomorNota); }, 300); }
+
+            keranjang = [];
+            document.getElementById('uangDiterima').value = '';
+            document.getElementById('namaPelanggan').value = '';
+            pilihMetodePembayaran('tunai');
+            updateKeranjang();
+            renderProduk();
+            if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
+            if(!document.getElementById('allowPrint').checked) alert(`Transaksi Sukses! (${jenisBayar} ${detailBank !== '-' ? '- ' + detailBank : ''}) ID: ${nomorNota}`);
+        }
+                
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+            import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
                 
                 const firebaseConfig = {
             apiKey: "AIzaSyCGK_082zaptbQDlGcZQLeT3YMHhlurO6s",
@@ -1424,5 +1565,16 @@
     });
   }
 </script>
+<div id="modalNontunai" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 10001; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
+    <div class="pin-card" style="max-width: 350px; padding: 25px; border-color: #4b5563;">
+        <h3 style="color: white; font-size: 16px; margin-bottom: 10px; font-weight: bold;">💳 Pilih Bank Nontunai</h3>
+        <p style="color: #9ca3af; font-size: 12px; margin-bottom: 20px;">Silakan pilih mesin EDC / Transfer Bank yang digunakan:</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <button type="button" onclick="prosesTransaksiNontunai('BCA')" style="background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">🏦 Bank BCA</button>
+            <button type="button" onclick="prosesTransaksiNontunai('Mandiri')" style="background: #064e3b; color: #34d399; border: 1px solid #059669; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">🏦 Bank Mandiri</button>
+        </div>
+        <button type="button" onclick="tutupModalNontunai()" style="width: 100%; background: #4b5563; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Batal</button>
+    </div>
+</div>
 </body>
 </html>
