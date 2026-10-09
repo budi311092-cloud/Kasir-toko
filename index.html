@@ -153,8 +153,7 @@
             <button type="button" onclick="tutupModalNontunai()" style="width: 100%; background: #4b5563; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Batal</button>
         </div>
     </div>
-    
-    <div id="areaKasir" class="main-container hidden">
+    <div id="areaKasir" class="main-container hidden" style="grid-template-columns: 1fr;">
         <div class="card">
             <div id="containerKurangBayarKasir" style="display: none; margin-bottom: 15px; padding: 10px; background: #7f1d1d; border-radius: 8px; border: 1px solid #dc2626;">
                 <h3 style="font-size: 14px; font-weight: bold; color: #fca5a5; margin-bottom: 10px;">⚠️ Daftar Transaksi Belum Lunas</h3>
@@ -194,7 +193,6 @@
                     <span id="totalAkhir" style="color: #60a5fa;">Rp 0</span>
                 </div>
 
-                <!-- PILIHAN METODE PEMBAYARAN -->
                 <div style="margin-bottom: 12px;">
                     <label style="font-size: 10px; font-weight: bold; color: #9ca3af; text-transform: uppercase;">Metode Pembayaran</label>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
@@ -270,8 +268,8 @@
                         <button type="submit" id="btnSimpanExp" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
                         <button type="button" onclick="resetFormExpired()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                     </div>
-                   </form>
-                   div style="margin-top: 15px;">
+                </form>
+                <div style="margin-top: 15px;">
                     <input type="text" id="cariTabelExpired" placeholder="Cari data expired..." class="input-text" style="font-size: 12px; margin-bottom: 8px;" oninput="renderTabelExpired()">
                     <div style="max-height: 30vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                         <table>
@@ -281,7 +279,6 @@
                     </div>
                 </div>
             </div>
-            
             <div class="card" style="margin-top: 20px; padding: 15px; border-color: #4b5563;">
                 <h3 style="font-size: 13px; font-weight: bold; color: #eab308; margin-bottom: 10px;">📦 Rincian Barang Terjual (Filter Terpilih)</h3>
                 <div style="max-height: 25vh; overflow-y: auto;">
@@ -294,6 +291,7 @@
         </div>
 
         <div>
+            <!-- BAGIAN LAPORAN PENJUALAN (Hanya Admin) -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📊 Laporan Penjualan</h2>
@@ -318,6 +316,8 @@
                     </table>
                 </div>
             </div>
+
+            <!-- BAGIAN INVENTORI & KONTROL STOK (Hanya Admin) -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <h2 style="font-size: 15px; font-weight: bold;">📦 Inventori & Kontrol Stok</h2>
@@ -333,6 +333,7 @@
             </div>
         </div>
     </div>
+    
     <div id="areaStruk" style="display: none; font-family: monospace; font-size: 12px; width: 58mm; padding: 10px; color: black; background: white;">
         <center>
             <h2 style="font-size: 14px; font-weight: bold;">MAHAKARYA</h2>
@@ -427,7 +428,8 @@
                 }
             });
         }
-  function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
+        
+        function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
             if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
             const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
             const pesan = `⚠️ *PERINGATAN KEAMANAN POS* ⚠️\n\n` +
@@ -445,7 +447,6 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
         }
-
         window.toggleSection = function(contentId, iconId) {
             const content = document.getElementById(contentId);
             const icon = document.getElementById(iconId);
@@ -539,6 +540,7 @@
             pencarianProduk();
             elInput.focus();
         }
+
         window.renderProduk = function(dataGrid = null) {
             const grid = document.getElementById('gridProduk');
             const targetData = dataGrid || produkData;
@@ -618,7 +620,7 @@
             renderTombolUangCepat(total);
             hitungKembalian();
         }
-     window.sesuaikanQty = function(index, perubahan) {
+        window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
             const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
             const qtyBaru = item.qty + perubahan;
@@ -803,7 +805,7 @@
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             if(!document.getElementById('allowPrint').checked) alert(`Transaksi Sukses! (${jenisBayar} ${detailBank !== '-' ? '- ' + detailBank : ''}) ID: ${nomorNota}`);
         }
-         window.cetakStrukUlangLokal = function(idNota) {
+       window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
@@ -1093,7 +1095,6 @@
             hitungLaporanDashboard();
             renderAdminTable();
         }
-        
         window.refundItemSpesifik = function(idNota, indexItem) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota) return;
@@ -1143,6 +1144,7 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
+
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -1219,7 +1221,6 @@
                 hitungLaporanDashboard();
             }
         }
-        
         window.hitungLaporanDashboard = function() {
             let omset = 0, modal = 0;
             const selectFilter = document.getElementById('filterTanggal');
@@ -1297,7 +1298,8 @@
                 });
                 const semuadirerefund = nota.items.every(i => i.refunded) || nota.refunded;
                 const isKurangBayar = nota.nominalKurang && nota.nominalKurang > 0 && !semuadirerefund;
-        htmlBuffer += `
+
+                htmlBuffer += `
                     <tr class="${semuadirerefund ? 'text-refund':''}">
                         <td>
                             <strong style="color:#60a5fa;">${nota.idNota}</strong>
@@ -1352,6 +1354,7 @@
                 }
             });
         }
+
         window.hitungOtomatisBatasRetur = function() {
             const valExp = document.getElementById('expTanggal').value;
             if (!valExp) return;
@@ -1362,7 +1365,6 @@
             let hari = String(tglExp.getDate()).padStart(2, '0');
             document.getElementById('expBatasRetur').value = `${tahun}-${bulan}-${hari}`;
         }
-
         window.simpanDataExpired = function(event) {
             event.preventDefault();
             const idEdit = document.getElementById('editExpId').value;
