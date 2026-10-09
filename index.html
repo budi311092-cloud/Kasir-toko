@@ -42,7 +42,7 @@
         .admin-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; padding: 15px; max-width: 1400px; margin: 0 auto; }
         @media (min-width: 1024px) { .admin-layout { grid-template-columns: 1fr 2fr; } }
         
-        .grid-laporan { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 20px; }
+        .grid-laporan { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; margin-bottom: 15px; }
         @media (min-width: 640px) { .grid-laporan { grid-template-columns: repeat(3, 1fr); } }
         .box-laporan { padding: 15px; border-radius: 8px; color: white; }
         .box-omset { background-color: #1e3a8a; border: 1px solid #3b82f6; }
@@ -279,6 +279,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="card" style="margin-top: 20px; padding: 15px; border-color: #4b5563;">
                 <h3 style="font-size: 13px; font-weight: bold; color: #eab308; margin-bottom: 10px;">📦 Rincian Barang Terjual (Filter Terpilih)</h3>
                 <div style="max-height: 25vh; overflow-y: auto;">
@@ -304,11 +305,17 @@
                         <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset</button>
                     </div>
                 </div>
+            <!-- OMSET DIPISAH TUNAI DAN NONTUNAI -->
+                <div class="grid-laporan" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 10px;">
+                    <div class="box-laporan box-omset"><p style="font-size: 11px;">💵 OMSET TUNAI</p><h3 id="lapOmsetTunai">Rp 0</h3></div>
+                    <div class="box-laporan box-omset" style="background-color: #312e81; border-color: #6366f1;"><p style="font-size: 11px;">💳 OMSET NONTUNAI</p><h3 id="lapOmsetNontunai">Rp 0</h3></div>
+                </div>
                 <div class="grid-laporan">
-                    <div class="box-laporan box-omset"><p style="font-size: 11px;">OMSET</p><h3 id="lapOmset">Rp 0</h3></div>
+                    <div class="box-laporan box-omset" style="background-color: #172554;"><p style="font-size: 11px;">💰 TOTAL OMSET</p><h3 id="lapOmset">Rp 0</h3></div>
                     <div class="box-laporan box-modal"><p style="font-size: 11px;">MODAL</p><h3 id="lapModal">Rp 0</h3></div>
                     <div class="box-laporan box-laba"><p style="font-size: 11px;">LABA</p><h3 id="lapLaba">Rp 0</h3></div>
                 </div>
+
                 <div style="max-height: 45vh; overflow-y: auto; border: 1px solid #374151; border-radius: 6px;">
                     <table>
                         <thead><tr><th>No. Nota & Detail Barang</th><th>Tanggal & Waktu</th><th>Total Belanja</th><th>Aksi</th></tr></thead>
@@ -805,7 +812,7 @@
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             if(!document.getElementById('allowPrint').checked) alert(`Transaksi Sukses! (${jenisBayar} ${detailBank !== '-' ? '- ' + detailBank : ''}) ID: ${nomorNota}`);
         }
-       window.cetakStrukUlangLokal = function(idNota) {
+ window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
@@ -1095,6 +1102,7 @@
             hitungLaporanDashboard();
             renderAdminTable();
         }
+        
         window.refundItemSpesifik = function(idNota, indexItem) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if (!nota) return;
@@ -1144,7 +1152,6 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
-
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -1221,8 +1228,9 @@
                 hitungLaporanDashboard();
             }
         }
+        
         window.hitungLaporanDashboard = function() {
-            let omset = 0, modal = 0;
+            let omsetTunai = 0, omsetNontunai = 0, modal = 0;
             const selectFilter = document.getElementById('filterTanggal');
             const filter = selectFilter.value;
             const inputDate = document.getElementById('filterTanggalSpesifik');
@@ -1280,7 +1288,14 @@
                     if (!cocokNota && !cocokTanggal && !cocokBarang && !cocokPelanggan) return; 
                 }
 
-                if(!nota.refunded) { omset += nota.totalOmset; modal += nota.totalModal; }
+                if(!nota.refunded) { 
+                    if (nota.metodePembayaran === "Nontunai") {
+                        omsetNontunai += nota.totalOmset;
+                    } else {
+                        omsetTunai += nota.totalOmset;
+                    }
+                    modal += nota.totalModal; 
+                }
 
                 let teksRincianItem = "";
                 nota.items.forEach((it, idx) => { 
@@ -1326,9 +1341,12 @@
             });
             tbody.innerHTML = htmlBuffer;
 
-            document.getElementById('lapOmset').innerText = formatRupiah(omset);
+            const totalOmsetKeseluruhan = omsetTunai + omsetNontunai;
+            document.getElementById('lapOmsetTunai').innerText = formatRupiah(omsetTunai);
+            document.getElementById('lapOmsetNontunai').innerText = formatRupiah(omsetNontunai);
+            document.getElementById('lapOmset').innerText = formatRupiah(totalOmsetKeseluruhan);
             document.getElementById('lapModal').innerText = formatRupiah(modal);
-            document.getElementById('lapLaba').innerText = formatRupiah(omset - modal);
+            document.getElementById('lapLaba').innerText = formatRupiah(totalOmsetKeseluruhan - modal);
 
             const containerRangkuman = document.getElementById('listBarangTerjualFilter');
             let rangkumanHtml = '';
@@ -1342,8 +1360,7 @@
             }
             containerRangkuman.innerHTML = rangkumanHtml;
         }
-        
-        let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
+   let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
 
         if (isOnline) {
             onValue(ref(db, 'pos_expired'), (snapshot) => {
@@ -1365,6 +1382,7 @@
             let hari = String(tglExp.getDate()).padStart(2, '0');
             document.getElementById('expBatasRetur').value = `${tahun}-${bulan}-${hari}`;
         }
+
         window.simpanDataExpired = function(event) {
             event.preventDefault();
             const idEdit = document.getElementById('editExpId').value;
@@ -1465,7 +1483,6 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim notifikasi retur Telegram:", err));
         }
-        
         window.editDataExpired = function(id) {
             const item = dataExpired.find(i => i.id === id);
             if (!item) return;
