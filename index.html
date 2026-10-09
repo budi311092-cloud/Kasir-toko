@@ -965,12 +965,12 @@
                     }
                 });
                 html += `</div>`;
-                
                 html += `<div style="text-align:right;">
-                            <button type="button" onclick="prosesKePelunasan('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💵 Lunasi Nota Ini</button>
-                         </div>`;
+            <button type="button" onclick="window.prosesKePelunasan('${nota.idNota}')" style="background:#059669; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">💵 Lunasi Nota Ini</button>
+         </div>`;
 
-                html += `</div>`;
+html += `</div>`;
+                
                 grandTotal += nota.nominalKurang;
             });
 
@@ -987,10 +987,22 @@
             document.getElementById('modalDetailGabungan').classList.add('hidden');
         }
         // Fungsi baru khusus untuk menjembatani pop-up detail ke pop-up pelunasan
-        window.prosesKePelunasan = function(idNota) {
-            // 1. Tutup pop-up rincian gabungan terlebih dahulu
-            tutupModalDetailGabungan();
+                window.prosesKePelunasan = function(idNota) {
+            // 1. Eksekusi langsung tanpa jeda (synchronous) menggunakan awalan window.
+            window.lunasiTransaksi(idNota);
+            window.tutupModalDetailGabungan();
             
+            // 2. Jeda singkat hanya untuk menyorot/memblok angka pada keyboard HP
+            setTimeout(() => {
+                const inputElem = document.getElementById('inputNominalPelunasan');
+                if (inputElem) {
+                    inputElem.focus();
+                    // Menggunakan setSelectionRange karena lebih stabil untuk browser Android/Mobile
+                    inputElem.setSelectionRange(0, inputElem.value.length);
+                }
+            }, 100);
+        };
+
             // 2. Beri jeda 100 milidetik agar animasi penutupan selesai, menghindari bentrok DOM
             setTimeout(() => {
                 // Buka pop-up pelunasan bawaan
