@@ -153,6 +153,7 @@
             <button type="button" onclick="tutupModalNontunai()" style="width: 100%; background: #4b5563; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Batal</button>
         </div>
     </div>
+
     <div id="areaKasir" class="main-container hidden" style="grid-template-columns: 1fr;">
         <div class="card">
             <div id="containerKurangBayarKasir" style="display: none; margin-bottom: 15px; padding: 10px; background: #7f1d1d; border-radius: 8px; border: 1px solid #dc2626;">
@@ -221,8 +222,7 @@
             </div>
         </div>
     </div>
-    
-     <div id="areaAdmin" class="admin-layout hidden">
+    <div id="areaAdmin" class="admin-layout hidden">
         <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-bottom: -10px;">
             <label class="container-checkbox" style="background: #1f2937; border-color: #374151; padding: 8px 12px;">
                 <input type="checkbox" id="togglePinAdmin" onchange="ubahPengaturanPinAdmin()">
@@ -305,7 +305,8 @@
                         <button onclick="resetSemuaLaporanTransaksi()" style="background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;">🗑️ Reset</button>
                     </div>
                 </div>
-            <!-- OMSET DIPISAH TUNAI DAN NONTUNAI -->
+
+                <!-- OMSET DIPISAH TUNAI DAN NONTUNAI -->
                 <div class="grid-laporan" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 10px;">
                     <div class="box-laporan box-omset"><p style="font-size: 11px;">💵 OMSET TUNAI</p><h3 id="lapOmsetTunai">Rp 0</h3></div>
                     <div class="box-laporan box-omset" style="background-color: #312e81; border-color: #6366f1;"><p style="font-size: 11px;">💳 OMSET NONTUNAI</p><h3 id="lapOmsetNontunai">Rp 0</h3></div>
@@ -359,7 +360,6 @@
         <div style="display:flex; justify-content:space-between; font-weight: bold;"><span id="strukLabelSisa">Kembali:</span><span id="strukKembali"></span></div>
         <div id="rowStrukKurangBayar" style="display:none; justify-content:space-between; font-weight: bold; color: red;"><span>Kurang:</span><span id="strukKurangBayar"></span></div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -454,17 +454,6 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim pesan Telegram:", err));
         }
-        window.toggleSection = function(contentId, iconId) {
-            const content = document.getElementById(contentId);
-            const icon = document.getElementById(iconId);
-            if (content.style.display === "none") {
-                content.style.display = "block";
-                icon.innerHTML = "Tutup 🔼";
-            } else {
-                content.style.display = "none";
-                icon.innerHTML = "Lihat 🔽";
-            }
-        }
         
         window.tekanPin = function(a) { 
             const input = document.getElementById('pinDisplayInput');
@@ -489,11 +478,6 @@
                 hapusPin(); 
                 document.getElementById('pinDisplayInput').focus(); 
             }
-        }
-
-        window.bukaOfflineKasirDarurat = function() {
-            alert("⚠️ Masuk ke mode Kasir Darurat Offline.");
-            bukaMenuUtama("kasir");
         }
         
         window.bukaMenuUtama = function(role) {
@@ -529,7 +513,6 @@
                 renderTabelExpired();
             }
         }
-
         window.formatRupiah = function(n) { return "Rp " + parseInt(n).toLocaleString('id-ID'); }
 
         window.pencarianProduk = function() {
@@ -627,6 +610,7 @@
             renderTombolUangCepat(total);
             hitungKembalian();
         }
+
         window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
             const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
@@ -812,7 +796,7 @@
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             if(!document.getElementById('allowPrint').checked) alert(`Transaksi Sukses! (${jenisBayar} ${detailBank !== '-' ? '- ' + detailBank : ''}) ID: ${nomorNota}`);
         }
- window.cetakStrukUlangLokal = function(idNota) {
+        window.cetakStrukUlangLokal = function(idNota) {
             const nota = laporanTerjual.find(n => n.idNota === idNota);
             if(!nota) return alert("Data nota tidak ditemukan!");
 
@@ -947,6 +931,7 @@
 
             tbody.innerHTML = html;
         }
+
         window.bukaDetailGroup = function(namaAsli) {
             const notas = laporanTerjual.filter(n => {
                 const semuadirerefund = n.items.every(i => i.refunded) || n.refunded;
@@ -1039,9 +1024,8 @@
         window.tutupModalPelunasan = function() {
             document.getElementById('modalPelunasan').classList.add('hidden');
             idNotaPelunasanAktif = null;
-        }
-
-        window.prosesPelunasan = function() {
+    }
+      window.prosesPelunasan = function() {
             if (!idNotaPelunasanAktif) return;
             
             const nota = laporanTerjual.find(n => n.idNota === idNotaPelunasanAktif);
@@ -1152,6 +1136,7 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
+
         window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
@@ -1360,7 +1345,8 @@
             }
             containerRangkuman.innerHTML = rangkumanHtml;
         }
-   let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
+
+        let dataExpired = JSON.parse(localStorage.getItem('local_expired')) || [];
 
         if (isOnline) {
             onValue(ref(db, 'pos_expired'), (snapshot) => {
@@ -1371,7 +1357,6 @@
                 }
             });
         }
-
         window.hitungOtomatisBatasRetur = function() {
             const valExp = document.getElementById('expTanggal').value;
             if (!valExp) return;
@@ -1483,6 +1468,7 @@
                 body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" })
             }).catch(err => console.error("Gagal mengirim notifikasi retur Telegram:", err));
         }
+
         window.editDataExpired = function(id) {
             const item = dataExpired.find(i => i.id === id);
             if (!item) return;
