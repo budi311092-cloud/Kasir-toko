@@ -116,8 +116,9 @@
                 <button class="pin-btn masuk" onclick="verifikasiPin()">Masuk</button>
             </div>
         </div>
-                </div>
-       <div id="modalPelunasan" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 9999; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
+    </div>
+    
+    <div id="modalPelunasan" class="pin-screen-container hidden" style="position: fixed; top: 0; left: 0; z-index: 9999; background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(4px);">
         <div class="pin-card" style="max-width: 350px; padding: 25px; border-color: #4b5563;">
             <h3 style="color: white; font-size: 16px; margin-bottom: 15px; font-weight: bold;">💵 Pelunasan Transaksi</h3>
             <p id="teksInfoPelunasan" style="color: #d1d5db; font-size: 13px; margin-bottom: 20px; text-align: left; line-height: 1.5; background: #111827; padding: 10px; border-radius: 8px; border: 1px solid #374151;"></p>
@@ -231,7 +232,7 @@
         
         <div class="card" style="height: fit-content;">
             <h2 id="judulFormAdmin" style="font-size: 15px; font-weight: bold; color: #10b981; margin-bottom:15px;">➕ Manajemen Data Barang</h2>
-            <form id="formProduk" onsubmit="event.preventDefault(); simpanProduk(event); return false;">
+            <form id="formProduk">
                 <input type="hidden" id="editId">
                 <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang</label>
                 <input type="text" id="inputNama" required class="input-text">
@@ -244,13 +245,14 @@
                     <div><label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Harga Grosir (Rp)</label><input type="number" id="inputHargaGrosir" required class="input-text"></div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <button type="submit" id="btnSimpanAdmin" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
+                    <button type="button" id="btnSimpanAdmin" onclick="simpanProduk(event)" style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Barang</button>
                     <button type="button" onclick="resetFormAdmin()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                 </div>
             </form>
-     <div class="card" style="margin-top: 20px; border-color: #3b82f6;">
+            
+            <div class="card" style="margin-top: 20px; border-color: #3b82f6;">
                 <h3 style="font-size: 14px; font-weight: bold; color: #60a5fa; margin-bottom: 10px;">⏳ Kontrol Expired & Retur (3 Bulan)</h3>
-                <form id="formExpired" onsubmit="event.preventDefault(); simpanDataExpired(event); return false;">
+                <form id="formExpired">
                     <input type="hidden" id="editExpId">
                     <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Nama Barang / Bahan Kue</label>
                     <input type="text" id="expNama" required class="input-text" placeholder="Contoh: Tepung Segitiga Biru">
@@ -263,7 +265,7 @@
                         <input type="date" id="expBatasRetur" readonly class="input-text" style="background: #111827; color: #eab308; cursor: not-allowed;">
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 5px;">
-                        <button type="submit" id="btnSimpanExp" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
+                        <button type="button" id="btnSimpanExp" onclick="simpanDataExpired(event)" style="flex: 1; background: #2563eb; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Simpan Data Expired</button>
                         <button type="button" onclick="resetFormExpired()" style="background: #4b5563; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Batal</button>
                     </div>
                 </form>
@@ -392,7 +394,6 @@
             const cbPin = document.getElementById('togglePinAdmin');
             if(cbPin) cbPin.checked = wajibPinAdmin;
         }
-
         window.ubahPengaturanPinAdmin = function() {
             wajibPinAdmin = document.getElementById('togglePinAdmin').checked;
             localStorage.setItem('wajibPinAdmin', wajibPinAdmin);
@@ -433,6 +434,7 @@
                 }
             });
         }
+        
         function kirimNotifikasiTelegram(pinInput, lokasiAkses) {
             if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("MASUKKAN_")) return;
             const waktuWib = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
@@ -546,7 +548,6 @@
             });
             grid.innerHTML = htmlBuffer;
         }
-
         window.tambahKeKeranjang = function(id) {
             const p = produkData.find(item => item.id === id);
             const totalQtyDiKeranjang = keranjang.filter(item => item.id === id).reduce((sum, item) => sum + item.qty, 0);
@@ -607,6 +608,7 @@
             renderTombolUangCepat(total);
             hitungKembalian();
         }
+
         window.sesuaikanQty = function(index, perubahan) {
             const item = keranjang[index];
             const totalQtyLain = keranjang.filter((it, idx) => it.id === item.id && idx !== index).reduce((sum, it) => sum + it.qty, 0);
@@ -674,8 +676,7 @@
                 elUang.style.color = "#34d399";
             }
         }
-
-        window.pilihMetodePembayaran = function(metode) {
+      window.pilihMetodePembayaran = function(metode) {
             metodePembayaranAktif = metode;
             const btnTunai = document.getElementById('btnMetodeTunai');
             const btnNontunai = document.getElementById('btnMetodeNontunai');
@@ -703,6 +704,7 @@
                 wrapperTunai.classList.add('hidden');
             }
         };
+
         window.prosesTransaksi = function() {
             if(keranjang.length === 0) return alert("Keranjang kosong!");
             
@@ -842,6 +844,7 @@
             window.print();
             setTimeout(() => { areaStruk.style.display = "none"; }, 400);
         }
+
         window.renderKasirKurangBayar = function() {
             const container = document.getElementById('containerKurangBayarKasir');
             const tbody = document.getElementById('tabelKasirKurangBayar');
@@ -925,7 +928,6 @@
 
             tbody.innerHTML = html;
         }
-
         window.bukaDetailGroup = function(namaAsli) {
             const notas = laporanTerjual.filter(n => {
                 const semuadirerefund = n.items.every(i => i.refunded) || n.refunded;
@@ -991,7 +993,8 @@
         };
 
         let idNotaPelunasanAktif = null;
-      window.formatInputRibuan = function(inputElem) {
+
+        window.formatInputRibuan = function(inputElem) {
             let value = inputElem.value.replace(/[^0-9]/g, '');
             if (value) { inputElem.value = parseInt(value, 10).toLocaleString('id-ID'); } 
             else { inputElem.value = ''; }
@@ -1053,7 +1056,6 @@
             if(typeof renderKasirKurangBayar === "function") renderKasirKurangBayar();
             tutupModalPelunasan();
         }
-
         window.refundTransaksi = function(idNota) {
             if(!confirm("Apakah Anda yakin ingin melakukan Refund pada Nota ini?")) return;
             const nota = laporanTerjual.find(n => n.idNota === idNota);
@@ -1129,7 +1131,8 @@
             if(antreanOffline.length > 0) info.innerText = `(⏳ ${antreanOffline.length} Nota Offline)`;
             else info.innerText = "";
         }
-       window.renderAdminTable = function() {
+
+        window.renderAdminTable = function() {
             const tbody = document.getElementById('tabelAdmin');
             const kataKunci = document.getElementById('cariInventori').value.toLowerCase();
             let htmlBuffer = '';
@@ -1361,7 +1364,14 @@
         }
 
         window.simpanDataExpired = function(event) {
-            event.preventDefault();
+            if (event) event.preventDefault();
+            
+            const form = document.getElementById('formExpired');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
             const idEdit = document.getElementById('editExpId').value;
             const nama = document.getElementById('expNama').value;
             const jumlah = parseInt(document.getElementById('expJumlah').value) || 0;
@@ -1472,8 +1482,15 @@
             document.getElementById('btnSimpanExp').innerText = "Perbarui Data Expired";
             document.getElementById('formExpired').scrollIntoView({ behavior: 'smooth' });
         }
+        
 window.simpanProduk = function(event) {
     if (event) event.preventDefault(); // Mencegah reload/refresh halaman!
+
+    const form = document.getElementById('formProduk');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
 
     const idEdit = document.getElementById('editId').value;
     const nama = document.getElementById('inputNama').value.trim();
@@ -1520,6 +1537,7 @@ window.simpanProduk = function(event) {
     renderAdminTable();
     if (modeSekarang === "kasir") renderProduk();
 };
+
 window.resetFormAdmin = function() {
     document.getElementById('formProduk').reset();
     document.getElementById('editId').value = '';
